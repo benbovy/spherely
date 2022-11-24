@@ -2,7 +2,7 @@
 
 Manipulation and analysis of geometric objects on the sphere.
 
-Scikit-sphere provides Python/Numpy vectorized bindings for the
+Scikit-sphere provides Python/Numpy vectorized bindings for the C++
 [s2geography](https://github.com/paleolimbot/s2geography) and
 [s2geometry](https://github.com/google/s2geometry) libraries.
 
