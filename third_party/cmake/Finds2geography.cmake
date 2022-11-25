@@ -46,7 +46,7 @@ find_path(s2geography_INCLUDE_DIR s2geography.h
   )
 
 find_library(s2geography_LIBRARY
-  NAMES s2
+  NAMES s2geography
   HINTS
     ENV S2GEOGRAPHY_ROOT
     ENV S2GEOGRAPHY_DIR
