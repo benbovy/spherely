@@ -100,6 +100,15 @@ using PyGeographyPtr = PyGeography*;
 PYBIND11_NUMPY_OBJECT_DTYPE(PyGeographyPtr);
 
 
+PyGeographyPtr as_pygeography(py::object obj) {
+    try {
+        return obj.cast<PyGeographyPtr>();
+    } catch (const py::cast_error &e) {
+        throw py::value_error("not a Geography object");
+    }
+}
+
+
 py::array_t<int> num_shapes(const py::array_t<PyGeographyPtr> geographies) {
     py::buffer_info buf = geographies.request();
 
@@ -115,7 +124,7 @@ py::array_t<int> num_shapes(const py::array_t<PyGeographyPtr> geographies) {
         // doesnt't support Python -> C++ conversion (no `load` method)
         // as it would imply that Python needs to give up ownership of an object,
         // which is not possible (the object might be referenced elsewhere)
-        auto geog_ptr = bptr[i].cast<PyGeographyPtr>();
+        auto geog_ptr = as_pygeography(bptr[i]);
         //rptr[i] = geog_ptr->m_geog_ptr->num_shapes();
         rptr[i] = geog_ptr->num_shapes();
     }

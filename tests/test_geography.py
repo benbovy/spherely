@@ -28,3 +28,10 @@ def test_nshape(points):
     expected = np.ones(2, dtype=np.int32)
     actual = sksphere.nshape(points)
     np.testing.assert_array_equal(actual, expected)
+
+
+def test_not_geography_array_item():
+    arr = np.array([1, sksphere.Point(30, 6)])
+
+    with pytest.raises(ValueError, match="not a Geography object"):
+        sksphere.nshape(arr)
