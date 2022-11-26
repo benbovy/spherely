@@ -115,7 +115,7 @@ py::array_t<int> num_shapes(const py::array_t<PyGeographyPtr> geographies) {
         // doesnt't support Python -> C++ conversion (no `load` method)
         // as it would imply that Python needs to give up ownership of an object,
         // which is not possible (the object might be referenced elsewhere)
-        auto geog_ptr = bptr[i].cast<PyGeography*>();
+        auto geog_ptr = bptr[i].cast<PyGeographyPtr>();
         //rptr[i] = geog_ptr->m_geog_ptr->num_shapes();
         rptr[i] = geog_ptr->num_shapes();
     }
