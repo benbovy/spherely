@@ -95,10 +95,9 @@ public:
   }                                                                            \
   }
 
-// make s2geography::Geography valid for use in numpy as object dtype
-using PyGeographyPtr = std::unique_ptr<PyGeography>;
+// make PyGeography pointer valid for use in numpy as object dtype
+using PyGeographyPtr = PyGeography*;
 PYBIND11_NUMPY_OBJECT_DTYPE(PyGeographyPtr);
-PYBIND11_NUMPY_OBJECT_DTYPE(PyGeography);
 
 
 py::array_t<int> num_shapes(const py::array_t<PyGeographyPtr> geographies) {
@@ -111,6 +110,11 @@ py::array_t<int> num_shapes(const py::array_t<PyGeographyPtr> geographies) {
     py::object *bptr = static_cast<py::object*>(buf.ptr);
 
     for(size_t i = 0; i < buf.size; i++) {
+        // cast to a raw pointer here
+        // pybind11's `type_caster<std::unique_ptr<wrapped_type>>`
+        // doesnt't support Python -> C++ conversion (no `load` method)
+        // as it would imply that Python needs to give up ownership of an object,
+        // which is not possible (the object might be referenced elsewhere)
         auto geog_ptr = bptr[i].cast<PyGeography*>();
         //rptr[i] = geog_ptr->m_geog_ptr->num_shapes();
         rptr[i] = geog_ptr->num_shapes();
@@ -139,8 +143,9 @@ py::array_t<PyGeographyPtr> create(py::array_t<double> xs, py::array_t<double> y
   size_t size = static_cast<size_t>(xbuf.shape[0]);
 
   for (size_t i = 0; i < xbuf.shape[0]; i++) {
-    // this passes back the original references
     auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
+    // pybind11's `type_caster<std::unique_ptr<wrapped_type>>`
+    // C++ -> Python (i.e., `cast`) move semantics
     rptr[i] = py::cast(std::move(point_ptr));
   }
 
