@@ -9,10 +9,10 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
-namespace s2g = s2geography;
+namespace s2geog = s2geography;
 
 
-using GeographyPtr = std::unique_ptr<s2g::Geography>;
+using GeographyPtr = std::unique_ptr<s2geog::Geography>;
 
 /*
 ** Approach 1: internediate wrappers around s2geography objects with move semantics
@@ -66,9 +66,9 @@ public:
 ** (type aliases used for convenience)
 */
 
-//using Geography = s2g::Geography;
-//using Point = s2g::PointGeography;
-//using LineString = s2g::PolylineGeography;
+//using Geography = s2geog::Geography;
+//using Point = s2geog::PointGeography;
+//using LineString = s2geog::PolylineGeography;
 
 
 /*
@@ -85,7 +85,7 @@ public:
 
     static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
-        GeographyPtr geog_ptr = std::make_unique<s2g::PointGeography>(S2Point(latlng));
+        GeographyPtr geog_ptr = std::make_unique<s2geog::PointGeography>(S2Point(latlng));
         std::unique_ptr<Point> point_ptr = std::make_unique<Point>(std::move(geog_ptr));
         return point_ptr;
     }
@@ -102,7 +102,7 @@ public:
             latlng_pts.push_back(S2LatLng::FromDegrees(latlng.first, latlng.second));
         }
         auto polyline = std::make_unique<S2Polyline>(latlng_pts);
-        GeographyPtr geog_ptr = std::make_unique<s2g::PolylineGeography>(std::move(polyline));
+        GeographyPtr geog_ptr = std::make_unique<s2geog::PolylineGeography>(std::move(polyline));
         return std::make_unique<LineString>(std::move(geog_ptr));
     }
 };
@@ -110,7 +110,8 @@ public:
 
 /*
 ** Pybind11 patches and workarounds for operating on Python wrapped Geography
-** objects through Numpy arrays and universal functions.
+** objects through Numpy arrays and universal functions (using numpy.object
+** dtype).
 **
 ** Somewhat hacky!
 */
@@ -118,7 +119,7 @@ public:
 // A ``pybind11::object`` that maybe points to a ``Geography`` C++ object.
 //
 // To main goal of this class is to be used as argument type of s2shapely's
-// vectorized functions that operate on Geography objects via the nympy.object
+// vectorized functions that operate on Geography objects via the numpy.object
 // dtype.
 //
 // Instead of relying on Pybind11's implicit conversion mechanisms (copy), we
@@ -172,7 +173,7 @@ namespace pybind11 {
         //
         // Here it is probably fine to make an exception since we require
         // explicit Python object <-> C++ Geography conversion and also because
-        // with the numpy.object dtype the data are actually reference to Python
+        // with the numpy.object dtype the data are actually references to Python
         // objects (not the objects themselves).
         //
         // Caveat: be careful and use PyObjectGeography cast methods!
@@ -274,7 +275,7 @@ PYBIND11_MODULE(s2shapely, m) {
         .def_property_readonly("nshape", &Geography::num_shapes)
         .def("__repr__",
              [](const Geography &py_geog) {
-                 s2g::WKTWriter writer;
+                 s2geog::WKTWriter writer;
                  return writer.write_feature(*py_geog.m_geog_ptr);
                  //return writer.write_feature(py_geog);
              }
