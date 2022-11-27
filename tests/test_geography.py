@@ -49,5 +49,5 @@ def test_get_dimensions():
 def test_not_geography_array_item():
     arr = np.array([1, 2.33, s2shapely.Point(30, 6)])
 
-    with pytest.raises(ValueError, match="not a Geography object"):
+    with pytest.raises(TypeError, match="not a Geography object"):
         s2shapely.nshape(arr)

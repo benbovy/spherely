@@ -125,13 +125,12 @@ public:
 // Instead of relying on Pybind11's implicit conversion mechanisms (copy), we
 // require explicit conversion from / to ``pybind11::object``.
 //
-//
 class PyObjectGeography : public py::object {
 public:
 
     // Python -> C++ conversion
     //
-    // Raises a ``ValueError`` on the Python side if the cast fails.
+    // Raises a ``TypeError`` on the Python side if the cast fails.
     //
     // Note: a raw pointer is used here because Pybind11's
     // `type_caster<std::unique_ptr<wrapped_type>>` doesnt't support Python->C++
@@ -146,14 +145,14 @@ public:
         try {
             return cast<Geography*>();
         } catch (const py::cast_error &e) {
-            throw py::value_error("not a Geography object");
+            throw py::type_error("not a Geography object");
         }
     }
 
     // C++ -> Python conversion
     //
     // Note: pybind11's `type_caster<std::unique_ptr<wrapped_type>>` implements
-    // move semantics.
+    // move semantics (Python takes ownership).
     //
     template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
     static py::object as_py_object(std::unique_ptr<T> geog_ptr) {
