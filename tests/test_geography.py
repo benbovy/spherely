@@ -30,8 +30,23 @@ def test_nshape(points):
     np.testing.assert_array_equal(actual, expected)
 
 
+def test_test_vectorized():
+    expected = np.ones((2, 2), dtype=np.int32)
+    geog = np.array(
+        [
+            [s2shapely.Point(40 ,5), s2shapely.Point(30, 6)],
+            [s2shapely.LineString([(50, 5), (51, 6)]), s2shapely.Point(20, 4)]
+        ]
+    )
+    actual = s2shapely.test(geog)
+    np.testing.assert_array_equal(actual, expected)
+
+    # test scalar
+    assert s2shapely.test(s2shapely.Point(40, 5)) == 1
+
+
 def test_not_geography_array_item():
-    arr = np.array([1, s2shapely.Point(30, 6)])
+    arr = np.array([1, 2.33, s2shapely.Point(30, 6)])
 
     with pytest.raises(ValueError, match="not a Geography object"):
         s2shapely.nshape(arr)
