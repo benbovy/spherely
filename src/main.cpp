@@ -19,21 +19,21 @@ using GeographyPtr = std::unique_ptr<s2g::Geography>;
 ** (useful for debugging but probably not needed)
 */
 
-class PyGeography {
+class Geography {
 public:
-    PyGeography(const PyGeography&) = delete;
-    PyGeography(PyGeography&& py_geog) : m_geog_ptr(std::move(py_geog.m_geog_ptr)) {
-        std::cout << "PyGeography move constructor called: " << this << std::endl;
+    Geography(const Geography&) = delete;
+    Geography(Geography&& py_geog) : m_geog_ptr(std::move(py_geog.m_geog_ptr)) {
+        std::cout << "Geography move constructor called: " << this << std::endl;
     }
-    PyGeography(GeographyPtr&& geog_ptr) : m_geog_ptr(std::move(geog_ptr)) {}
+    Geography(GeographyPtr&& geog_ptr) : m_geog_ptr(std::move(geog_ptr)) {}
 
-    ~PyGeography() {
-        std::cout << "PyGeography destructor called: " << this << std::endl;
+    ~Geography() {
+        std::cout << "Geography destructor called: " << this << std::endl;
     }
 
-    PyGeography& operator=(const PyGeography&) = delete;
-    PyGeography& operator=(PyGeography&& other) {
-        std::cout << "PyGeography move assignment called: " << this << std::endl;
+    Geography& operator=(const Geography&) = delete;
+    Geography& operator=(Geography&& other) {
+        std::cout << "Geography move assignment called: " << this << std::endl;
         m_geog_ptr = std::move(other.m_geog_ptr);
         return *this;
     }
@@ -45,18 +45,18 @@ public:
 };
 
 
-class PyPoint: public PyGeography {
+class Point: public Geography {
 public:
 
-    PyPoint(GeographyPtr&& geog_ptr) : PyGeography(std::move(geog_ptr)) {};
+    Point(GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
 };
 
 
-class PyLineString: public PyGeography {
+class LineString: public Geography {
 public:
 
-    PyLineString(GeographyPtr&& geog_ptr) : PyGeography(std::move(geog_ptr)) {};
+    LineString(GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
 };
 
@@ -66,9 +66,9 @@ public:
 ** (type aliases used for convenience)
 */
 
-//using PyGeography = s2g::Geography;
-//using PyPoint = s2g::PointGeography;
-//using PyLineString = s2g::PolylineGeography;
+//using Geography = s2g::Geography;
+//using Point = s2g::PointGeography;
+//using LineString = s2g::PolylineGeography;
 
 
 /*
@@ -78,15 +78,15 @@ public:
 class PointFactory {
 public:
 
-    // static std::unique_ptr<PyPoint> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
+    // static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
     //     auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
-    //     return std::make_unique<PyPoint>(S2Point(latlng));
+    //     return std::make_unique<Point>(S2Point(latlng));
     // }
 
-    static std::unique_ptr<PyPoint> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
+    static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
         GeographyPtr geog_ptr = std::make_unique<s2g::PointGeography>(S2Point(latlng));
-        std::unique_ptr<PyPoint> point_ptr = std::make_unique<PyPoint>(std::move(geog_ptr));
+        std::unique_ptr<Point> point_ptr = std::make_unique<Point>(std::move(geog_ptr));
         return point_ptr;
     }
 };
@@ -96,14 +96,14 @@ class LineStringFactory {
 public:
     using LatLonCoords = std::vector<std::pair<double, double>>;
 
-    static std::unique_ptr<PyLineString> FromLatLonCoords(LatLonCoords coords) {
+    static std::unique_ptr<LineString> FromLatLonCoords(LatLonCoords coords) {
         std::vector<S2LatLng> latlng_pts;
         for (auto& latlng : coords) {
             latlng_pts.push_back(S2LatLng::FromDegrees(latlng.first, latlng.second));
         }
         auto polyline = std::make_unique<S2Polyline>(latlng_pts);
         GeographyPtr geog_ptr = std::make_unique<s2g::PolylineGeography>(std::move(polyline));
-        return std::make_unique<PyLineString>(std::move(geog_ptr));
+        return std::make_unique<LineString>(std::move(geog_ptr));
     }
 };
 
@@ -115,7 +115,7 @@ public:
 ** Somewhat hacky!
 */
 
-// A ``pybind11::object`` that maybe points to a ``PyGeography`` C++ object.
+// A ``pybind11::object`` that maybe points to a ``Geography`` C++ object.
 //
 // To main goal of this class is to be used as argument type of s2shapely's
 // vectorized functions that operate on Geography objects via the nympy.object
@@ -141,9 +141,9 @@ public:
     // Conversion shouldn't involve any copy. The cast is dynamic, though, as
     // needed since numpy.object dtype can refer to any Python object.
     //
-    PyGeography* as_geog_ptr() const {
+    Geography* as_geog_ptr() const {
         try {
-            return cast<PyGeography*>();
+            return cast<Geography*>();
         } catch (const py::cast_error &e) {
             throw py::value_error("not a Geography object");
         }
@@ -154,7 +154,7 @@ public:
     // Note: pybind11's `type_caster<std::unique_ptr<wrapped_type>>` implements
     // move semantics.
     //
-    template <class T, std::enable_if_t<std::is_base_of<PyGeography, T>::value, bool> = true>
+    template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
     static py::object as_py_object(std::unique_ptr<T> geog_ptr) {
         return py::cast(std::move(geog_ptr));
     }
@@ -269,21 +269,21 @@ PYBIND11_MODULE(s2shapely, m) {
            :toctree: _generate
     )pbdoc";
 
-    py::class_<PyGeography>(m, "Geography")
-        .def_property_readonly("ndim", &PyGeography::dimension)
-        .def_property_readonly("nshape", &PyGeography::num_shapes)
+    py::class_<Geography>(m, "Geography")
+        .def_property_readonly("ndim", &Geography::dimension)
+        .def_property_readonly("nshape", &Geography::num_shapes)
         .def("__repr__",
-             [](const PyGeography &py_geog) {
+             [](const Geography &py_geog) {
                  s2g::WKTWriter writer;
                  return writer.write_feature(*py_geog.m_geog_ptr);
                  //return writer.write_feature(py_geog);
              }
         );
 
-    py::class_<PyPoint, PyGeography>(m, "Point")
+    py::class_<Point, Geography>(m, "Point")
         .def(py::init(&PointFactory::FromLatLonDegrees));
 
-    py::class_<PyLineString, PyGeography>(m, "LineString")
+    py::class_<LineString, Geography>(m, "LineString")
         .def(py::init(&LineStringFactory::FromLatLonCoords));
 
     m.def("nshape", &num_shapes);
