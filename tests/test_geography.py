@@ -6,7 +6,7 @@ import s2shapely
 
 def test_point():
     point = s2shapely.Point(40.2, 5.2)
-    assert point.ndim == 0
+    assert point.dimensions == 0
     assert point.nshape == 1
     assert repr(point).startswith("POINT (5.2 40.")
 
@@ -30,19 +30,20 @@ def test_nshape(points):
     np.testing.assert_array_equal(actual, expected)
 
 
-def test_test_vectorized():
-    expected = np.ones((2, 2), dtype=np.int32)
+def test_get_dimensions():
+    # test n-d array
+    expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
     geog = np.array(
         [
             [s2shapely.Point(40 ,5), s2shapely.Point(30, 6)],
             [s2shapely.LineString([(50, 5), (51, 6)]), s2shapely.Point(20, 4)]
         ]
     )
-    actual = s2shapely.test(geog)
+    actual = s2shapely.get_dimensions(geog)
     np.testing.assert_array_equal(actual, expected)
 
     # test scalar
-    assert s2shapely.test(s2shapely.Point(40, 5)) == 1
+    assert s2shapely.get_dimensions(s2shapely.Point(40, 5)) == 0
 
 
 def test_not_geography_array_item():

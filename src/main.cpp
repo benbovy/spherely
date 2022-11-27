@@ -255,8 +255,8 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs, py::array_t<double
 }
 
 
-int test(PyObjectGeography obj) {
-    return obj.as_geog_ptr()->num_shapes();
+int get_dimensions(PyObjectGeography obj) {
+    return obj.as_geog_ptr()->dimension();
 }
 
 
@@ -270,7 +270,7 @@ PYBIND11_MODULE(s2shapely, m) {
     )pbdoc";
 
     py::class_<Geography>(m, "Geography")
-        .def_property_readonly("ndim", &Geography::dimension)
+        .def_property_readonly("dimensions", &Geography::dimension)
         .def_property_readonly("nshape", &Geography::num_shapes)
         .def("__repr__",
              [](const Geography &py_geog) {
@@ -288,7 +288,7 @@ PYBIND11_MODULE(s2shapely, m) {
 
     m.def("nshape", &num_shapes);
     m.def("create", &create);
-    m.def("test", py::vectorize(&test));
+    m.def("get_dimensions", py::vectorize(&get_dimensions));
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
