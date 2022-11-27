@@ -1,10 +1,13 @@
-# scikit-sphere
+# S2Shapely
 
 Manipulation and analysis of geometric objects on the sphere.
 
-Scikit-sphere provides Python/Numpy vectorized bindings for the C++
-[s2geography](https://github.com/paleolimbot/s2geography) and
-[s2geometry](https://github.com/google/s2geometry) libraries.
+S2Shapely is the counterpart of [Shapely](https://github.com/shapely/shapely)
+(2.0+) for manipulation and analysis of spherical geometric objects. It is using
+the widely deployed open-source geometry library
+[s2geometry](https://github.com/google/s2geometry) via the library
+[s2geography](https://github.com/paleolimbot/s2geography) which provides a
+[GEOS](https://libgeos.org) compatibility layer on top of s2geometry.
 
 Not much to see here for the moment.
 
@@ -12,7 +15,8 @@ Not much to see here for the moment.
 
 - Python
 - Numpy
-- s2geography and its dependencies (s2geometry, absl)
+- s2geography
+- s2geometry
 
 ## Installation (from source)
 

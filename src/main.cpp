@@ -163,11 +163,11 @@ py::array_t<PyGeographyPtr> create(py::array_t<double> xs, py::array_t<double> y
 
 
 
-PYBIND11_MODULE(sksphere, m) {
+PYBIND11_MODULE(s2shapely, m) {
     m.doc() = R"pbdoc(
-        Scikit-Sphere
-        -------------
-        .. currentmodule:: sksphere
+        S2Shapely
+        ---------
+        .. currentmodule:: s2shapely
         .. autosummary::
            :toctree: _generate
     )pbdoc";

@@ -6,7 +6,7 @@ requires = [
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "sksphere"
+name = "s2shapely"
 version = "0.0.1"
 requires-python = ">=3.7"
 
