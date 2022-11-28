@@ -48,3 +48,6 @@ endif()
 set_target_properties(s2shapely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 
 install(TARGETS s2shapely LIBRARY DESTINATION .)
+
+# install type annotations
+install(FILES src/s2shapely.pyi DESTINATION .)

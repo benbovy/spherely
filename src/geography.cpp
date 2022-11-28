@@ -133,7 +133,7 @@ void init_geography(py::module &m) {
     // Geography types
 
     py::enum_<GeographyType>(m, "GeographyType")
-        .value("None", GeographyType::None)
+        .value("NONE", GeographyType::None)
         .value("POINT", GeographyType::Point)
         .value("LINESTRING", GeographyType::LineString);
 
