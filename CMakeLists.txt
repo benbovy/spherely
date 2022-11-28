@@ -27,6 +27,7 @@ find_package(s2geography REQUIRED)
 
 add_library(s2shapely MODULE
   src/geography.cpp
+  src/predicates.cpp
   src/s2shapely.cpp
   )
 

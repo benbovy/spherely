@@ -2,10 +2,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <s2/s2latlng.h>
+#include <s2geography.h>
 
 #include "pybind11.hpp"
-#include "s2/s2latlng.h"
-#include "s2geography.h"
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
