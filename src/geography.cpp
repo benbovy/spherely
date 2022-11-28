@@ -104,6 +104,27 @@ int get_dimensions(PyObjectGeography obj) {
     return obj.as_geog_ptr()->dimension();
 }
 
+/*
+** Geography utils
+*/
+
+bool is_geography(PyObjectGeography obj) { return obj.is_geog_ptr(); }
+
+bool is_prepared(PyObjectGeography obj) {
+    return obj.as_geog_ptr()->has_index();
+}
+
+PyObjectGeography prepare(PyObjectGeography obj) {
+    // triggers index creation if not yet built
+    obj.as_geog_ptr()->geog_index();
+    return obj;
+}
+
+PyObjectGeography destroy_prepared(PyObjectGeography obj) {
+    obj.as_geog_ptr()->reset_index();
+    return obj;
+}
+
 void init_geography(py::module &m) {
     // Geography classes
 
@@ -129,4 +150,11 @@ void init_geography(py::module &m) {
     // Geography properties
 
     m.def("get_dimensions", py::vectorize(&get_dimensions));
+
+    // Geography utils
+
+    m.def("is_geography", py::vectorize(&is_geography));
+    m.def("is_prepared", py::vectorize(&is_prepared));
+    m.def("prepare", py::vectorize(&prepare));
+    m.def("destroy_prepared", py::vectorize(&destroy_prepared));
 }
