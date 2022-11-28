@@ -25,7 +25,10 @@ set(S2GEOGRAPHY_ROOT_DIR "$ENV{CONDA_PREFIX}")
 find_package(s2 REQUIRED)
 find_package(s2geography REQUIRED)
 
-add_library(s2shapely MODULE src/main.cpp)
+add_library(s2shapely MODULE
+  src/geography.cpp
+  src/s2shapely.cpp
+  )
 
 target_compile_definitions(s2shapely
                            PRIVATE VERSION_INFO=${PROJECT_VERSION})
