@@ -19,9 +19,9 @@ enum class GeographyType : std::int8_t { None = -1, Point, LineString };
 ** Thin wrapper around s2geography::Geography.
 **
 ** Implements move semantics (avoid implicit copies).
-** Provides a geom_type static member.
+** Allows getting the geography type.
 ** Wraps a s2geography::ShapeIndexGeography to speed-up operations
-** built on demand only).
+** (the index is built on demand).
 **
 */
 class Geography {
