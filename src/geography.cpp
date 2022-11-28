@@ -16,7 +16,7 @@ using namespace s2shapely;
 */
 
 class PointFactory {
-   public:
+public:
     static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees,
                                                     double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
@@ -30,7 +30,7 @@ class PointFactory {
 };
 
 class LineStringFactory {
-   public:
+public:
     using LatLonCoords = std::vector<std::pair<double, double>>;
 
     static std::unique_ptr<LineString> FromLatLonCoords(LatLonCoords coords) {

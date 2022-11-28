@@ -29,7 +29,7 @@ namespace s2shapely {
 //
 //
 class PyObjectGeography : public py::object {
-   public:
+public:
     // Python -> C++ conversion
     //
     // Raises a ``ValueError`` on the Python side if the cast fails.

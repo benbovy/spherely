@@ -5,4 +5,6 @@ TabWidth: 4
 IndentWidth: 4
 PointerAlignment: Left
 ReferenceAlignment: Pointer
+IndentAccessModifiers: false
+AccessModifierOffset: -4
 ...
