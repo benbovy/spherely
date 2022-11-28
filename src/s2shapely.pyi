@@ -58,10 +58,6 @@ class _VFunc_Nin1_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
     def __call__(self, geography: Geography) -> _ScalarReturnType: ...
     @overload
     def __call__(self, geography: npt.ArrayLike) -> npt.NDArray[_ArrayReturnDType]: ...
-    @overload
-    def __call__(
-        self, geography: npt.NDArray[Any]
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
     @property

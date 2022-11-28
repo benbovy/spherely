@@ -3,7 +3,7 @@ import numpy as np
 import s2shapely
 
 
-def test_intersects():
+def test_intersects() -> None:
     # test array + scalar
     a = np.array(
         [
@@ -18,12 +18,12 @@ def test_intersects():
     np.testing.assert_array_equal(actual, expected)
 
     # two scalars
-    a = s2shapely.Point(50, 8)
-    b = s2shapely.Point(20, 5)
-    assert not s2shapely.intersects(a, b)
+    a2 = s2shapely.Point(50, 8)
+    b2 = s2shapely.Point(20, 5)
+    assert not s2shapely.intersects(a2, b2)
 
 
-def test_equals():
+def test_equals() -> None:
     # test array + scalar
     a = np.array(
         [
@@ -38,6 +38,6 @@ def test_equals():
     np.testing.assert_array_equal(actual, expected)
 
     # two scalars
-    a = s2shapely.Point(50, 8)
-    b = s2shapely.Point(50, 8)
-    assert s2shapely.equals(a, b)
+    a2 = s2shapely.Point(50, 8)
+    b2 = s2shapely.Point(50, 8)
+    assert s2shapely.equals(a2, b2)
