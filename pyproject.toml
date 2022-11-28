@@ -8,7 +8,22 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "s2shapely"
 version = "0.0.1"
+description = "Manipulation and analysis of geometric objects on the sphere"
+keywords = ["gis", "geometry", "s2geometry", "shapely"]
+readme = "README.md"
+license = {text = "BSD 3-Clause"}
+authors = [
+    {name = "Benoît Bovy"},
+]
+maintainers = [
+    {name = "S2Shapely contributors"},
+]
 requires-python = ">=3.7"
+dependencies = ["numpy"]
+
+[project.urls]
+Home = "https://s2shapely.readthedocs.io"
+Repository = "https://github.com/benbovy/s2shapely"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
