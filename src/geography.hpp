@@ -11,6 +11,11 @@ using S2GeographyPtr = std::unique_ptr<s2geog::Geography>;
 using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 
 /*
+** The registered Geography types
+*/
+enum class GeographyType : std::int8_t { None = -1, Point, LineString };
+
+/*
 ** Thin wrapper around s2geography::Geography.
 **
 ** Implements move semantics (avoid implicit copies).
@@ -41,6 +46,10 @@ class Geography {
         return *this;
     }
 
+    inline const virtual GeographyType geog_type() const {
+        return GeographyType::None;
+    }
+
     inline const s2geog::Geography& geog() const { return *m_s2geog_ptr; }
 
     inline const s2geog::ShapeIndexGeography& geog_index() {
@@ -51,7 +60,6 @@ class Geography {
 
         return *m_s2geog_index_ptr;
     }
-
     void reset_index() { m_s2geog_index_ptr.reset(); }
     bool has_index() { return m_s2geog_index_ptr != nullptr; }
 
@@ -66,11 +74,19 @@ class Geography {
 class Point : public Geography {
    public:
     Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline const GeographyType geog_type() const override {
+        return GeographyType::Point;
+    }
 };
 
 class LineString : public Geography {
    public:
     LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline const GeographyType geog_type() const override {
+        return GeographyType::LineString;
+    }
 };
 
 }  // namespace s2shapely

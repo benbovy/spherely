@@ -11,23 +11,11 @@ def test_point():
     assert repr(point).startswith("POINT (5.2 40.")
 
 
-def test_create():
-    points = s2shapely.create([40.0, 30.0], [5.0, 6.0])
-    assert points.size == 2
-    assert all([isinstance(p, s2shapely.Point) for p in points])
-
-
-@pytest.mark.parametrize(
-    "points",
-    [
-        np.array([s2shapely.Point(40, 5), s2shapely.Point(30, 6)]),
-        s2shapely.create([40, 30], [5, 6]),
-    ],
-)
-def test_nshape(points):
-    expected = np.ones(2, dtype=np.int32)
-    actual = s2shapely.nshape(points)
-    np.testing.assert_array_equal(actual, expected)
+def test_linestring():
+    line = s2shapely.LineString([(50, 5), (51, 6)])
+    assert line.dimensions == 1
+    assert line.nshape == 1
+    assert repr(line).startswith("LINESTRING (5 50")
 
 
 def test_is_geography():
@@ -43,6 +31,20 @@ def test_not_geography_raise():
 
     with pytest.raises(TypeError, match="not a Geography object"):
         s2shapely.get_dimensions(arr)
+
+
+def test_get_type_id():
+    # array
+    geog = np.array([s2shapely.Point(45, 50), s2shapely.LineString([(50, 5), (51, 6)])])
+    actual = s2shapely.get_type_id(geog)
+    expected = np.array(
+        [s2shapely.GeographyType.POINT.value, s2shapely.GeographyType.LINESTRING.value]
+    )
+    np.testing.assert_array_equal(actual, expected)
+
+    # scalar
+    geog = s2shapely.Point(45, 50)
+    assert s2shapely.get_type_id(geog) == s2shapely.GeographyType.POINT.value
 
 
 def test_get_dimensions():
@@ -81,3 +83,22 @@ def test_prepare():
 
     s2shapely.destroy_prepared(geog)
     assert s2shapely.is_prepared(geog) is False
+
+
+def test_create():
+    points = s2shapely.create([40.0, 30.0], [5.0, 6.0])
+    assert points.size == 2
+    assert all([isinstance(p, s2shapely.Point) for p in points])
+
+
+@pytest.mark.parametrize(
+    "points",
+    [
+        np.array([s2shapely.Point(40, 5), s2shapely.Point(30, 6)]),
+        s2shapely.create([40, 30], [5, 6]),
+    ],
+)
+def test_nshape(points):
+    expected = np.ones(2, dtype=np.int32)
+    actual = s2shapely.nshape(points)
+    np.testing.assert_array_equal(actual, expected)

@@ -100,6 +100,10 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs,
 ** Geography properties
 */
 
+std::int8_t get_type_id(PyObjectGeography obj) {
+    return static_cast<std::int8_t>(obj.as_geog_ptr()->geog_type());
+}
+
 int get_dimensions(PyObjectGeography obj) {
     return obj.as_geog_ptr()->dimension();
 }
@@ -126,6 +130,13 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 }
 
 void init_geography(py::module &m) {
+    // Geography types
+
+    py::enum_<GeographyType>(m, "GeographyType")
+        .value("None", GeographyType::None)
+        .value("POINT", GeographyType::Point)
+        .value("LINESTRING", GeographyType::LineString);
+
     // Geography classes
 
     py::class_<Geography>(m, "Geography")
@@ -149,6 +160,7 @@ void init_geography(py::module &m) {
 
     // Geography properties
 
+    m.def("get_type_id", py::vectorize(&get_type_id));
     m.def("get_dimensions", py::vectorize(&get_dimensions));
 
     // Geography utils
