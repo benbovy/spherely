@@ -22,7 +22,7 @@ def test_create():
     [
         np.array([s2shapely.Point(40, 5), s2shapely.Point(30, 6)]),
         s2shapely.create([40, 30], [5, 6]),
-    ]
+    ],
 )
 def test_nshape(points):
     expected = np.ones(2, dtype=np.int32)
@@ -50,8 +50,8 @@ def test_get_dimensions():
     expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
     geog = np.array(
         [
-            [s2shapely.Point(40 ,5), s2shapely.Point(30, 6)],
-            [s2shapely.LineString([(50, 5), (51, 6)]), s2shapely.Point(20, 4)]
+            [s2shapely.Point(40, 5), s2shapely.Point(30, 6)],
+            [s2shapely.LineString([(50, 5), (51, 6)]), s2shapely.Point(20, 4)],
         ]
     )
     actual = s2shapely.get_dimensions(geog)
@@ -81,5 +81,3 @@ def test_prepare():
 
     s2shapely.destroy_prepared(geog)
     assert s2shapely.is_prepared(geog) is False
-
-
