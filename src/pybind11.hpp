@@ -20,7 +20,7 @@ namespace s2shapely {
 
 // A ``pybind11::object`` that maybe points to a ``Geography`` C++ object.
 //
-// To main goal of this class is to be used as argument and/or return type of
+// The main goal of this class is to be used as argument and/or return type of
 // s2shapely's vectorized functions that operate on Geography objects via the
 // numpy.object dtype.
 //
@@ -32,7 +32,7 @@ class PyObjectGeography : public py::object {
 public:
     // Python -> C++ conversion
     //
-    // Raises a ``ValueError`` on the Python side if the cast fails.
+    // Raises a ``TypeError`` on the Python side if the cast fails.
     //
     // Note: a raw pointer is used here because Pybind11's
     // `type_caster<std::unique_ptr<wrapped_type>>` doesnt't support Python->C++
@@ -41,7 +41,7 @@ public:
     // referenced elsewhere)
     //
     // Conversion shouldn't involve any copy. The cast is dynamic, though, as
-    // needed since numpy.object dtype can refer to any Python object.
+    // needed since the numpy.object dtype can refer to any Python object.
     //
     Geography* as_geog_ptr() const {
         try {
@@ -123,9 +123,10 @@ struct npy_format_descriptor<s2shapely::PyObjectGeography> {
 
 }  // namespace detail
 
-// Cast specialization for PyObjectGeography (just a pass through)
+// Specialization of ``pybind11::cast`` for PyObjectGeography (just a pass
+// through).
 //
-// Allows using it as return type of vectorized functions.
+// Allows using PyObjectGeography as return type of vectorized functions.
 //
 template <typename T,
           typename detail::enable_if_t<
