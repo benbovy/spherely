@@ -5,9 +5,7 @@
 
 namespace py = pybind11;
 
-
 void init_geography(py::module&);
-
 
 PYBIND11_MODULE(s2shapely, m) {
     m.doc() = R"pbdoc(
