@@ -52,18 +52,17 @@ public:
 ** Temporary testing Numpy-vectorized API (TODO: remove)
 */
 
-py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
+py::array_t<int> get_dimensions_direct(const py::array_t<PyObjectGeography> geographies) {
     py::buffer_info buf = geographies.request();
 
     auto result = py::array_t<int>(buf.size);
     py::buffer_info result_buf = result.request();
     int *rptr = static_cast<int *>(result_buf.ptr);
 
+    py::gil_scoped_release();
     for (size_t i = 0; i < buf.size; i++) {
         auto geog_ptr = (*geographies.data(i)).as_geog_ptr();
-        rptr[i] = geog_ptr->num_shapes();
-        // std::cout << sizeof(*geographies.data(i)) << " - " <<
-        // sizeof(geog_ptr) << std::endl;
+        rptr[i] = geog_ptr->dimension();
     }
 
     return result;
@@ -90,11 +89,91 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs,
 
     for (size_t i = 0; i < xbuf.shape[0]; i++) {
         auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
-        rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
+        //rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
+        rptr[i] = py::cast(std::move(point_ptr));
     }
 
     return result;
 }
+
+py::array_t<double> array_add(py::array_t<double> a, py::array_t<double> b) {
+    py::buffer_info abuf = a.request(), bbuf = b.request();
+
+    auto result = py::array_t<double>(abuf.size);
+    py::buffer_info rbuf = result.request();
+
+    double *aptr = static_cast<double *>(abuf.ptr);
+    double *bptr = static_cast<double *>(bbuf.ptr);
+    double *rptr = static_cast<double *>(rbuf.ptr);
+
+    py::gil_scoped_release();
+    for (size_t i = 0; i < abuf.size; i++) {
+        rptr[i] = aptr[i] + bptr[i];
+    }
+
+    return result;
+}
+
+void get_dimensions_pure_cpp(py::array_t<double> xs, py::array_t<double> ys) {
+    py::buffer_info xbuf = xs.request(), ybuf = ys.request();
+    if (xbuf.ndim != 1 || ybuf.ndim != 1) {
+        throw std::runtime_error("Number of dimensions must be one");
+    }
+    if (xbuf.size != ybuf.size) {
+        throw std::runtime_error("Input shapes must match");
+    }
+
+    double *xptr = static_cast<double *>(xbuf.ptr);
+    double *yptr = static_cast<double *>(ybuf.ptr);
+
+    std::vector<std::unique_ptr<Point>> input;
+
+    for (size_t i = 0; i < xbuf.shape[0]; i++) {
+        input.push_back(PointFactory::FromLatLonDegrees(xptr[i], yptr[i]));
+    }
+
+    std::vector<int> result;
+
+    for (size_t i = 0; i < xbuf.shape[0]; i++) {
+        result.push_back(input[i]->dimension());
+    }
+}
+
+
+py::array_t<PyObjectGeography> create_no_cast(py::array_t<double> xs, py::array_t<double> ys) {
+    py::buffer_info xbuf = xs.request(), ybuf = ys.request();
+    if (xbuf.ndim != 1 || ybuf.ndim != 1) {
+        throw std::runtime_error("Number of dimensions must be one");
+    }
+    if (xbuf.size != ybuf.size) {
+        throw std::runtime_error("Input shapes must match");
+    }
+
+    auto result = py::array_t<PyObjectGeography>(xbuf.size);
+    py::buffer_info rbuf = result.request();
+
+    double *xptr = static_cast<double *>(xbuf.ptr);
+    double *yptr = static_cast<double *>(ybuf.ptr);
+    py::object *rptr = static_cast<py::object *>(rbuf.ptr);
+
+    size_t size = static_cast<size_t>(xbuf.shape[0]);
+
+    for (size_t i = 0; i < xbuf.shape[0]; i++) {
+        auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
+        // skip this cast
+        //rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
+        //rptr[i] = reinterpret_cast<py::object>(std::move(point_ptr));
+        rptr[i] = py::object();
+    }
+
+    return result;
+}
+
+int dummy(PyObjectGeography obj) {
+    obj.as_geog_ptr();
+    return 0;
+}
+int dummy_no_cast(PyObjectGeography obj) { return 0; }
 
 /*
 ** Geography properties
@@ -129,6 +208,11 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
     return obj;
 }
 
+
+double add(double x, double y) {
+    return x + y;
+}
+
 void init_geography(py::module &m) {
     // Geography types
 
@@ -155,8 +239,15 @@ void init_geography(py::module &m) {
 
     // Temp test
 
-    m.def("nshape", &num_shapes);
+    m.def("get_dimensions_direct", &get_dimensions_direct);
+    m.def("get_dimensions_pure_cpp", &get_dimensions_pure_cpp);
     m.def("create", &create);
+    m.def("create_no_cast", &create_no_cast);
+    m.def("dummy", py::vectorize(&dummy));
+    m.def("dummy_no_cast", py::vectorize(&dummy_no_cast));
+    m.def("add", py::vectorize(&add));
+    m.def("add", py::vectorize(&add), py::call_guard<py::gil_scoped_release>());
+    m.def("array_add", &array_add);
 
     // Geography properties
 

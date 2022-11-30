@@ -18,6 +18,8 @@ namespace py = pybind11;
 
 namespace s2shapely {
 
+// get
+
 // A ``pybind11::object`` that maybe points to a ``Geography`` C++ object.
 //
 // The main goal of this class is to be used as argument and/or return type of
@@ -45,7 +47,23 @@ public:
     //
     Geography* as_geog_ptr() const {
         try {
-            return cast<Geography*>();
+            //return cast<Geography*>();
+
+            PyTypeObject *obj_type = Py_TYPE(ptr());
+            // if(!geography_pytype) {
+            //     geography_pytype = py::detail::get_type_info(typeid(Geography))->type;
+            // }
+            // auto geog_type = reinterpret_cast<PyTypeObject *>(py::get_shared_data("geog_type"));
+            // if (!geog_type) {
+            //     geog_type = static_cast<PyTypeObject *>(
+            //         py::set_shared_data("geog_type", py::detail::get_type_info(typeid(Geography))->type));
+            // }
+            PyTypeObject *geog_type = obj_type;
+            if(!PyType_IsSubtype(obj_type, geog_type)) {
+                throw py::type_error("not a Geography object");
+            }
+            auto inst = reinterpret_cast<py::detail::instance *>(ptr());
+            return reinterpret_cast<Geography*>(inst->simple_value_holder[0]);
         } catch (const py::cast_error& e) {
             throw py::type_error("not a Geography object");
         }
@@ -60,6 +78,7 @@ public:
                                         bool> = true>
     static py::object as_py_object(std::unique_ptr<T> geog_ptr) {
         return py::cast(std::move(geog_ptr));
+        //return reinterpret_cast<py::object>(geog_ptr);
     }
 
     // Just check whether the object is a Geography

@@ -1,8 +1,10 @@
 #ifndef S2SHAPELY_GEOGRAPHY_H_
 #define S2SHAPELY_GEOGRAPHY_H_
 
+#include "pybind11/pybind11.h"
 #include "s2geography.h"
 
+namespace py = pybind11;
 namespace s2geog = s2geography;
 
 namespace s2shapely {
