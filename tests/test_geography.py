@@ -98,7 +98,7 @@ def test_create() -> None:
         s2shapely.create([40, 30], [5, 6]),
     ],
 )
-def test_get_nshape(points) -> None:
+def test_nshape(points) -> None:
     expected = np.ones(2, dtype=np.int32)
     actual = s2shapely.nshape(points)
     np.testing.assert_array_equal(actual, expected)

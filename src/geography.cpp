@@ -155,6 +155,7 @@ void init_geography(py::module &m) {
         .def(py::init(&LineStringFactory::FromLatLonCoords));
 
     // Temp test
+
     m.def("nshape", &num_shapes);
     m.def("create", &create);
 
