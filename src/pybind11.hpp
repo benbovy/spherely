@@ -47,18 +47,14 @@ public:
     //
     Geography* as_geog_ptr() const {
         try {
-            //return cast<Geography*>();
+            // return cast<Geography*>();
 
             PyTypeObject *obj_type = Py_TYPE(ptr());
-            // if(!geography_pytype) {
-            //     geography_pytype = py::detail::get_type_info(typeid(Geography))->type;
-            // }
-            // auto geog_type = reinterpret_cast<PyTypeObject *>(py::get_shared_data("geog_type"));
-            // if (!geog_type) {
-            //     geog_type = static_cast<PyTypeObject *>(
-            //         py::set_shared_data("geog_type", py::detail::get_type_info(typeid(Geography))->type));
-            // }
-            PyTypeObject *geog_type = obj_type;
+            auto geog_type = reinterpret_cast<PyTypeObject *>(py::get_shared_data("geog_type"));
+            if (!geog_type) {
+                geog_type = static_cast<PyTypeObject *>(
+                    py::set_shared_data("geog_type", py::detail::get_type_info(typeid(Geography))->type));
+            }
             if(!PyType_IsSubtype(obj_type, geog_type)) {
                 throw py::type_error("not a Geography object");
             }
