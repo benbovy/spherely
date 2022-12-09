@@ -1,0 +1,94 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+name: Run tests
+
+jobs:
+  test:
+    name: Run tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: s2geography-dev
+          use-mamba: true
+
+      - name: Get Date
+        id: get-date
+        shell: bash -l {0}
+        # cache will last one day
+        run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
+
+      - name: Set environment file
+        id: env-file
+        shell: bash -l {0}
+        run: echo "env_file=ci/environment.yml" >> $GITHUB_ENV
+
+      - name: Check environment variables
+        id: check-env
+        run: |
+          echo "env.env_file: ${{ env.env_file }}"
+
+      - name: Cache environment
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: ${{ runner.os }}-conda-${{ hashFiles( env.env_file ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
+        env:
+          # Increase this value to reset cache if ci/environment.yml has not changed
+          CACHE_NUMBER: 0
+        id: conda-cache
+
+      - name: Update environment
+        run: mamba env update -n s2geography-dev -f ${{ env.env_file }}
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+
+      - name: Conda info
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+
+      - name: Fetch s2geography
+        uses: actions/checkout@v3
+        with:
+          repository: paleolimbot/s2geography
+          ref: master
+          path: deps/s2geography
+          fetch-depth: 0
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+
+      - name: Configure, build & install s2geography
+        shell: bash -l {0}
+        run: |
+          cd deps/s2geography
+          cmake -S . -B build \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DS2GEOGRAPHY_S2_SOURCE=CONDA \
+            -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+          cmake --build build
+          cmake --install build
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+
+      - name: Build and install s2shapely
+        shell: bash -l {0}
+        run: python -m pip install . -v --no-build-isolation
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          pytest . -vv
