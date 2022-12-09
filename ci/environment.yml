@@ -10,5 +10,6 @@ dependencies:
   - numpy
   - pybind11
   - scikit-build-core
+  - ninja
   - pytest
   - pip
