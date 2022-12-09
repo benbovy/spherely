@@ -71,7 +71,7 @@ jobs:
           fetch-depth: 0
         if: steps.conda-cache.outputs.cache-hit != 'true'
 
-      - name: Configure, build & install s2geography
+      - name: Configure, build & install s2geography (unix)
         shell: bash -l {0}
         run: |
           cd deps/s2geography
@@ -80,9 +80,26 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DS2GEOGRAPHY_S2_SOURCE=CONDA \
             -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+          cmake --build build
+          cmake --install build
+        if: |
+          steps.conda-cache.outputs.cache-hit != 'true' &&
+          (runner.os == 'Linux' || runner.os == 'macOS')
+
+      - name: Configure, build & install s2geography (win)
+        shell: bash -l {0}
+        run: |
+          cd deps/s2geography
+          cmake -S . -B build \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DS2GEOGRAPHY_S2_SOURCE=CONDA \
+            -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX/Library \
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
           cmake --build build --config Release
           cmake --install build
-        if: steps.conda-cache.outputs.cache-hit != 'true'
+        if: |
+          steps.conda-cache.outputs.cache-hit != 'true' &&
+          runner.os == 'Windows'
 
       - name: Build and install s2shapely
         shell: bash -l {0}
