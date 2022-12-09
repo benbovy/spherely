@@ -31,6 +31,19 @@ add_library(s2shapely MODULE
   src/s2shapely.cpp
   )
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
+    CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
+    (CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT WIN32))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wreorder")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable -Wunused-parameter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /bigobj /J")
+  set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
+endif()
+
 target_compile_definitions(s2shapely
                            PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
