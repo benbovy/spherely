@@ -11,6 +11,8 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace s2shapely;
 
+py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
+
 /*
 ** Geography factories
 */
@@ -62,8 +64,6 @@ py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
     for (size_t i = 0; i < buf.size; i++) {
         auto geog_ptr = (*geographies.data(i)).as_geog_ptr();
         rptr[i] = geog_ptr->num_shapes();
-        // std::cout << sizeof(*geographies.data(i)) << " - " <<
-        // sizeof(geog_ptr) << std::endl;
     }
 
     return result;
@@ -90,7 +90,8 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs,
 
     for (size_t i = 0; i < xbuf.shape[0]; i++) {
         auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
-        rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
+        // rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
+        rptr[i] = py::cast(std::move(point_ptr));
     }
 
     return result;

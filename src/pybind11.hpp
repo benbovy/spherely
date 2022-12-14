@@ -30,6 +30,31 @@ namespace s2shapely {
 //
 class PyObjectGeography : public py::object {
 public:
+    static py::detail::type_info *geography_tinfo;
+
+    bool check_type(bool throw_if_invalid = true) const {
+        PyObject *source = ptr();
+
+        // TODO: case of Python `None` and/or `NaN` (empty geography)
+
+        // cache Geography type_info for performance
+        if (!geography_tinfo) {
+            // std::cout << "set pytype" << std::endl;
+            geography_tinfo = py::detail::get_type_info(typeid(Geography));
+        }
+
+        PyTypeObject *source_type = Py_TYPE(source);
+        if (!PyType_IsSubtype(source_type, geography_tinfo->type)) {
+            if (throw_if_invalid) {
+                throw py::type_error("not a Geography object");
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Python -> C++ conversion
     //
     // Raises a ``TypeError`` on the Python side if the cast fails.
@@ -43,12 +68,15 @@ public:
     // Conversion shouldn't involve any copy. The cast is dynamic, though, as
     // needed since the numpy.object dtype can refer to any Python object.
     //
-    Geography* as_geog_ptr() const {
-        try {
-            return cast<Geography*>();
-        } catch (const py::cast_error& e) {
-            throw py::type_error("not a Geography object");
-        }
+    Geography *as_geog_ptr() const {
+        PyObject *source = ptr();
+
+        // TODO: case of Python `None` and/or `NaN` (empty geography)
+
+        check_type();
+
+        auto inst = reinterpret_cast<py::detail::instance *>(source);
+        return reinterpret_cast<Geography *>(inst->simple_value_holder[0]);
     }
 
     // C++ -> Python conversion
@@ -64,15 +92,7 @@ public:
 
     // Just check whether the object is a Geography
     //
-    bool is_geog_ptr() const {
-        try {
-            cast<Geography*>();
-        } catch (const py::cast_error& e) {
-            return false;
-        }
-
-        return true;
-    }
+    bool is_geog_ptr() const { return check_type(false); }
 };
 }  // namespace s2shapely
 
@@ -131,7 +151,7 @@ struct npy_format_descriptor<s2shapely::PyObjectGeography> {
 template <typename T,
           typename detail::enable_if_t<
               std::is_same<T, s2shapely::PyObjectGeography>::value, int> = 0>
-object cast(T&& value) {
+object cast(T &&value) {
     return value;
 }
 
