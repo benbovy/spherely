@@ -1,5 +1,7 @@
 # S2Shapely
 
+![Tests](https://github.com/benbovy/s2shapely/actions/workflows/run-tests.yaml/badge.svg)
+
 Manipulation and analysis of geometric objects on the sphere.
 
 S2Shapely is the counterpart of [Shapely](https://github.com/shapely/shapely)

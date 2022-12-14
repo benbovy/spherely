@@ -4,10 +4,10 @@ project(
   LANGUAGES CXX
   VERSION "${SKBUILD_PROJECT_VERSION}")
 
-include(FetchContent)
-
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "The C++ standard to build with")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Dependencies
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/third_party/cmake")
 
@@ -24,6 +24,31 @@ set(S2GEOGRAPHY_ROOT_DIR "$ENV{CONDA_PREFIX}")
 
 find_package(s2 REQUIRED)
 find_package(s2geography REQUIRED)
+
+# Compile definitions and flags
+
+if (MSVC)
+  # used in s2geometry's CMakeLists.txt but not defined in target
+  # TODO: move this in FindS2.cmake?
+  target_compile_definitions(s2 INTERFACE _USE_MATH_DEFINES)
+  target_compile_definitions(s2 INTERFACE NOMINMAX)
+  target_compile_options(s2 INTERFACE /J)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
+    CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
+    (CMAKE_CXX_COMPILER_ID MATCHES "Intel" AND NOT WIN32))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wreorder")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable -Wunused-parameter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /bigobj /J")
+  set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
+endif()
+
+# Build
 
 add_library(s2shapely MODULE
   src/geography.cpp
@@ -46,6 +71,8 @@ if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
 endif()
 
 set_target_properties(s2shapely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+
+# Install
 
 install(TARGETS s2shapely LIBRARY DESTINATION .)
 
