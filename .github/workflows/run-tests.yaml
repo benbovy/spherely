@@ -97,6 +97,7 @@ jobs:
             -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
           cmake --build build --config Release
           cmake --install build
+          cp $CONDA_PREFIX/Library/lib/s2geography.dll $CONDA_PREFIX/Library/bin/s2geography.dll
         if: |
           steps.conda-cache.outputs.cache-hit != 'true' &&
           runner.os == 'Windows'
