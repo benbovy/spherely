@@ -50,31 +50,31 @@ endif()
 
 # Build
 
-add_library(s2shapely MODULE
+add_library(spherely MODULE
   src/geography.cpp
   src/predicates.cpp
-  src/s2shapely.cpp
+  src/spherely.cpp
   )
 
-target_compile_definitions(s2shapely
+target_compile_definitions(spherely
                            PRIVATE VERSION_INFO=${PROJECT_VERSION})
 
-target_link_libraries(s2shapely
+target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras
   PUBLIC s2 s2geography
   )
 
-pybind11_extension(s2shapely)
+pybind11_extension(spherely)
 if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
     # Strip unnecessary sections of the binary on Linux/macOS
-    pybind11_strip(s2shapely)
+    pybind11_strip(spherely)
 endif()
 
-set_target_properties(s2shapely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+set_target_properties(spherely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 
 # Install
 
-install(TARGETS s2shapely LIBRARY DESTINATION .)
+install(TARGETS spherely LIBRARY DESTINATION .)
 
 # install type annotations
-install(FILES src/s2shapely.pyi DESTINATION .)
+install(FILES src/spherely.pyi DESTINATION .)

@@ -9,7 +9,7 @@
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
-using namespace s2shapely;
+using namespace spherely;
 
 py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 

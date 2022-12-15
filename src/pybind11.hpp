@@ -1,5 +1,5 @@
-#ifndef S2SHAPELY_PYBIND11_H_
-#define S2SHAPELY_PYBIND11_H_
+#ifndef SPHERELY_PYBIND11_H_
+#define SPHERELY_PYBIND11_H_
 
 /*
 ** Pybind11 patches and workarounds for operating on Python wrapped Geography
@@ -16,12 +16,12 @@
 
 namespace py = pybind11;
 
-namespace s2shapely {
+namespace spherely {
 
 // A ``pybind11::object`` that maybe points to a ``Geography`` C++ object.
 //
 // The main goal of this class is to be used as argument and/or return type of
-// s2shapely's vectorized functions that operate on Geography objects via the
+// spherely's vectorized functions that operate on Geography objects via the
 // numpy.object dtype.
 //
 // Instead of relying on Pybind11's implicit conversion mechanisms (copy), we
@@ -94,7 +94,7 @@ public:
     //
     bool is_geog_ptr() const { return check_type(false); }
 };
-}  // namespace s2shapely
+}  // namespace spherely
 
 namespace pybind11 {
 namespace detail {
@@ -114,8 +114,8 @@ namespace detail {
 // Caveat: be careful and use PyObjectGeography cast methods!
 //
 template <>
-struct vectorize_arg<s2shapely::PyObjectGeography> {
-    using T = s2shapely::PyObjectGeography;
+struct vectorize_arg<spherely::PyObjectGeography> {
+    using T = spherely::PyObjectGeography;
     // The wrapped function gets called with this type:
     using call_type = T;
     // Is this a vectorized argument?
@@ -130,7 +130,7 @@ struct vectorize_arg<s2shapely::PyObjectGeography> {
 // Register PyObjectGeography as a valid numpy dtype (numpy.object alias)
 // from: https://github.com/pybind/pybind11/pull/1152
 template <>
-struct npy_format_descriptor<s2shapely::PyObjectGeography> {
+struct npy_format_descriptor<spherely::PyObjectGeography> {
     static constexpr auto name = _("object");
     enum { value = npy_api::NPY_OBJECT_ };
     static pybind11::dtype dtype() {
@@ -150,11 +150,11 @@ struct npy_format_descriptor<s2shapely::PyObjectGeography> {
 //
 template <typename T,
           typename detail::enable_if_t<
-              std::is_same<T, s2shapely::PyObjectGeography>::value, int> = 0>
+              std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
 object cast(T &&value) {
     return value;
 }
 
 }  // namespace pybind11
 
-#endif  // S2SHAPELY_PYBIND11_H_
+#endif  // SPHERELY_PYBIND11_H_
