@@ -1,11 +1,11 @@
-#ifndef S2SHAPELY_GEOGRAPHY_H_
-#define S2SHAPELY_GEOGRAPHY_H_
+#ifndef SPHERELY_GEOGRAPHY_H_
+#define SPHERELY_GEOGRAPHY_H_
 
 #include "s2geography.h"
 
 namespace s2geog = s2geography;
 
-namespace s2shapely {
+namespace spherely {
 
 using S2GeographyPtr = std::unique_ptr<s2geog::Geography>;
 using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
@@ -89,6 +89,6 @@ public:
     }
 };
 
-}  // namespace s2shapely
+}  // namespace spherely
 
-#endif  // S2SHAPELY_GEOGRAPHY_H_
+#endif  // SPHERELY_GEOGRAPHY_H_

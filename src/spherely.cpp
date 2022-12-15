@@ -8,11 +8,11 @@ namespace py = pybind11;
 void init_geography(py::module&);
 void init_predicates(py::module&);
 
-PYBIND11_MODULE(s2shapely, m) {
+PYBIND11_MODULE(spherely, m) {
     m.doc() = R"pbdoc(
-        S2Shapely
+        Spherely
         ---------
-        .. currentmodule:: s2shapely
+        .. currentmodule:: spherely
         .. autosummary::
            :toctree: _generate
     )pbdoc";

@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
-using namespace s2shapely;
+using namespace spherely;
 
 bool intersects(PyObjectGeography a, PyObjectGeography b) {
     const auto& a_index = a.as_geog_ptr()->geog_index();

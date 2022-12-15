@@ -1,10 +1,10 @@
-# S2Shapely
+# Spherely
 
-![Tests](https://github.com/benbovy/s2shapely/actions/workflows/run-tests.yaml/badge.svg)
+![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
 
 Manipulation and analysis of geometric objects on the sphere.
 
-S2Shapely is the counterpart of [Shapely](https://github.com/shapely/shapely)
+Spherely is the counterpart of [Shapely](https://github.com/shapely/shapely)
 (2.0+) for manipulation and analysis of spherical geometric objects. It is using
 the widely deployed open-source geometry library
 [s2geometry](https://github.com/google/s2geometry) via the library
