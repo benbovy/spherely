@@ -251,7 +251,7 @@ void init_geography(py::module &m) {
 
     m.def("is_geography", py::vectorize(&is_geography), py::arg("obj"),
           R"pbdoc(
-        Returns True if the object is a :py:class`Geography`, False otherwise.
+        Returns True if the object is a :py:class:`Geography`, False otherwise.
 
         Parameters
         ----------
