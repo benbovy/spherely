@@ -11,7 +11,8 @@ build:
         cmake -S s2geography -B s2geography/build \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
-          -DS2GEOGRAPHY_S2_SOURCE=CONDA
+          -DS2GEOGRAPHY_S2_SOURCE=CONDA \
+          -DCMAKE_INSTALL_LIBDIR=/home/docs/checkouts/readthedocs.org/user_builds/spherely/conda/$READTHEDOCS_VERSION/lib
       - cmake --build s2geography/build
       - |
         cmake \
