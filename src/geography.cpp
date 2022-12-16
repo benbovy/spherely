@@ -115,6 +115,10 @@ int get_dimensions(PyObjectGeography obj) {
 
 bool is_geography(PyObjectGeography obj) { return obj.is_geog_ptr(); }
 
+/*
+** Geography creation
+*/
+
 bool is_prepared(PyObjectGeography obj) {
     return obj.as_geog_ptr()->has_index();
 }
@@ -133,26 +137,78 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 void init_geography(py::module &m) {
     // Geography types
 
-    py::enum_<GeographyType>(m, "GeographyType")
-        .value("NONE", GeographyType::None)
-        .value("POINT", GeographyType::Point)
-        .value("LINESTRING", GeographyType::LineString);
+    auto pygeography_types =
+        py::enum_<GeographyType>(m, "GeographyType", R"pbdoc(
+        The enumeration of Geography types
+    )pbdoc");
+
+    pygeography_types.value("NONE", GeographyType::None);
+    pygeography_types.value("POINT", GeographyType::Point);
+    pygeography_types.value("LINESTRING", GeographyType::LineString);
 
     // Geography classes
 
-    py::class_<Geography>(m, "Geography")
-        .def_property_readonly("dimensions", &Geography::dimension)
-        .def_property_readonly("nshape", &Geography::num_shapes)
-        .def("__repr__", [](const Geography &geog) {
-            s2geog::WKTWriter writer;
-            return writer.write_feature(geog.geog());
-        });
+    auto pygeography = py::class_<Geography>(m, "Geography", R"pbdoc(
+        Base class for all geography types.
 
-    py::class_<Point, Geography>(m, "Point")
-        .def(py::init(&PointFactory::FromLatLonDegrees));
+        Cannot be instanciated directly.
 
-    py::class_<LineString, Geography>(m, "LineString")
-        .def(py::init(&LineStringFactory::FromLatLonCoords));
+    )pbdoc");
+
+    pygeography.def_property_readonly("dimensions", &Geography::dimension,
+                                      R"pbdoc(
+        Returns the inherent dimensionality of a geometry.
+
+        The inherent dimension is 0 for points, 1 for linestrings and 2 for
+        polygons. For geometrycollections it is the max of the containing elements.
+        Empty collections and None values return -1.
+
+    )pbdoc");
+
+    pygeography.def_property_readonly("nshape", &Geography::num_shapes, R"pbdoc(
+        Returns the number of elements in the collection, or 1 for simple geography
+        objects.
+
+    )pbdoc");
+
+    pygeography.def("__repr__", [](const Geography &geog) {
+        s2geog::WKTWriter writer;
+        return writer.write_feature(geog.geog());
+    });
+
+    auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
+        A geography type that represents a single coordinate with lat,lon or x,y,z values.
+
+        A point is a zero-dimensional feature and has zero length and zero area.
+
+        Parameters
+        ----------
+        lat : float
+            latitude coordinate, in degrees
+        lon : float
+            longitude coordinate, in degrees
+
+    )pbdoc");
+
+    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"),
+                py::arg("lon"));
+
+    auto pylinestring =
+        py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
+        A geography type composed of one or more arc segments.
+
+        A LineString is a one-dimensional feature and has a non-zero length but
+        zero area. A LineString is not closed.
+
+        Parameters
+        ----------
+        coordinates : list of tuple
+            A sequence of (lat, lon) coordinates for each vertex.
+
+    )pbdoc");
+
+    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords),
+                     py::arg("coordinates"));
 
     // Temp test
 
@@ -161,13 +217,117 @@ void init_geography(py::module &m) {
 
     // Geography properties
 
-    m.def("get_type_id", py::vectorize(&get_type_id));
-    m.def("get_dimensions", py::vectorize(&get_dimensions));
+    m.def("get_type_id", py::vectorize(&get_type_id), py::arg("geography"),
+          R"pbdoc(
+        Returns the type ID of a geography.
+
+        None (missing) is -1
+        POINT is 0
+        LINESTRING is 1
+
+        Parameters
+        ----------
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
+
+    )pbdoc");
+
+    m.def("get_dimensions", py::vectorize(&get_dimensions),
+          py::arg("geography"), R"pbdoc(
+        Returns the inherent dimensionality of a geography.
+
+        The inherent dimension is 0 for points, 1 for linestrings and 2 for
+        polygons. For geometrycollections it is the max of the containing elements.
+        Empty collections and None values return -1.
+
+        Parameters
+        ----------
+        geography : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
 
     // Geography utils
 
-    m.def("is_geography", py::vectorize(&is_geography));
-    m.def("is_prepared", py::vectorize(&is_prepared));
-    m.def("prepare", py::vectorize(&prepare));
-    m.def("destroy_prepared", py::vectorize(&destroy_prepared));
+    m.def("is_geography", py::vectorize(&is_geography), py::arg("obj"),
+          R"pbdoc(
+        Returns True if the object is a :py:class:`Geography`, False otherwise.
+
+        Parameters
+        ----------
+        obj : any or array_like
+            Any object.
+
+    )pbdoc");
+
+    // Geography creation
+
+    m.def("is_prepared", py::vectorize(&is_prepared), py::arg("geography"),
+          R"pbdoc(
+        Returns True if the geography object is "prepared", False otherwise.
+
+        A prepared geography is a normal geography with added information such as
+        an index on the line segments. This improves the performance of many operations.
+
+        Note that it is not necessary to check if a geography is already prepared
+        before preparing it. It is more efficient to call prepare directly
+        because it will skip geographies that are already prepared.
+
+        Parameters
+        ----------
+        geography : :py:class:`Geography` or array_like
+            Geography object(s)
+
+        See Also
+        --------
+        prepare
+        destroy_prepared
+
+    )pbdoc");
+
+    m.def("prepare", py::vectorize(&prepare), py::arg("geography"),
+          R"pbdoc(
+        Prepare a geography, improving performance of other operations.
+
+        A prepared geography is a normal geography with added information such as
+        an index on the line segments. This improves the performance of the
+        following operations.
+
+        This function does not recompute previously prepared geographies; it is
+        efficient to call this function on an array that partially contains
+        prepared geographies.
+
+        Parameters
+        ----------
+        geography : :py:class:`Geography` or array_like
+            Geography object(s)
+
+        See Also
+        --------
+        is_prepared
+        destroy_prepared
+
+    )pbdoc");
+
+    m.def("destroy_prepared", py::vectorize(&destroy_prepared),
+          py::arg("geography"),
+          R"pbdoc(
+        Destroy the prepared part of a geography, freeing up memory.
+
+        Note that the prepared geography will always be cleaned up if the
+        geography itself is dereferenced. This function needs only be called in
+        very specific circumstances, such as freeing up memory without losing
+        the geographies, or benchmarking.
+
+        Parameters
+        ----------
+        geography : :py:class:`Geography` or array_like
+            Geography object(s)
+
+        See Also
+        --------
+        is_prepared
+        prepare
+
+    )pbdoc");
 }

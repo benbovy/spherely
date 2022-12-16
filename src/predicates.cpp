@@ -25,6 +25,30 @@ bool equals(PyObjectGeography a, PyObjectGeography b) {
 }
 
 void init_predicates(py::module& m) {
-    m.def("intersects", py::vectorize(&intersects));
-    m.def("equals", py::vectorize(&intersects));
+    m.def("intersects", py::vectorize(&intersects), py::arg("a"), py::arg("b"),
+          R"pbdoc(
+        Returns True if A and B share any portion of space.
+
+        Intersects implies that overlaps, touches and within are True.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
+
+    m.def("equals", py::vectorize(&equals), py::arg("a"), py::arg("b"),
+          R"pbdoc(
+        Returns True if A and B are spatially equal.
+
+        If A is within B and B is within A, A and B are considered equal. The
+        ordering of points can be different.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
 }

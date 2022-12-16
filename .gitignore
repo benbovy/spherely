@@ -134,3 +134,7 @@ dmypy.json
 .ccls-cache/
 compile_commands.json
 .dir-locals.el
+
+# docs
+docs/build/
+docs/_api_generated

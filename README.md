@@ -1,6 +1,7 @@
 # Spherely
 
 ![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
+[![Docs](https://readthedocs.org/projects/spherely/badge/?version=latest)](https://spherely.readthedocs.io)
 
 Manipulation and analysis of geometric objects on the sphere.
 
