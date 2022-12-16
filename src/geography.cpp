@@ -227,7 +227,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        geography : :py:class:`Geography` or array-like
+        geography : :py:class:`Geography` or array_like
             Geography object(s).
 
     )pbdoc");
@@ -242,7 +242,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        geography : :py:class:`Geography` or array-like
+        geography : :py:class:`Geography` or array_like
             Geography object(s)
 
     )pbdoc");
@@ -255,7 +255,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        obj : any or array-like
+        obj : any or array_like
             Any object.
 
     )pbdoc");
@@ -275,7 +275,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        geography : :py:class:`Geography` or array-like
+        geography : :py:class:`Geography` or array_like
             Geography object(s)
 
         See Also
@@ -299,7 +299,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        geography : :py:class:`Geography` or array-like
+        geography : :py:class:`Geography` or array_like
             Geography object(s)
 
         See Also
@@ -321,7 +321,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        geography : :py:class:`Geography` or array-like
+        geography : :py:class:`Geography` or array_like
             Geography object(s)
 
         See Also

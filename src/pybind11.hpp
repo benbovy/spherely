@@ -141,6 +141,11 @@ struct npy_format_descriptor<spherely::PyObjectGeography> {
     }
 };
 
+// Override signature type hint for vectorized Geography arguments
+template <int Flags> struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
+    static constexpr auto name = _("Geography | array_like");
+};
+
 }  // namespace detail
 
 // Specialization of ``pybind11::cast`` for PyObjectGeography (just a pass

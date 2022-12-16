@@ -17,7 +17,19 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
     "shapely": ("https://shapely.readthedocs.io/en/latest/", None),
+}
+
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_use_param = False
+napoleon_use_rtype = False
+napoleon_preprocess_types = True
+napoleon_type_aliases = {
+    "array_like": ":term:`array_like`",
+    "array-like": ":term:`array-like <array_like>`",
 }
 
 # source_suffix = ['.rst', '.md']

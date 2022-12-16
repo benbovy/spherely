@@ -33,7 +33,7 @@ void init_predicates(py::module& m) {
 
         Parameters
         ----------
-        a, b : :py:class:`Geography` or array-like
+        a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
     )pbdoc");
@@ -47,7 +47,7 @@ void init_predicates(py::module& m) {
 
         Parameters
         ----------
-        a, b : :py:class:`Geography` or array-like
+        a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
     )pbdoc");
