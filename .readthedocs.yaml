@@ -6,16 +6,16 @@ build:
     python: "mambaforge-4.10"
   jobs:
     pre_install:
+      - git clone https://github.com/paleolimbot/s2geography
+      - cd s2geography
       - |
-        git clone https://github.com/paleolimbot/s2geography
-        cd s2geography
         cmake -S . -B build \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
           -DS2GEOGRAPHY_S2_SOURCE=CONDA \
           -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
-        cmake --build build
-        cmake --install build
+      - cmake --build build
+      - cmake --install build
 
 conda:
   environment: docs/environment.yml
