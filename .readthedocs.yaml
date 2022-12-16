@@ -11,10 +11,9 @@ build:
         cmake -S s2geography -B s2geography/build \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
-          -DS2GEOGRAPHY_S2_SOURCE=CONDA \
-          -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+          -DS2GEOGRAPHY_S2_SOURCE=CONDA
       - cmake --build s2geography/build
-      - cmake --install s2geography/build
+      - cmake --install s2geography/build --prefix $CONDA_PREFIX
 
 conda:
   environment: docs/environment.yml
