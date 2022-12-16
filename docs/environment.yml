@@ -1,0 +1,19 @@
+
+name: spherely-docs
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - cxx-compiler
+  - cmake
+  - make
+  - s2geometry
+  - libabseil
+  - sphinx
+  - sphinx-autodoc-typehints
+  - pydata-sphinx-theme
+  - myst-nb
+  - pip
+  # TODO: install the library here when s2geography is packaged
+  #- pip:
+  #  - ..
