@@ -140,19 +140,53 @@ void init_geography(py::module &m) {
 
     // Geography classes
 
-    py::class_<Geography>(m, "Geography")
-        .def_property_readonly("dimensions", &Geography::dimension)
-        .def_property_readonly("nshape", &Geography::num_shapes)
-        .def("__repr__", [](const Geography &geog) {
-            s2geog::WKTWriter writer;
-            return writer.write_feature(geog.geog());
-        });
+    auto pygeography = py::class_<Geography>(m, "Geography", R"pbdoc(
+        Base class for all geography types.
 
-    py::class_<Point, Geography>(m, "Point")
-        .def(py::init(&PointFactory::FromLatLonDegrees));
+        Cannot be instanciated directly.
 
-    py::class_<LineString, Geography>(m, "LineString")
-        .def(py::init(&LineStringFactory::FromLatLonCoords));
+    )pbdoc");
+
+    pygeography.def_property_readonly("dimensions", &Geography::dimension);
+    pygeography.def_property_readonly("nshape", &Geography::num_shapes);
+    pygeography.def("__repr__", [](const Geography &geog) {
+        s2geog::WKTWriter writer;
+        return writer.write_feature(geog.geog());
+    });
+
+    auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
+        A geography type that represents a single coordinate with lat,lon or x,y,z values.
+
+        A point is a zero-dimensional feature and has zero length and zero area.
+
+        Parameters
+        ----------
+        lat : float
+            latitude coordinate, in degrees
+        lon : float
+            longitude coordinate, in degrees
+
+    )pbdoc");
+
+    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"),
+                py::arg("lon"));
+
+    auto pylinestring =
+        py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
+        A geography type composed of one or more arc segments.
+
+        A LineString is a one-dimensional feature and has a non-zero length but
+        zero area. A LineString is not closed.
+
+        Parameters
+        ----------
+        coordinates : list of tuples
+            A sequence of (lat, lon) coordinates for each vertex.
+
+    )pbdoc");
+
+    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords),
+                     py::arg("coordinates"));
 
     // Temp test
 

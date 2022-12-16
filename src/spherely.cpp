@@ -9,6 +9,9 @@ void init_geography(py::module&);
 void init_predicates(py::module&);
 
 PYBIND11_MODULE(spherely, m) {
+    // py::options options;
+    // options.disable_function_signatures();
+
     m.doc() = R"pbdoc(
         Spherely
         ---------

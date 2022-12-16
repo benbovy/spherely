@@ -36,6 +36,8 @@ highlight_language = "python"
 
 pygments_style = "sphinx"
 
+# autodoc_docstring_signature = True
+
 # -- Options for HTML output ----------------------------------------------
 
 html_theme = "pydata_sphinx_theme"
