@@ -202,7 +202,7 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        coordinates : list of tuples
+        coordinates : list of tuple
             A sequence of (lat, lon) coordinates for each vertex.
 
     )pbdoc");
