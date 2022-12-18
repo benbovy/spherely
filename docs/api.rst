@@ -51,3 +51,4 @@ Predicates
 
    equals
    intersects
+   contains
