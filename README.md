@@ -32,7 +32,7 @@ $ python -m pip install .
 ## Setting up a development environment using conda
 
 After cloning this repo, create a conda environment using the
-ci/environment.yml file:
+ci/environment.yml file with the required dependencies:
 
 ```
 $ conda env create -f spherely/ci/environment.yml
