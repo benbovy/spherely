@@ -12,7 +12,7 @@ the widely deployed open-source geometry library
 [s2geography](https://github.com/paleolimbot/s2geography) which provides a
 [GEOS](https://libgeos.org) compatibility layer on top of s2geometry.
 
-Not much to see here for the moment.
+This library is at an early stage of development.
 
 ## Requirements
 
@@ -21,18 +21,16 @@ Not much to see here for the moment.
 - s2geography
 - s2geometry
 
-## Installation (from source)
+## Installation
 
-Clone this repository and run the following command from it's root directory:
-
-```
-$ python -m pip install .
-```
+There is no pre-compiled package available at the moment. See the section below
+for instructions on how to setup a development environment and build / install
+spherely from source.
 
 ## Setting up a development environment using conda
 
-After cloning this repo, create a conda environment using the
-ci/environment.yml file with the required dependencies:
+After cloning this repo, create a conda environment using the ci/environment.yml
+file with the required dependencies:
 
 ```
 $ conda env create -f spherely/ci/environment.yml
