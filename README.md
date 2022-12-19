@@ -1,4 +1,4 @@
-# Spherely
+# ![spherely](docs/_static/spherely_logo.svg)
 
 ![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
 [![Docs](https://readthedocs.org/projects/spherely/badge/?version=latest)](https://spherely.readthedocs.io)

@@ -57,5 +57,5 @@ html_theme_options = {
 }
 
 html_static_path = ["_static"]
-
+html_logo = "_static/spherely_logo.svg"
 htmlhelp_basename = "spherelydoc"
