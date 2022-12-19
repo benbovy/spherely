@@ -41,3 +41,23 @@ def test_equals() -> None:
     a2 = spherely.Point(50, 8)
     b2 = spherely.Point(50, 8)
     assert spherely.equals(a2, b2)
+
+
+def test_contains():
+    # test array + scalar
+    a = np.array(
+        [
+            spherely.LineString([(40, 8), (60, 8)]),
+            spherely.LineString([(20, 0), (30, 0)]),
+        ]
+    )
+    b = spherely.Point(40, 8)
+
+    actual = spherely.contains(a, b)
+    expected = np.array([True, False])
+    np.testing.assert_array_equal(actual, expected)
+
+    # two scalars
+    a2 = spherely.LineString([(50, 8), (60, 8)])
+    b2 = spherely.Point(50, 8)
+    assert spherely.contains(a2, b2)
