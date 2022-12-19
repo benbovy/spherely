@@ -3,7 +3,7 @@
 ![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
 [![Docs](https://readthedocs.org/projects/spherely/badge/?version=latest)](https://spherely.readthedocs.io)
 
-Manipulation and analysis of geometric objects on the sphere.
+*Python library for manipulation and analysis of geometric objects on the sphere.*
 
 Spherely is the counterpart of [Shapely](https://github.com/shapely/shapely)
 (2.0+) for manipulation and analysis of spherical geometric objects. It is using
