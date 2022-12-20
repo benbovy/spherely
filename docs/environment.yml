@@ -10,9 +10,9 @@ dependencies:
   - make
   - s2geometry
   - libabseil
-  - sphinx!=4.4.0
-  - pydata-sphinx-theme>=0.4.3
-  - sphinx-book-theme>=0.0.38
+  - sphinx
+  - pydata-sphinx-theme>=0.8.1
+  - sphinx-book-theme>=0.3.3
   - myst-nb
   - pip
   # TODO: install the library here when s2geography is packaged
