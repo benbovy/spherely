@@ -221,9 +221,9 @@ void init_geography(py::module &m) {
           R"pbdoc(
         Returns the type ID of a geography.
 
-        None (missing) is -1
-        POINT is 0
-        LINESTRING is 1
+        - None (missing) is -1
+        - POINT is 0
+        - LINESTRING is 1
 
         Parameters
         ----------

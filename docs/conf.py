@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 project = "spherely"
-copyright = "2022, Benoit Bovy"
+copyright = "2022, Spherely Developers"
 author = "Benoit Bovy"
 
 # -- General configuration  ----------------------------------------------
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
@@ -21,6 +20,7 @@ intersphinx_mapping = {
     "shapely": ("https://shapely.readthedocs.io/en/latest/", None),
 }
 
+autodoc_typehints = "none"
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
