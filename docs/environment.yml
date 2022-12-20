@@ -3,6 +3,7 @@ name: spherely-docs
 channels:
   - conda-forge
 dependencies:
+  - python=3.10
   - numpy
   - cxx-compiler
   - cmake
@@ -10,8 +11,8 @@ dependencies:
   - s2geometry
   - libabseil
   - sphinx
-  - sphinx-autodoc-typehints
-  - pydata-sphinx-theme
+  - pydata-sphinx-theme>=0.8.1
+  - sphinx-book-theme>=0.3.3
   - myst-nb
   - pip
   # TODO: install the library here when s2geography is packaged
