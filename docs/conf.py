@@ -66,5 +66,6 @@ html_theme_options = dict(
 )
 
 html_static_path = ["_static"]
-html_logo = "_static/spherely_logo.svg"
+html_logo = "_static/spherely_logo_noline.svg"
+html_favicon = "_static/favicon.ico"
 htmlhelp_basename = "spherelydoc"
