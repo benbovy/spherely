@@ -50,11 +50,20 @@ pygments_style = "sphinx"
 
 # -- Options for HTML output ----------------------------------------------
 
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_book_theme"
+html_title = ""
 
-html_theme_options = {
-    "github_url": "https://github.com/benbovy/spherely",
-}
+html_theme_options = dict(
+    repository_url="https://github.com/benbovy/spherely",
+    repository_branch="main",
+    path_to_docs="doc",
+    use_edit_page_button=True,
+    use_repository_button=True,
+    use_issues_button=True,
+    home_page_in_toc=False,
+    extra_navbar="",
+    navbar_footer_text="",
+)
 
 html_static_path = ["_static"]
 html_logo = "_static/spherely_logo.svg"

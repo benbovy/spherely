@@ -10,8 +10,7 @@ dependencies:
   - s2geometry
   - libabseil
   - sphinx
-  - sphinx-autodoc-typehints
-  - pydata-sphinx-theme
+  - sphinx-book-theme
   - myst-nb
   - pip
   # TODO: install the library here when s2geography is packaged
