@@ -10,6 +10,7 @@ dependencies:
   - s2geometry
   - libabseil
   - sphinx
+  - pydata-sphinx-theme>=0.4.3
   - sphinx-book-theme
   - myst-nb
   - pip
