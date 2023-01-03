@@ -14,6 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -23,8 +24,9 @@ jobs:
         with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
-          activate-environment: s2geography-dev
+          activate-environment: spherely-dev
           use-mamba: true
+          python-version: ${{ matrix.python-version }}
 
       - name: Get Date
         id: get-date
@@ -46,14 +48,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.CONDA }}/envs
-          key: ${{ runner.os }}-conda-${{ hashFiles( env.env_file ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
+          key: ${{ runner.os }}-{{ matrix.python-version }}-conda-${{ hashFiles( env.env_file ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
         env:
           # Increase this value to reset cache if ci/environment.yml has not changed
           CACHE_NUMBER: 0
         id: conda-cache
 
       - name: Update environment
-        run: mamba env update -n s2geography-dev -f ${{ env.env_file }}
+        run: mamba env update -n spherely-dev -f ${{ env.env_file }}
         if: steps.conda-cache.outputs.cache-hit != 'true'
 
       - name: Conda info
