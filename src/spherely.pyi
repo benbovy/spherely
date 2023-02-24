@@ -39,11 +39,14 @@ class GeographyType:
     @property
     def value(self) -> int: ...
 
-class LineString(Geography):
-    def __init__(self, coordinates: List[Tuple[float, float]]) -> None: ...
-
 class Point(Geography):
     def __init__(self, lat: float, lon: float) -> None: ...
+
+class LineString(Geography):
+    @overload
+    def __init__(self, coordinates: List[Tuple[float, float]]) -> None: ...
+    @overload
+    def __init__(self, coordinates: List[Point]) -> None: ...
 
 # Numpy-like vectorized (universal) functions
 

@@ -1,6 +1,7 @@
 #ifndef SPHERELY_GEOGRAPHY_H_
 #define SPHERELY_GEOGRAPHY_H_
 
+#include "s2/s2point.h"
 #include "s2geography.h"
 
 namespace s2geog = s2geography;
@@ -46,7 +47,7 @@ public:
         return *this;
     }
 
-    inline const virtual GeographyType geog_type() const {
+    inline virtual GeographyType geog_type() const {
         return GeographyType::None;
     }
 
@@ -75,8 +76,14 @@ class Point : public Geography {
 public:
     Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
-    inline const GeographyType geog_type() const override {
+    inline GeographyType geog_type() const override {
         return GeographyType::Point;
+    }
+
+    inline const S2Point& s2point() const {
+        const auto& points = static_cast<const s2geog::PointGeography&>(geog()).Points();
+        // TODO: does not work for empty point geography
+        return points[0];
     }
 };
 
@@ -84,7 +91,16 @@ class LineString : public Geography {
 public:
     LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
-    inline const GeographyType geog_type() const override {
+    inline GeographyType geog_type() const override {
+        return GeographyType::LineString;
+    }
+};
+
+class Polygon : public Geography {
+public:
+    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline GeographyType geog_type() const override {
         return GeographyType::LineString;
     }
 };

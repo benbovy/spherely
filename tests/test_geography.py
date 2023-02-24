@@ -11,8 +11,15 @@ def test_point() -> None:
     assert repr(point).startswith("POINT (5.2 40.")
 
 
-def test_linestring() -> None:
-    line = spherely.LineString([(50, 5), (51, 6)])
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(50, 5), (51, 6)],
+        [spherely.Point(50, 5), spherely.Point(51, 6)],
+    ],
+)
+def test_linestring(coords) -> None:
+    line = spherely.LineString(coords)
     assert line.dimensions == 1
     assert line.nshape == 1
     assert repr(line).startswith("LINESTRING (5 50")

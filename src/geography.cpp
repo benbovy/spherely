@@ -1,11 +1,19 @@
 #include "geography.hpp"
 
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
+#include <s2/s2point.h>
 #include <s2geography.h>
 
 #include "pybind11.hpp"
+#include "pybind11/stl.h"
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
@@ -16,6 +24,24 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 /*
 ** Geography factories
 */
+
+// Used in Geography constructors to get a point either from a tuple of
+// coordinates or an existing Point object.
+//
+// TODO: using std::variant may be nicer:
+// using Vertex = std::variant<std::pair<double, double>, Point>;
+//
+// It is not fully supported with Pybind11 (Point is non-default constructible)
+// https://github.com/pybind/pybind11/issues/4108
+//
+S2Point to_s2point(const std::pair<double, double>& vertex) {
+    return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
+}
+
+S2Point to_s2point(const Point* vertex) {
+    return vertex->s2point();
+}
+
 
 class PointFactory {
 public:
@@ -35,20 +61,40 @@ class LineStringFactory {
 public:
     using LatLonCoords = std::vector<std::pair<double, double>>;
 
-    static std::unique_ptr<LineString> FromLatLonCoords(LatLonCoords coords) {
-        std::vector<S2LatLng> latlng_pts;
-        for (auto &latlng : coords) {
-            latlng_pts.push_back(
-                S2LatLng::FromDegrees(latlng.first, latlng.second));
-        }
+    template <class V>
+    static std::unique_ptr<LineString> FromLatLonCoords(const std::vector<V>& coords) {
+        std::vector<S2Point> pts(coords.size());
 
-        auto polyline = std::make_unique<S2Polyline>(latlng_pts);
+        std::transform(
+            coords.begin(), coords.end(), pts.begin(),
+            [](const V& vertex) { return to_s2point(vertex); });
+
+        auto polyline = std::make_unique<S2Polyline>(pts);
         S2GeographyPtr s2geog_ptr =
             std::make_unique<s2geog::PolylineGeography>(std::move(polyline));
 
         return std::make_unique<LineString>(std::move(s2geog_ptr));
     }
 };
+
+// class PolygonFactory {
+// public:
+//     using LatLonCoords = std::vector<std::pair<double, double>>;
+
+//     static std::unique_ptr<Polygon> FromLatLonCoords(LatLonCoords coords) {
+//         std::vector<S2LatLng> latlng_pts;
+//         for (auto &latlng : coords) {
+//             latlng_pts.push_back(
+//                 S2LatLng::FromDegrees(latlng.first, latlng.second));
+//         }
+
+//         auto polyline = std::make_unique<S2Polyline>(latlng_pts);
+//         S2GeographyPtr s2geog_ptr =
+//             std::make_unique<s2geog::PolygonGeography>(std::move(polyline));
+
+//         return std::make_unique<Polygon>(std::move(s2geog_ptr));
+//     }
+// };
 
 /*
 ** Temporary testing Numpy-vectorized API (TODO: remove)
@@ -202,14 +248,17 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        coordinates : list of tuple
-            A sequence of (lat, lon) coordinates for each vertex.
+        coordinates : list
+            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
+            for each vertex.
 
     )pbdoc");
 
-    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords),
+    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords<std::pair<double, double>>),
                      py::arg("coordinates"));
 
+    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords<Point*>),
+                     py::arg("coordinates"));
     // Temp test
 
     m.def("nshape", &num_shapes);
