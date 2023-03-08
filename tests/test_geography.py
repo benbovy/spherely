@@ -25,6 +25,44 @@ def test_linestring(coords) -> None:
     assert repr(line).startswith("LINESTRING (5 50")
 
 
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (0, 2), (2, 2), (2, 0)],
+        [spherely.Point(0, 0), spherely.Point(0, 2), spherely.Point(2, 2), spherely.Point(2, 0)],
+    ],
+)
+def test_polygon(coords) -> None:
+    poly = spherely.Polygon(coords)
+    assert poly.dimensions == 2
+    assert poly.nshape == 1
+    assert repr(poly).startswith("POLYGON ((0 0")
+
+
+def test_polygon_error() -> None:
+    with pytest.raises(ValueError, match="loop is not valid.*duplicate vertex.*"):
+        # polygon vertices should be open (duplicate vertex error)
+        spherely.Polygon([(0, 0), (0, 2), (2, 0), (0, 0)])
+
+    with pytest.raises(ValueError, match="loop is not valid.*at least 3 vertices.*"):
+        spherely.Polygon([(0, 0), (0, 2)])
+
+
+def test_polygon_normalize() -> None:
+    poly_ccw = spherely.Polygon([(0, 0), (0, 2), (2, 2), (2, 0)])
+    poly_cw = spherely.Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+
+    point = spherely.Point(1, 1)
+
+    # CW and CCW polygons should be both valid
+    assert spherely.contains(poly_ccw, point)
+    assert spherely.contains(poly_cw, point)
+
+    # CW polygon vertices reordered
+    # TODO: better to test actual coordinate values when implemented
+    assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+
+
 def test_is_geography() -> None:
     arr = np.array([1, 2.33, spherely.Point(30, 6)])
 
