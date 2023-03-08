@@ -8,7 +8,7 @@ name: Run tests
 
 jobs:
   test:
-    name: Run tests (${{ matrix.os }})
+    name: ${{ matrix.os }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -80,7 +80,7 @@ jobs:
           path: deps/s2geography
           fetch-depth: 0
         if: |
-          matrix.dev == 'true' &&
+          matrix.dev == true &&
           steps.conda-cache.outputs.cache-hit != 'true'
 
       - name: Configure, build & install s2geography (unix)
@@ -95,7 +95,7 @@ jobs:
           cmake --build build
           cmake --install build
         if: |
-          matrix.dev == 'true' &&
+          matrix.dev == true &&
           (steps.conda-cache.outputs.cache-hit != 'true' &&
           (runner.os == 'Linux' || runner.os == 'macOS'))
 
@@ -111,7 +111,7 @@ jobs:
           cmake --build build --config Release
           cmake --install build
         if: |
-          matrix.dev == 'true' &&
+          matrix.dev == true &&
           (steps.conda-cache.outputs.cache-hit != 'true' &&
           runner.os == 'Windows')
 
