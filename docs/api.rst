@@ -15,6 +15,7 @@ Geography types
 
    Point
    LineString
+   Polygon
 
 .. _api_properties:
 
