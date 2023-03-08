@@ -15,10 +15,23 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.9", "3.10", "3.11"]
-        dev: [false, true]
+        dev: [false]
         env:
-          - ci/environment.yaml
-          - ci/environment-dev.yaml
+          - ci/environment.yml
+        include:
+          - env: ci/environment-dev.yml
+            os: ubuntu-latest
+            python-version: "3.11"
+            dev: true
+          - env: ci/environment-dev.yml
+            os: macos-latest
+            python-version: "3.11"
+            dev: true
+          - env: ci/environment-dev.yml
+            os: windows-latest
+            python-version: "3.11"
+            dev: true
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
