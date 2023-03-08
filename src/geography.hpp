@@ -101,7 +101,7 @@ public:
     Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
     inline GeographyType geog_type() const override {
-        return GeographyType::LineString;
+        return GeographyType::Polygon;
     }
 };
 
