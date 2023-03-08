@@ -78,8 +78,8 @@ void init_predicates(py::module& m) {
 
     m.def("contains", py::vectorize(&contains), py::arg("a"), py::arg("b"),
           R"pbdoc(
-
         Returns True if B is completely inside A.
+
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
