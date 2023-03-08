@@ -23,9 +23,6 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
-// WINDOWS: avoid conflict with WIN32 API
-using Polygon = spherely::Polygon;
-
 py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 
 /*
@@ -89,7 +86,7 @@ static std::unique_ptr<LineString> create_linestring(const std::vector<V>& coord
 }
 
 template <class V>
-static std::unique_ptr<Polygon> create_polygon(const std::vector<V>& shell) {
+static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V>& shell) {
     std::vector<S2Point> shell_pts(shell.size());
 
     std::transform(
@@ -121,7 +118,7 @@ static std::unique_ptr<Polygon> create_polygon(const std::vector<V>& shell) {
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
     polygon_ptr->InitOriented(std::move(loops));
 
-    return make_geography<s2geog::PolygonGeography, Polygon>(std::move(polygon_ptr));
+    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
 }
 
 /*
@@ -291,7 +288,7 @@ void init_geography(py::module &m) {
 
 
     auto pypolygon =
-        py::class_<Polygon, Geography>(m, "Polygon", R"pbdoc(
+        py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
         A geography type representing an area that is enclosed by a linear ring.
 
         A polygon is a two-dimensional feature and has a non-zero area.
