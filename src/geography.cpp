@@ -23,6 +23,9 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
+// WINDOWS: avoid conflict with WIN32 API
+using Polygon = spherely::Polygon;
+
 py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 
 /*
