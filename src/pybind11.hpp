@@ -90,6 +90,10 @@ public:
         return py::cast(std::move(geog_ptr));
     }
 
+    // static PyObjectGeography as_py_object(std::unique_ptr<T> geog_ptr) {
+    //     return static_cast<PyObjectGeography>(py::cast(std::move(geog_ptr)));
+    // }
+
     // Just check whether the object is a Geography
     //
     bool is_geog_ptr() const { return check_type(false); }

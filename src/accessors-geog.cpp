@@ -9,24 +9,21 @@ using namespace spherely;
 
 PyObjectGeography convex_hull(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
-    auto res = s2geog::s2_convex_hull(a_ptr);
-    auto res_geog = spherely::Geography(std::move(res));
-    auto res_geog_unique = std::make_unique<spherely::Geography>(std::move(res_geog));
-    auto res_object = PyObjectGeography::as_py_object(std::move(res_geog_unique));
+    auto s2_obj = s2geog::s2_convex_hull(a_ptr);
+    auto geog_ptr = std::make_unique<Geography>(Geography(std::move(s2_obj)));
+    auto res_object = PyObjectGeography::as_py_object(std::move(geog_ptr));
     return static_cast<PyObjectGeography&>(res_object);
 }
 
 void init_accessors(py::module& m) {
     m.def("convex_hull", py::vectorize(&convex_hull), py::arg("a"),
           R"pbdoc(
-        Returns True if A and B share any portion of space.
-
-        Intersects implies that overlaps, touches and within are True.
+        Computes the convex hull of each geography.
 
         Parameters
         ----------
-        a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+        a : :py:class:`Geography` or array_like
+            Geography object
 
     )pbdoc");
 }
