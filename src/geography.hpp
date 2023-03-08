@@ -14,7 +14,7 @@ using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 /*
 ** The registered Geography types
 */
-enum class GeographyType : std::int8_t { None = -1, Point, LineString };
+enum class GeographyType : std::int8_t { None = -1, Point, LineString, Polygon };
 
 /*
 ** Thin wrapper around s2geography::Geography.
