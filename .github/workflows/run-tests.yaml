@@ -15,6 +15,10 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.9", "3.10", "3.11"]
+        dev: [false, true]
+        env:
+          - ci/environment.yaml
+          - ci/environment-dev.yaml
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -27,6 +31,7 @@ jobs:
           activate-environment: spherely-dev
           use-mamba: true
           python-version: ${{ matrix.python-version }}
+          environment-file: ${{ matrix.env }}
 
       - name: Get Date
         id: get-date
@@ -34,28 +39,18 @@ jobs:
         # cache will last one day
         run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
 
-      - name: Set environment file
-        id: env-file
-        shell: bash -l {0}
-        run: echo "env_file=ci/environment.yml" >> $GITHUB_ENV
-
-      - name: Check environment variables
-        id: check-env
-        run: |
-          echo "env.env_file: ${{ env.env_file }}"
-
       - name: Cache environment
         uses: actions/cache@v2
         with:
           path: ${{ env.CONDA }}/envs
-          key: ${{ runner.os }}-{{ matrix.python-version }}-conda-${{ hashFiles( env.env_file ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
+          key: ${{ runner.os }}-{{ matrix.python-version }}-conda-${{ hashFiles( matrix.env ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
         env:
           # Increase this value to reset cache if ci/environment.yml has not changed
           CACHE_NUMBER: 0
         id: conda-cache
 
       - name: Update environment
-        run: mamba env update -n spherely-dev -f ${{ env.env_file }}
+        run: mamba env update -n spherely-dev -f ${{ matrix.env }}
         if: steps.conda-cache.outputs.cache-hit != 'true'
 
       - name: Conda info
@@ -64,44 +59,48 @@ jobs:
           conda info
           conda list
 
-      # - name: Fetch s2geography
-      #   uses: actions/checkout@v3
-      #   with:
-      #     repository: paleolimbot/s2geography
-      #     ref: master
-      #     path: deps/s2geography
-      #     fetch-depth: 0
-      #   if: steps.conda-cache.outputs.cache-hit != 'true'
+      - name: Fetch s2geography
+        uses: actions/checkout@v3
+        with:
+          repository: paleolimbot/s2geography
+          ref: master
+          path: deps/s2geography
+          fetch-depth: 0
+        if: |
+          matrix.dev == 'true' &&
+          steps.conda-cache.outputs.cache-hit != 'true'
 
-      # - name: Configure, build & install s2geography (unix)
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd deps/s2geography
-      #     cmake -S . -B build \
-      #       -DCMAKE_CXX_STANDARD=17 \
-      #       -DCMAKE_BUILD_TYPE=Release \
-      #       -DS2GEOGRAPHY_S2_SOURCE=CONDA \
-      #       -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
-      #     cmake --build build
-      #     cmake --install build
-      #   if: |
-      #     steps.conda-cache.outputs.cache-hit != 'true' &&
-      #     (runner.os == 'Linux' || runner.os == 'macOS')
+      - name: Configure, build & install s2geography (unix)
+        shell: bash -l {0}
+        run: |
+          cd deps/s2geography
+          cmake -S . -B build \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DS2GEOGRAPHY_S2_SOURCE=CONDA \
+            -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+          cmake --build build
+          cmake --install build
+        if: |
+          matrix.dev == 'true' &&
+          (steps.conda-cache.outputs.cache-hit != 'true' &&
+          (runner.os == 'Linux' || runner.os == 'macOS'))
 
-      # - name: Configure, build & install s2geography (win)
-      #   shell: bash -l {0}
-      #   run: |
-      #     cd deps/s2geography
-      #     cmake -S . -B build \
-      #       -DCMAKE_CXX_STANDARD=17 \
-      #       -DS2GEOGRAPHY_S2_SOURCE=CONDA \
-      #       -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX/Library \
-      #       -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
-      #     cmake --build build --config Release
-      #     cmake --install build
-      #   if: |
-      #     steps.conda-cache.outputs.cache-hit != 'true' &&
-      #     runner.os == 'Windows'
+      - name: Configure, build & install s2geography (win)
+        shell: bash -l {0}
+        run: |
+          cd deps/s2geography
+          cmake -S . -B build \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DS2GEOGRAPHY_S2_SOURCE=CONDA \
+            -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX/Library \
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE
+          cmake --build build --config Release
+          cmake --install build
+        if: |
+          matrix.dev == 'true' &&
+          (steps.conda-cache.outputs.cache-hit != 'true' &&
+          runner.os == 'Windows')
 
       - name: Build and install spherely
         shell: bash -l {0}

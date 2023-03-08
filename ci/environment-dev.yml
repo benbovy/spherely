@@ -1,0 +1,15 @@
+name: spherely-dev
+channels:
+  - conda-forge
+dependencies:
+  - cxx-compiler
+  - s2geometry
+  - libabseil
+  - cmake
+  - python
+  - numpy
+  - pybind11
+  - scikit-build-core
+  - ninja
+  - pytest
+  - pip
