@@ -78,11 +78,8 @@ void init_predicates(py::module& m) {
 
     m.def("contains", py::vectorize(&contains), py::arg("a"), py::arg("b"),
           R"pbdoc(
-        Returns True if A is completely inside B.
 
-        A contains B if no points of B lie in the exterior of A and at least
-        one point of the interior of B lies in the interior of A.
-
+        Returns True if B is completely inside A.
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
@@ -92,7 +89,7 @@ void init_predicates(py::module& m) {
     
     m.def("within", py::vectorize(&within), py::arg("a"), py::arg("b"),
           R"pbdoc(
-        Returns True if A does not intersect at all with B.
+        Returns True if A is completely inside B.
 
         Parameters
         ----------
