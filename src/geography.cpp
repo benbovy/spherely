@@ -1,11 +1,23 @@
 #include "geography.hpp"
 
+#include <memory>
+#include <stdexcept>
+#include <sstream>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
+#include <s2/s2loop.h>
+#include <s2/s2point.h>
+#include <s2/s2polygon.h>
 #include <s2geography.h>
 
 #include "pybind11.hpp"
+#include "pybind11/stl.h"
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
@@ -17,38 +29,97 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 ** Geography factories
 */
 
+// Used in Geography constructors to get a point either from a tuple of
+// coordinates or an existing Point object.
+//
+// TODO: using std::variant may be nicer:
+// using Vertex = std::variant<std::pair<double, double>, Point>;
+//
+// It is not fully supported with Pybind11 (Point is non-default constructible)
+// https://github.com/pybind/pybind11/issues/4108
+//
+S2Point to_s2point(const std::pair<double, double>& vertex) {
+    return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
+}
+
+S2Point to_s2point(const Point* vertex) {
+    return vertex->s2point();
+}
+
+/*
+** Helper to create Geography object wrappers.
+**
+** @tparam T1 The S2Geography wrapper type
+** @tparam T2 This library wrapper type.
+** @tparam S The S2Geometry type
+*/
+template <class T1, class T2, class S>
+std::unique_ptr<T2> make_geography(S&& s2_obj) {
+    S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
+    return std::make_unique<T2>(std::move(s2geog_ptr));
+}
+
+
 class PointFactory {
 public:
     static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees,
                                                     double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
-        S2GeographyPtr s2geog_ptr =
-            std::make_unique<s2geog::PointGeography>(S2Point(latlng));
-        std::unique_ptr<Point> point_ptr =
-            std::make_unique<Point>(std::move(s2geog_ptr));
 
-        return point_ptr;
+        return make_geography<s2geog::PointGeography, Point>(S2Point(latlng));
     }
+
+    //TODO: from LatLonRadians
 };
 
-class LineStringFactory {
-public:
-    using LatLonCoords = std::vector<std::pair<double, double>>;
+template <class V>
+static std::unique_ptr<LineString> create_linestring(const std::vector<V>& coords) {
+    std::vector<S2Point> pts(coords.size());
 
-    static std::unique_ptr<LineString> FromLatLonCoords(LatLonCoords coords) {
-        std::vector<S2LatLng> latlng_pts;
-        for (auto &latlng : coords) {
-            latlng_pts.push_back(
-                S2LatLng::FromDegrees(latlng.first, latlng.second));
-        }
+    std::transform(
+        coords.begin(), coords.end(), pts.begin(),
+        [](const V& vertex) { return to_s2point(vertex); });
 
-        auto polyline = std::make_unique<S2Polyline>(latlng_pts);
-        S2GeographyPtr s2geog_ptr =
-            std::make_unique<s2geog::PolylineGeography>(std::move(polyline));
+    auto polyline_ptr = std::make_unique<S2Polyline>(pts);
 
-        return std::make_unique<LineString>(std::move(s2geog_ptr));
+    return make_geography<s2geog::PolylineGeography, LineString>(std::move(polyline_ptr));
+}
+
+template <class V>
+static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V>& shell) {
+    std::vector<S2Point> shell_pts(shell.size());
+
+    std::transform(
+        shell.begin(), shell.end(), shell_pts.begin(),
+        [](const V& vertex) { return to_s2point(vertex); });
+
+    auto shell_loop_ptr = std::make_unique<S2Loop>();
+    // TODO: maybe add an option to skip validity checks
+    shell_loop_ptr->set_s2debug_override(S2Debug::DISABLE);
+    shell_loop_ptr->Init(shell_pts);
+    if (!shell_loop_ptr->IsValid()) {
+        std::stringstream err;
+        S2Error s2err;
+        err << "loop is not valid: ";
+        shell_loop_ptr->FindValidationError(&s2err);
+        err << s2err.text();
+        throw py::value_error(err.str());
     }
-};
+
+    // TODO: maybe add an option to skip normalization (simply assume
+    // vertices are given in the CCW order).
+    shell_loop_ptr->Normalize();
+
+    std::vector<std::unique_ptr<S2Loop>> loops;
+    loops.push_back(std::move(shell_loop_ptr));
+
+    auto polygon_ptr = std::make_unique<S2Polygon>();
+    // TODO: maybe add an option to skip validity checks
+    polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
+    polygon_ptr->InitOriented(std::move(loops));
+
+    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
+}
 
 /*
 ** Temporary testing Numpy-vectorized API (TODO: remove)
@@ -145,6 +216,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("NONE", GeographyType::None);
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
+    pygeography_types.value("POLYGON", GeographyType::Polygon);
 
     // Geography classes
 
@@ -202,13 +274,35 @@ void init_geography(py::module &m) {
 
         Parameters
         ----------
-        coordinates : list of tuple
-            A sequence of (lat, lon) coordinates for each vertex.
+        coordinates : list
+            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
+            for each vertex.
 
     )pbdoc");
 
-    pylinestring.def(py::init(&LineStringFactory::FromLatLonCoords),
+    pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
                      py::arg("coordinates"));
+
+    pylinestring.def(py::init(&create_linestring<Point*>),
+                     py::arg("coordinates"));
+
+
+    auto pypolygon =
+        py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
+        A geography type representing an area that is enclosed by a linear ring.
+
+        A polygon is a two-dimensional feature and has a non-zero area.
+
+        Parameters
+        ----------
+        shell : list
+            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
+            for each vertex of the polygon.
+
+    )pbdoc");
+
+    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>), py::arg("shell"));
+    pypolygon.def(py::init(&create_polygon<Point*>), py::arg("shell"));
 
     // Temp test
 
