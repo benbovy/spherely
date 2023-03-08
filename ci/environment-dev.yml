@@ -4,7 +4,6 @@ channels:
 dependencies:
   - cxx-compiler
   - s2geometry
-  - s2geography
   - libabseil
   - cmake
   - python
