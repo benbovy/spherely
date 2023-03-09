@@ -53,3 +53,5 @@ Predicates
    equals
    intersects
    contains
+   within
+   disjoint   

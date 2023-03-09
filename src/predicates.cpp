@@ -32,6 +32,22 @@ bool contains(PyObjectGeography a, PyObjectGeography b) {
     return s2geog::s2_contains(a_index, b_index, options);
 }
 
+bool within(PyObjectGeography a, PyObjectGeography b) {
+    const auto& a_index = a.as_geog_ptr()->geog_index();
+    const auto& b_index = b.as_geog_ptr()->geog_index();
+
+    S2BooleanOperation::Options options;
+    return s2geog::s2_contains(b_index, a_index, options);
+}
+
+bool disjoint(PyObjectGeography a, PyObjectGeography b) {
+    const auto& a_index = a.as_geog_ptr()->geog_index();
+    const auto& b_index = b.as_geog_ptr()->geog_index();
+
+    S2BooleanOperation::Options options;
+    return !s2geog::s2_intersects(a_index, b_index, options);
+}
+
 void init_predicates(py::module& m) {
     m.def("intersects", py::vectorize(&intersects), py::arg("a"), py::arg("b"),
           R"pbdoc(
@@ -64,8 +80,16 @@ void init_predicates(py::module& m) {
           R"pbdoc(
         Returns True if B is completely inside A.
 
-        A contains B if no points of B lie in the exterior of A and at least
-        one point of the interior of B lies in the interior of A.
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
+    
+    m.def("within", py::vectorize(&within), py::arg("a"), py::arg("b"),
+          R"pbdoc(
+        Returns True if A is completely inside B.
 
         Parameters
         ----------
@@ -73,4 +97,17 @@ void init_predicates(py::module& m) {
             Geography object(s)
 
     )pbdoc");
-}
+
+    m.def("disjoint", py::vectorize(&disjoint), py::arg("a"), py::arg("b"),
+          R"pbdoc(
+        Returns True if A boundaries and interior does not intersect at all
+        with those of B.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
+
+    }
