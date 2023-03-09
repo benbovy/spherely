@@ -10,7 +10,7 @@ using namespace spherely;
 PyObjectGeography convex_hull(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
     auto s2_obj = s2geog::s2_convex_hull(a_ptr);
-    auto geog_ptr = std::make_unique<Geography>(Geography(std::move(s2_obj)));
+    auto geog_ptr = std::make_unique<Geography>(std::move(s2_obj));
     auto res_object = PyObjectGeography::as_py_object(std::move(geog_ptr));
     return static_cast<PyObjectGeography&>(res_object);
 }
