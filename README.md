@@ -18,8 +18,17 @@ This library is at an early stage of development.
 
 - Python
 - Numpy
-- s2geography
-- s2geometry
+- [s2geography](https://github.com/paleolimbot/s2geography)
+- [s2geometry](https://github.com/google/s2geometry)
+
+Additional requirements when building spherely from source:
+
+- C++ compiler supporting C++17 standard
+- CMake
+- [scikit-build-core](https://github.com/scikit-build/scikit-build-core)
+
+(Note: C++11 or C++14 should work too but we have no plan to maintain
+compatibility with those older standards)
 
 ## Installation
 
@@ -29,7 +38,7 @@ spherely from source.
 
 ## Setting up a development environment using conda
 
-After cloning this repo, create a conda environment using the ci/environment.yml
+After cloning this repo, create a conda environment using the `ci/environment.yml`
 file with the required dependencies:
 
 ```
@@ -44,6 +53,14 @@ $ cd spherely
 $ python -m pip install . -v --no-build-isolation
 ```
 
+Note that you can specify a build directory in order to avoid rebuilding the
+whole library from scratch each time after editing the code (requires
+scikit-build-core v0.2.0+):
+
+```
+$ python -m pip install . -v --no-build-isolation --config-settings build-dir=build/skbuild
+```
+
 Run the tests:
 
 ```
@@ -53,9 +70,6 @@ $ pytest . -v
 ## Using the latest s2geography
 
 If you want to compile spherely against the latest version of s2geography, use:
-
-
- Clone and install `s2geography` (https://github.com/paleolimbot/s2geography):
 
  ```
  $ git clone https://github.com/paleolimbot/s2geography
