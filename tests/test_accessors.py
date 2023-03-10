@@ -20,13 +20,14 @@ import pytest
     ],
 )
 def test_convex_hull(geog, expected) -> None:
-    # test array + scalar
+    # scalar
     actual = spherely.convex_hull(geog)
-    assert isinstance(actual, spherely.Geography)
+    assert isinstance(actual, spherely.Polygon)
     assert spherely.equals(actual, expected)
 
+    # array
     actual = spherely.convex_hull([geog])
     assert isinstance(actual, np.ndarray)
     actual = actual[0]
-    assert isinstance(actual, spherely.Geography)
+    assert isinstance(actual, spherely.Polygon)
     assert spherely.equals(actual, expected)
