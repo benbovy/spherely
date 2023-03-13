@@ -86,7 +86,7 @@ void init_predicates(py::module& m) {
             Geography object(s)
 
     )pbdoc");
-    
+
     m.def("within", py::vectorize(&within), py::arg("a"), py::arg("b"),
           R"pbdoc(
         Returns True if A is completely inside B.
@@ -109,5 +109,4 @@ void init_predicates(py::module& m) {
             Geography object(s)
 
     )pbdoc");
-
-    }
+}

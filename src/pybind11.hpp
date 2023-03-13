@@ -142,7 +142,8 @@ struct npy_format_descriptor<spherely::PyObjectGeography> {
 };
 
 // Override signature type hint for vectorized Geography arguments
-template <int Flags> struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
+template <int Flags>
+struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
     static constexpr auto name = _("Geography | array_like");
 };
 
