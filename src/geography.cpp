@@ -131,7 +131,7 @@ py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
     py::buffer_info result_buf = result.request();
     int *rptr = static_cast<int *>(result_buf.ptr);
 
-    for (size_t i = 0; i < buf.size; i++) {
+    for (py::ssize_t i = 0; i < buf.size; i++) {
         auto geog_ptr = (*geographies.data(i)).as_geog_ptr();
         rptr[i] = geog_ptr->num_shapes();
     }
@@ -156,9 +156,7 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs,
     double *yptr = static_cast<double *>(ybuf.ptr);
     py::object *rptr = static_cast<py::object *>(rbuf.ptr);
 
-    size_t size = static_cast<size_t>(xbuf.shape[0]);
-
-    for (size_t i = 0; i < xbuf.shape[0]; i++) {
+    for (py::ssize_t i = 0; i < xbuf.shape[0]; i++) {
         auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
         // rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
         rptr[i] = py::cast(std::move(point_ptr));
