@@ -1,13 +1,5 @@
 #include "geography.hpp"
 
-#include <memory>
-#include <stdexcept>
-#include <sstream>
-#include <type_traits>
-#include <utility>
-#include <variant>
-#include <vector>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
@@ -15,6 +7,14 @@
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
 #include <s2geography.h>
+
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "pybind11.hpp"
 #include "pybind11/stl.h"
@@ -38,13 +38,11 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 // It is not fully supported with Pybind11 (Point is non-default constructible)
 // https://github.com/pybind/pybind11/issues/4108
 //
-S2Point to_s2point(const std::pair<double, double>& vertex) {
+S2Point to_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
 
-S2Point to_s2point(const Point* vertex) {
-    return vertex->s2point();
-}
+S2Point to_s2point(const Point *vertex) { return vertex->s2point(); }
 
 /*
 ** Helper to create Geography object wrappers.
@@ -54,11 +52,10 @@ S2Point to_s2point(const Point* vertex) {
 ** @tparam S The S2Geometry type
 */
 template <class T1, class T2, class S>
-std::unique_ptr<T2> make_geography(S&& s2_obj) {
+std::unique_ptr<T2> make_geography(S &&s2_obj) {
     S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
     return std::make_unique<T2>(std::move(s2geog_ptr));
 }
-
 
 class PointFactory {
 public:
@@ -69,29 +66,30 @@ public:
         return make_geography<s2geog::PointGeography, Point>(S2Point(latlng));
     }
 
-    //TODO: from LatLonRadians
+    // TODO: from LatLonRadians
 };
 
 template <class V>
-static std::unique_ptr<LineString> create_linestring(const std::vector<V>& coords) {
+static std::unique_ptr<LineString> create_linestring(
+    const std::vector<V> &coords) {
     std::vector<S2Point> pts(coords.size());
 
-    std::transform(
-        coords.begin(), coords.end(), pts.begin(),
-        [](const V& vertex) { return to_s2point(vertex); });
+    std::transform(coords.begin(), coords.end(), pts.begin(),
+                   [](const V &vertex) { return to_s2point(vertex); });
 
     auto polyline_ptr = std::make_unique<S2Polyline>(pts);
 
-    return make_geography<s2geog::PolylineGeography, LineString>(std::move(polyline_ptr));
+    return make_geography<s2geog::PolylineGeography, LineString>(
+        std::move(polyline_ptr));
 }
 
 template <class V>
-static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V>& shell) {
+static std::unique_ptr<spherely::Polygon> create_polygon(
+    const std::vector<V> &shell) {
     std::vector<S2Point> shell_pts(shell.size());
 
-    std::transform(
-        shell.begin(), shell.end(), shell_pts.begin(),
-        [](const V& vertex) { return to_s2point(vertex); });
+    std::transform(shell.begin(), shell.end(), shell_pts.begin(),
+                   [](const V &vertex) { return to_s2point(vertex); });
 
     auto shell_loop_ptr = std::make_unique<S2Loop>();
     // TODO: maybe add an option to skip validity checks
@@ -118,7 +116,8 @@ static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V>& s
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
     polygon_ptr->InitOriented(std::move(loops));
 
-    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
+    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(
+        std::move(polygon_ptr));
 }
 
 /*
@@ -132,7 +131,7 @@ py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
     py::buffer_info result_buf = result.request();
     int *rptr = static_cast<int *>(result_buf.ptr);
 
-    for (size_t i = 0; i < buf.size; i++) {
+    for (py::ssize_t i = 0; i < buf.size; i++) {
         auto geog_ptr = (*geographies.data(i)).as_geog_ptr();
         rptr[i] = geog_ptr->num_shapes();
     }
@@ -157,9 +156,7 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs,
     double *yptr = static_cast<double *>(ybuf.ptr);
     py::object *rptr = static_cast<py::object *>(rbuf.ptr);
 
-    size_t size = static_cast<size_t>(xbuf.shape[0]);
-
-    for (size_t i = 0; i < xbuf.shape[0]; i++) {
+    for (py::ssize_t i = 0; i < xbuf.shape[0]; i++) {
         auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
         // rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
         rptr[i] = py::cast(std::move(point_ptr));
@@ -283,9 +280,8 @@ void init_geography(py::module &m) {
     pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
                      py::arg("coordinates"));
 
-    pylinestring.def(py::init(&create_linestring<Point*>),
+    pylinestring.def(py::init(&create_linestring<Point *>),
                      py::arg("coordinates"));
-
 
     auto pypolygon =
         py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
@@ -301,8 +297,9 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>), py::arg("shell"));
-    pypolygon.def(py::init(&create_polygon<Point*>), py::arg("shell"));
+    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>),
+                  py::arg("shell"));
+    pypolygon.def(py::init(&create_polygon<Point *>), py::arg("shell"));
 
     // Temp test
 
