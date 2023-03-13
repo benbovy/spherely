@@ -1,3 +1,5 @@
+#include <functional>
+
 #include <s2/s2boolean_operation.h>
 #include <s2geography.h>
 
@@ -7,6 +9,29 @@
 namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
+
+/*
+** Functor for predicate bindings.
+*/
+class Predicate {
+public:
+    using FuncType = std::function<bool(const s2geog::ShapeIndexGeography&,
+                                        const s2geog::ShapeIndexGeography&,
+                                        const S2BooleanOperation::Options&)>;
+
+    template <class F>
+    Predicate(F&& func) : m_func(std::forward<F>(func)) {}
+
+    bool operator()(PyObjectGeography a, PyObjectGeography b) const {
+        const auto& a_index = a.as_geog_ptr()->geog_index();
+        const auto& b_index = b.as_geog_ptr()->geog_index();
+        return m_func(a_index, b_index, m_options);
+    }
+
+private:
+    FuncType m_func;
+    S2BooleanOperation::Options m_options;
+};
 
 bool intersects(PyObjectGeography a, PyObjectGeography b) {
     const auto& a_index = a.as_geog_ptr()->geog_index();
@@ -49,7 +74,8 @@ bool disjoint(PyObjectGeography a, PyObjectGeography b) {
 }
 
 void init_predicates(py::module& m) {
-    m.def("intersects", py::vectorize(&intersects), py::arg("a"), py::arg("b"),
+    m.def("intersects", py::vectorize(Predicate(s2geog::s2_intersects)),
+          py::arg("a"), py::arg("b"),
           R"pbdoc(
         Returns True if A and B share any portion of space.
 
