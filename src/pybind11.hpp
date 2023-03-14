@@ -84,15 +84,16 @@ public:
     // Note: pybind11's `type_caster<std::unique_ptr<wrapped_type>>` implements
     // move semantics (Python takes ownership).
     //
-    template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value,
-                                        bool> = true>
+    template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
     static py::object as_py_object(std::unique_ptr<T> geog_ptr) {
         return py::cast(std::move(geog_ptr));
     }
 
     // Just check whether the object is a Geography
     //
-    bool is_geog_ptr() const { return check_type(false); }
+    bool is_geog_ptr() const {
+        return check_type(false);
+    }
 };
 }  // namespace spherely
 
@@ -122,9 +123,7 @@ struct vectorize_arg<spherely::PyObjectGeography> {
     static constexpr bool vectorize = true;
     // Accept this type: an array for vectorized types, otherwise the type
     // as-is:
-    using type =
-        conditional_t<vectorize,
-                      array_t<remove_cv_t<call_type>, array::forcecast>, T>;
+    using type = conditional_t<vectorize, array_t<remove_cv_t<call_type>, array::forcecast>, T>;
 };
 
 // Register PyObjectGeography as a valid numpy dtype (numpy.object alias)
@@ -154,9 +153,9 @@ struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
 //
 // Allows using PyObjectGeography as return type of vectorized functions.
 //
-template <typename T,
-          typename detail::enable_if_t<
-              std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
+template <
+    typename T,
+    typename detail::enable_if_t<std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
 object cast(T &&value) {
     return value;
 }

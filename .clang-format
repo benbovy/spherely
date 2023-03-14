@@ -1,10 +1,17 @@
 ---
 Language:        Cpp
 BasedOnStyle:  Google
+ColumnLimit: 100
 TabWidth: 4
 IndentWidth: 4
 PointerAlignment: Left
 ReferenceAlignment: Pointer
 IndentAccessModifiers: false
 AccessModifierOffset: -4
+BinPackArguments: false
+BinPackParameters: false
+ExperimentalAutoDetectBinPacking: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Inline
 ...

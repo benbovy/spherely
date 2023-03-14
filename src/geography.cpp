@@ -42,7 +42,9 @@ S2Point to_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
 
-S2Point to_s2point(const Point *vertex) { return vertex->s2point(); }
+S2Point to_s2point(const Point *vertex) {
+    return vertex->s2point();
+}
 
 /*
 ** Helper to create Geography object wrappers.
@@ -59,8 +61,7 @@ std::unique_ptr<T2> make_geography(S &&s2_obj) {
 
 class PointFactory {
 public:
-    static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees,
-                                                    double lon_degrees) {
+    static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
 
         return make_geography<s2geog::PointGeography, Point>(S2Point(latlng));
@@ -70,26 +71,25 @@ public:
 };
 
 template <class V>
-static std::unique_ptr<LineString> create_linestring(
-    const std::vector<V> &coords) {
+static std::unique_ptr<LineString> create_linestring(const std::vector<V> &coords) {
     std::vector<S2Point> pts(coords.size());
 
-    std::transform(coords.begin(), coords.end(), pts.begin(),
-                   [](const V &vertex) { return to_s2point(vertex); });
+    std::transform(coords.begin(), coords.end(), pts.begin(), [](const V &vertex) {
+        return to_s2point(vertex);
+    });
 
     auto polyline_ptr = std::make_unique<S2Polyline>(pts);
 
-    return make_geography<s2geog::PolylineGeography, LineString>(
-        std::move(polyline_ptr));
+    return make_geography<s2geog::PolylineGeography, LineString>(std::move(polyline_ptr));
 }
 
 template <class V>
-static std::unique_ptr<spherely::Polygon> create_polygon(
-    const std::vector<V> &shell) {
+static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V> &shell) {
     std::vector<S2Point> shell_pts(shell.size());
 
-    std::transform(shell.begin(), shell.end(), shell_pts.begin(),
-                   [](const V &vertex) { return to_s2point(vertex); });
+    std::transform(shell.begin(), shell.end(), shell_pts.begin(), [](const V &vertex) {
+        return to_s2point(vertex);
+    });
 
     auto shell_loop_ptr = std::make_unique<S2Loop>();
     // TODO: maybe add an option to skip validity checks
@@ -116,8 +116,7 @@ static std::unique_ptr<spherely::Polygon> create_polygon(
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
     polygon_ptr->InitOriented(std::move(loops));
 
-    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(
-        std::move(polygon_ptr));
+    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
 }
 
 /*
@@ -139,8 +138,7 @@ py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
     return result;
 }
 
-py::array_t<PyObjectGeography> create(py::array_t<double> xs,
-                                      py::array_t<double> ys) {
+py::array_t<PyObjectGeography> create(py::array_t<double> xs, py::array_t<double> ys) {
     py::buffer_info xbuf = xs.request(), ybuf = ys.request();
     if (xbuf.ndim != 1 || ybuf.ndim != 1) {
         throw std::runtime_error("Number of dimensions must be one");
@@ -181,7 +179,9 @@ int get_dimensions(PyObjectGeography obj) {
 ** Geography utils
 */
 
-bool is_geography(PyObjectGeography obj) { return obj.is_geog_ptr(); }
+bool is_geography(PyObjectGeography obj) {
+    return obj.is_geog_ptr();
+}
 
 /*
 ** Geography creation
@@ -205,8 +205,7 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 void init_geography(py::module &m) {
     // Geography types
 
-    auto pygeography_types =
-        py::enum_<GeographyType>(m, "GeographyType", R"pbdoc(
+    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", R"pbdoc(
         The enumeration of Geography types
     )pbdoc");
 
@@ -224,7 +223,8 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pygeography.def_property_readonly("dimensions", &Geography::dimension,
+    pygeography.def_property_readonly("dimensions",
+                                      &Geography::dimension,
                                       R"pbdoc(
         Returns the inherent dimensionality of a geometry.
 
@@ -259,11 +259,9 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"),
-                py::arg("lon"));
+    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"), py::arg("lon"));
 
-    auto pylinestring =
-        py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
+    auto pylinestring = py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
         A geography type composed of one or more arc segments.
 
         A LineString is a one-dimensional feature and has a non-zero length but
@@ -280,11 +278,9 @@ void init_geography(py::module &m) {
     pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
                      py::arg("coordinates"));
 
-    pylinestring.def(py::init(&create_linestring<Point *>),
-                     py::arg("coordinates"));
+    pylinestring.def(py::init(&create_linestring<Point *>), py::arg("coordinates"));
 
-    auto pypolygon =
-        py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
+    auto pypolygon = py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
         A geography type representing an area that is enclosed by a linear ring.
 
         A polygon is a two-dimensional feature and has a non-zero area.
@@ -297,8 +293,7 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>),
-                  py::arg("shell"));
+    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>), py::arg("shell"));
     pypolygon.def(py::init(&create_polygon<Point *>), py::arg("shell"));
 
     // Temp test
@@ -308,7 +303,9 @@ void init_geography(py::module &m) {
 
     // Geography properties
 
-    m.def("get_type_id", py::vectorize(&get_type_id), py::arg("geography"),
+    m.def("get_type_id",
+          py::vectorize(&get_type_id),
+          py::arg("geography"),
           R"pbdoc(
         Returns the type ID of a geography.
 
@@ -323,8 +320,7 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    m.def("get_dimensions", py::vectorize(&get_dimensions),
-          py::arg("geography"), R"pbdoc(
+    m.def("get_dimensions", py::vectorize(&get_dimensions), py::arg("geography"), R"pbdoc(
         Returns the inherent dimensionality of a geography.
 
         The inherent dimension is 0 for points, 1 for linestrings and 2 for
@@ -340,7 +336,9 @@ void init_geography(py::module &m) {
 
     // Geography utils
 
-    m.def("is_geography", py::vectorize(&is_geography), py::arg("obj"),
+    m.def("is_geography",
+          py::vectorize(&is_geography),
+          py::arg("obj"),
           R"pbdoc(
         Returns True if the object is a :py:class:`Geography`, False otherwise.
 
@@ -353,7 +351,9 @@ void init_geography(py::module &m) {
 
     // Geography creation
 
-    m.def("is_prepared", py::vectorize(&is_prepared), py::arg("geography"),
+    m.def("is_prepared",
+          py::vectorize(&is_prepared),
+          py::arg("geography"),
           R"pbdoc(
         Returns True if the geography object is "prepared", False otherwise.
 
@@ -376,7 +376,9 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    m.def("prepare", py::vectorize(&prepare), py::arg("geography"),
+    m.def("prepare",
+          py::vectorize(&prepare),
+          py::arg("geography"),
           R"pbdoc(
         Prepare a geography, improving performance of other operations.
 
@@ -400,7 +402,8 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    m.def("destroy_prepared", py::vectorize(&destroy_prepared),
+    m.def("destroy_prepared",
+          py::vectorize(&destroy_prepared),
           py::arg("geography"),
           R"pbdoc(
         Destroy the prepared part of a geography, freeing up memory.

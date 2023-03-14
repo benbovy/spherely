@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
 [![Docs](https://readthedocs.org/projects/spherely/badge/?version=latest)](https://spherely.readthedocs.io)
+[![Coverage](https://codecov.io/gh/benbovy/spherely/branch/main/graph/badge.svg)](https://app.codecov.io/gh/benbovy/spherely?branch=main)
 
 *Python library for manipulation and analysis of geometric objects on the sphere.*
 
@@ -67,7 +68,17 @@ Run the tests:
 $ pytest . -v
 ```
 
-## Using the latest s2geography
+Spherely also uses [pre-commit](https://pre-commit.com/) for code
+auto-formatting and linting at every commit. After installing it, you can enable
+pre-commit hooks with the following command:
+
+```
+$ pre-commit install
+```
+
+(Note: you can skip the pre-commit checks with `git commit --no-verify`)
+
+## Using the latest s2geography version
 
 If you want to compile spherely against the latest version of s2geography, use:
 

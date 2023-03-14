@@ -54,4 +54,4 @@ Predicates
    intersects
    contains
    within
-   disjoint   
+   disjoint
