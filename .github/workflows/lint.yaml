@@ -10,6 +10,9 @@ jobs:
   lint:
     name: mypy
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout repo
@@ -22,7 +25,6 @@ jobs:
           environment-name: spherely-dev
           extra-specs: |
             python=3.11
-            conda
 
       - name: Build and install spherely
         run: |
