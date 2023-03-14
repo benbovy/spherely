@@ -29,7 +29,12 @@ def test_linestring(coords) -> None:
     "coords",
     [
         [(0, 0), (0, 2), (2, 2), (2, 0)],
-        [spherely.Point(0, 0), spherely.Point(0, 2), spherely.Point(2, 2), spherely.Point(2, 0)],
+        [
+            spherely.Point(0, 0),
+            spherely.Point(0, 2),
+            spherely.Point(2, 2),
+            spherely.Point(2, 0),
+        ],
     ],
 )
 def test_polygon(coords) -> None:

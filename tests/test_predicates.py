@@ -61,10 +61,11 @@ def test_contains():
     a2 = spherely.LineString([(50, 8), (60, 8)])
     b2 = spherely.Point(50, 8)
     assert spherely.contains(a2, b2)
-    
+
+
 def test_within():
     # test array + scalar
-    a = spherely.Point(40, 8) 
+    a = spherely.Point(40, 8)
     b = np.array(
         [
             spherely.LineString([(40, 8), (60, 8)]),
@@ -80,10 +81,10 @@ def test_within():
     a2 = spherely.Point(50, 8)
     b2 = spherely.LineString([(50, 8), (60, 8)])
     assert spherely.within(a2, b2)
-    
+
+
 def test_disjoint():
-    
-    a = spherely.Point(40, 9) 
+    a = spherely.Point(40, 9)
     b = np.array(
         [
             spherely.LineString([(40, 8), (60, 8)]),
@@ -99,4 +100,3 @@ def test_disjoint():
     a2 = spherely.Point(50, 9)
     b2 = spherely.LineString([(50, 8), (60, 8)])
     assert spherely.disjoint(a2, b2)
-    
