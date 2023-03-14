@@ -109,6 +109,7 @@ jobs:
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
         with:
-          files: coverage.xml
+          files: ./coverage.xml
+          verbose: true
         if: |
           runner.os == 'Linux' && matrix.python-version == '3.11' && matrix.dev == false
