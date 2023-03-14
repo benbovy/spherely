@@ -31,13 +31,6 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 
 // Used in Geography constructors to get a point either from a tuple of
 // coordinates or an existing Point object.
-//
-// TODO: using std::variant may be nicer:
-// using Vertex = std::variant<std::pair<double, double>, Point>;
-//
-// It is not fully supported with Pybind11 (Point is non-default constructible)
-// https://github.com/pybind/pybind11/issues/4108
-//
 S2Point to_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
@@ -49,14 +42,15 @@ S2Point to_s2point(const Point *vertex) {
 /*
 ** Helper to create Geography object wrappers.
 **
-** @tparam T1 The S2Geography wrapper type
-** @tparam T2 This library wrapper type.
+** @tparam T The Geography type (spherely wrapper)
 ** @tparam S The S2Geometry type
 */
-template <class T1, class T2, class S>
-std::unique_ptr<T2> make_geography(S &&s2_obj) {
-    S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
-    return std::make_unique<T2>(std::move(s2geog_ptr));
+template <class T, class S, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
+std::unique_ptr<T> make_geography(S &&s2_obj) {
+    using S2GeographyType = typename T::S2GeographyType;
+
+    S2GeographyPtr s2geog_ptr = std::make_unique<S2GeographyType>(std::forward<S>(s2_obj));
+    return std::make_unique<T>(std::move(s2geog_ptr));
 }
 
 class PointFactory {
@@ -64,7 +58,7 @@ public:
     static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
         auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
 
-        return make_geography<s2geog::PointGeography, Point>(S2Point(latlng));
+        return make_geography<Point>(S2Point(latlng));
     }
 
     // TODO: from LatLonRadians
@@ -80,7 +74,7 @@ static std::unique_ptr<LineString> create_linestring(const std::vector<V> &coord
 
     auto polyline_ptr = std::make_unique<S2Polyline>(pts);
 
-    return make_geography<s2geog::PolylineGeography, LineString>(std::move(polyline_ptr));
+    return make_geography<LineString>(std::move(polyline_ptr));
 }
 
 template <class V>
@@ -116,7 +110,7 @@ static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V> &s
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
     polygon_ptr->InitOriented(std::move(loops));
 
-    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
+    return make_geography<spherely::Polygon>(std::move(polygon_ptr));
 }
 
 /*

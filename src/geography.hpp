@@ -27,6 +27,8 @@ enum class GeographyType : std::int8_t { None = -1, Point, LineString, Polygon }
 */
 class Geography {
 public:
+    using S2GeographyType = s2geog::Geography;
+
     Geography(const Geography&) = delete;
     Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
         // std::cout << "Geography move constructor called: " << this <<
@@ -82,6 +84,8 @@ private:
 
 class Point : public Geography {
 public:
+    using S2GeographyType = s2geog::PointGeography;
+
     Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
     inline GeographyType geog_type() const override {
@@ -97,6 +101,8 @@ public:
 
 class LineString : public Geography {
 public:
+    using S2GeographyType = s2geog::PolylineGeography;
+
     LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
     inline GeographyType geog_type() const override {
@@ -106,6 +112,8 @@ public:
 
 class Polygon : public Geography {
 public:
+    using S2GeographyType = s2geog::PolygonGeography;
+
     Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
 
     inline GeographyType geog_type() const override {
