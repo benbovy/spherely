@@ -14,12 +14,7 @@ using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 /*
 ** The registered Geography types
 */
-enum class GeographyType : std::int8_t {
-    None = -1,
-    Point,
-    LineString,
-    Polygon
-};
+enum class GeographyType : std::int8_t { None = -1, Point, LineString, Polygon };
 
 /*
 ** Thin wrapper around s2geography::Geography.
@@ -37,8 +32,7 @@ public:
         // std::cout << "Geography move constructor called: " << this <<
         // std::endl;
     }
-    Geography(S2GeographyPtr&& s2geog_ptr)
-        : m_s2geog_ptr(std::move(s2geog_ptr)) {}
+    Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {}
 
     ~Geography() {
         // std::cout << "Geography destructor called: " << this << std::endl;
@@ -56,21 +50,30 @@ public:
         return GeographyType::None;
     }
 
-    inline const s2geog::Geography& geog() const { return *m_s2geog_ptr; }
+    inline const s2geog::Geography& geog() const {
+        return *m_s2geog_ptr;
+    }
 
     inline const s2geog::ShapeIndexGeography& geog_index() {
         if (!m_s2geog_index_ptr) {
-            m_s2geog_index_ptr =
-                std::make_unique<s2geog::ShapeIndexGeography>(geog());
+            m_s2geog_index_ptr = std::make_unique<s2geog::ShapeIndexGeography>(geog());
         }
 
         return *m_s2geog_index_ptr;
     }
-    void reset_index() { m_s2geog_index_ptr.reset(); }
-    bool has_index() { return m_s2geog_index_ptr != nullptr; }
+    void reset_index() {
+        m_s2geog_index_ptr.reset();
+    }
+    bool has_index() {
+        return m_s2geog_index_ptr != nullptr;
+    }
 
-    int dimension() const { return m_s2geog_ptr->dimension(); }
-    int num_shapes() const { return m_s2geog_ptr->num_shapes(); }
+    int dimension() const {
+        return m_s2geog_ptr->dimension();
+    }
+    int num_shapes() const {
+        return m_s2geog_ptr->num_shapes();
+    }
 
 private:
     S2GeographyPtr m_s2geog_ptr;
@@ -86,8 +89,7 @@ public:
     }
 
     inline const S2Point& s2point() const {
-        const auto& points =
-            static_cast<const s2geog::PointGeography&>(geog()).Points();
+        const auto& points = static_cast<const s2geog::PointGeography&>(geog()).Points();
         // TODO: does not work for empty point geography
         return points[0];
     }

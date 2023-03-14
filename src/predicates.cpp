@@ -34,8 +34,10 @@ private:
 };
 
 void init_predicates(py::module& m) {
-    m.def("intersects", py::vectorize(Predicate(s2geog::s2_intersects)),
-          py::arg("a"), py::arg("b"),
+    m.def("intersects",
+          py::vectorize(Predicate(s2geog::s2_intersects)),
+          py::arg("a"),
+          py::arg("b"),
           R"pbdoc(
         Returns True if A and B share any portion of space.
 
@@ -48,7 +50,9 @@ void init_predicates(py::module& m) {
 
     )pbdoc");
 
-    m.def("equals", py::vectorize(Predicate(s2geog::s2_equals)), py::arg("a"),
+    m.def("equals",
+          py::vectorize(Predicate(s2geog::s2_equals)),
+          py::arg("a"),
           py::arg("b"),
           R"pbdoc(
         Returns True if A and B are spatially equal.
@@ -63,8 +67,10 @@ void init_predicates(py::module& m) {
 
     )pbdoc");
 
-    m.def("contains", py::vectorize(Predicate(s2geog::s2_contains)),
-          py::arg("a"), py::arg("b"),
+    m.def("contains",
+          py::vectorize(Predicate(s2geog::s2_contains)),
+          py::arg("a"),
+          py::arg("b"),
           R"pbdoc(
         Returns True if B is completely inside A.
 
@@ -75,15 +81,15 @@ void init_predicates(py::module& m) {
 
     )pbdoc");
 
-    m.def(
-        "within",
-        py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
-                                   const s2geog::ShapeIndexGeography& b_index,
-                                   const S2BooleanOperation::Options& options) {
-            return s2geog::s2_contains(b_index, a_index, options);
-        })),
-        py::arg("a"), py::arg("b"),
-        R"pbdoc(
+    m.def("within",
+          py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
+                                     const s2geog::ShapeIndexGeography& b_index,
+                                     const S2BooleanOperation::Options& options) {
+              return s2geog::s2_contains(b_index, a_index, options);
+          })),
+          py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(
         Returns True if A is completely inside B.
 
         Parameters
@@ -93,15 +99,15 @@ void init_predicates(py::module& m) {
 
     )pbdoc");
 
-    m.def(
-        "disjoint",
-        py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
-                                   const s2geog::ShapeIndexGeography& b_index,
-                                   const S2BooleanOperation::Options& options) {
-            return !s2geog::s2_intersects(a_index, b_index, options);
-        })),
-        py::arg("a"), py::arg("b"),
-        R"pbdoc(
+    m.def("disjoint",
+          py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
+                                     const s2geog::ShapeIndexGeography& b_index,
+                                     const S2BooleanOperation::Options& options) {
+              return !s2geog::s2_intersects(a_index, b_index, options);
+          })),
+          py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(
         Returns True if A boundaries and interior does not intersect at all
         with those of B.
 
