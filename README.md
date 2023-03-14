@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/benbovy/spherely/actions/workflows/run-tests.yaml/badge.svg)
 [![Docs](https://readthedocs.org/projects/spherely/badge/?version=latest)](https://spherely.readthedocs.io)
+[![Coverage](https://codecov.io/gh/benbovy/spherely/branch/main/graph/badge.svg)](https://app.codecov.io/gh/benbovy/spherely?branch=main)
 
 *Python library for manipulation and analysis of geometric objects on the sphere.*
 
