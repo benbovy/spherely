@@ -36,7 +36,7 @@ Geography creation
 ------------------
 
 .. autosummary::
-   :toctree: _api_generated/
+   :toctree: _api_generated/e
 
    is_prepared
    prepare
@@ -54,4 +54,4 @@ Predicates
    intersects
    contains
    within
-   disjoint   
+   disjoint
