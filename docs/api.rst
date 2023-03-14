@@ -36,7 +36,7 @@ Geography creation
 ------------------
 
 .. autosummary::
-   :toctree: _api_generated/e
+   :toctree: _api_generated/
 
    is_prepared
    prepare
