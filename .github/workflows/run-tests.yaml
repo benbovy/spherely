@@ -76,7 +76,7 @@ jobs:
           cmake --install build
         if: |
           matrix.dev == true &&
-          (runner.os == 'Linux' || runner.os == 'macOS'))
+          (runner.os == 'Linux' || runner.os == 'macOS')
 
       - name: Configure, build & install s2geography (win)
         run: |
