@@ -37,6 +37,41 @@ def test_linestring(coords) -> None:
         ],
     ],
 )
+def test_linearring(coords) -> None:
+    ring = spherely.LinearRing(coords)
+    assert ring.dimensions == 1
+    assert ring.nshape == 1
+    assert repr(ring).startswith("LINEARRING (0 0")
+
+    # A LineRing has no interior
+    assert not spherely.contains(ring, spherely.Point(1, 1))
+    assert spherely.intersects(ring, spherely.Point(0, 0))
+
+
+def test_linearring_error() -> None:
+    with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
+        # polygon vertices should be open (duplicate vertex error)
+        spherely.LinearRing([(0, 0), (0, 2), (2, 0), (0, 0)])
+
+    with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
+        spherely.LinearRing([(0, 0), (0, 2)])
+
+    with pytest.raises(ValueError, match="ring is not valid.*Edge.*crosses.*"):
+        spherely.LinearRing([(0, 0), (2, 0), (1, 2), (1, -2)])
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (0, 2), (2, 2), (2, 0)],
+        [
+            spherely.Point(0, 0),
+            spherely.Point(0, 2),
+            spherely.Point(2, 2),
+            spherely.Point(2, 0),
+        ],
+    ],
+)
 def test_polygon(coords) -> None:
     poly = spherely.Polygon(coords)
     assert poly.dimensions == 2
@@ -45,11 +80,11 @@ def test_polygon(coords) -> None:
 
 
 def test_polygon_error() -> None:
-    with pytest.raises(ValueError, match="loop is not valid.*duplicate vertex.*"):
+    with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
         # polygon vertices should be open (duplicate vertex error)
         spherely.Polygon([(0, 0), (0, 2), (2, 0), (0, 0)])
 
-    with pytest.raises(ValueError, match="loop is not valid.*at least 3 vertices.*"):
+    with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
         spherely.Polygon([(0, 0), (0, 2)])
 
 
@@ -85,10 +120,20 @@ def test_not_geography_raise() -> None:
 
 def test_get_type_id() -> None:
     # array
-    geog = np.array([spherely.Point(45, 50), spherely.LineString([(50, 5), (51, 6)])])
+    geog = np.array(
+        [
+            spherely.Point(45, 50),
+            spherely.LineString([(50, 5), (51, 6)]),
+            spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
+        ]
+    )
     actual = spherely.get_type_id(geog)
     expected = np.array(
-        [spherely.GeographyType.POINT.value, spherely.GeographyType.LINESTRING.value]
+        [
+            spherely.GeographyType.POINT.value,
+            spherely.GeographyType.LINESTRING.value,
+            spherely.GeographyType.POLYGON.value,
+        ]
     )
     np.testing.assert_array_equal(actual, expected)
 

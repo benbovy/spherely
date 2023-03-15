@@ -1,8 +1,12 @@
 #ifndef SPHERELY_GEOGRAPHY_H_
 #define SPHERELY_GEOGRAPHY_H_
 
+#include <memory>
+
+#include "s2/s2loop.h"
 #include "s2/s2point.h"
 #include "s2geography.h"
+#include "s2geography_addons.hpp"
 
 namespace s2geog = s2geography;
 
@@ -14,7 +18,7 @@ using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 /*
 ** The registered Geography types
 */
-enum class GeographyType : std::int8_t { None = -1, Point, LineString, Polygon };
+enum class GeographyType : std::int8_t { None = -1, Point, LineString, LinearRing, Polygon };
 
 /*
 ** Thin wrapper around s2geography::Geography.
@@ -107,6 +111,17 @@ public:
 
     inline GeographyType geog_type() const override {
         return GeographyType::LineString;
+    }
+};
+
+class LinearRing : public Geography {
+public:
+    using S2GeographyType = s2geog::ClosedPolylineGeography;
+
+    LinearRing(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline GeographyType geog_type() const override {
+        return GeographyType::LinearRing;
     }
 };
 

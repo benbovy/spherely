@@ -35,8 +35,41 @@ S2Point to_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
 
-S2Point to_s2point(const Point *vertex) {
-    return vertex->s2point();
+S2Point to_s2point(const Point *vertices) {
+    return vertices->s2point();
+}
+
+// create a S2Loop from coordinates or Point objects.
+//
+// Normalization (to CCW order for identifying the loop interior) and validation
+// are both enabled by default.
+//
+// TODO: add options to skip normalization and/or validation.
+//
+template <class V>
+std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices) {
+    std::vector<S2Point> points(vertices.size());
+
+    std::transform(vertices.begin(), vertices.end(), points.begin(), [](const V &vertex) {
+        return to_s2point(vertex);
+    });
+
+    auto loop_ptr = std::make_unique<S2Loop>();
+
+    loop_ptr->set_s2debug_override(S2Debug::DISABLE);
+    loop_ptr->Init(points);
+    if (!loop_ptr->IsValid()) {
+        std::stringstream err;
+        S2Error s2err;
+        err << "ring is not valid: ";
+        loop_ptr->FindValidationError(&s2err);
+        err << s2err.text();
+        throw py::value_error(err.str());
+    }
+
+    loop_ptr->Normalize();
+
+    return std::move(loop_ptr);
 }
 
 /*
@@ -78,32 +111,14 @@ static std::unique_ptr<LineString> create_linestring(const std::vector<V> &coord
 }
 
 template <class V>
+static std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &coords) {
+    return make_geography<LinearRing>(*make_s2loop(coords));
+}
+
+template <class V>
 static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V> &shell) {
-    std::vector<S2Point> shell_pts(shell.size());
-
-    std::transform(shell.begin(), shell.end(), shell_pts.begin(), [](const V &vertex) {
-        return to_s2point(vertex);
-    });
-
-    auto shell_loop_ptr = std::make_unique<S2Loop>();
-    // TODO: maybe add an option to skip validity checks
-    shell_loop_ptr->set_s2debug_override(S2Debug::DISABLE);
-    shell_loop_ptr->Init(shell_pts);
-    if (!shell_loop_ptr->IsValid()) {
-        std::stringstream err;
-        S2Error s2err;
-        err << "loop is not valid: ";
-        shell_loop_ptr->FindValidationError(&s2err);
-        err << s2err.text();
-        throw py::value_error(err.str());
-    }
-
-    // TODO: maybe add an option to skip normalization (simply assume
-    // vertices are given in the CCW order).
-    shell_loop_ptr->Normalize();
-
     std::vector<std::unique_ptr<S2Loop>> loops;
-    loops.push_back(std::move(shell_loop_ptr));
+    loops.push_back(make_s2loop(shell));
 
     auto polygon_ptr = std::make_unique<S2Polygon>();
     // TODO: maybe add an option to skip validity checks
@@ -206,6 +221,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("NONE", GeographyType::None);
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
+    pygeography_types.value("LINEARRING", GeographyType::LinearRing);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
 
     // Geography classes
@@ -256,7 +272,7 @@ void init_geography(py::module &m) {
     pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"), py::arg("lon"));
 
     auto pylinestring = py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
-        A geography type composed of one or more arc segments.
+        A geography type composed of one or more arc (geodesic) segments.
 
         A LineString is a one-dimensional feature and has a non-zero length but
         zero area. A LineString is not closed.
@@ -271,8 +287,34 @@ void init_geography(py::module &m) {
 
     pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
                      py::arg("coordinates"));
-
     pylinestring.def(py::init(&create_linestring<Point *>), py::arg("coordinates"));
+
+    auto pylinearring = py::class_<LinearRing, Geography>(m, "LinearRing", R"pbdoc(
+        A geography type composed of two or more arc (geodesic) segments
+        that form a closed loop.
+
+        A LinearRing is a closed, one-dimensional feature. It must have at least 3
+        vertices, cannot crosses itself and cannot have duplicate vertices.
+        Arcs of length 180 degrees are not allowed.
+
+        The ring is automatically closed. There is no need to specify a final coordinate
+        pair or point identical to the first.
+
+        Parameters
+        ----------
+        coordinates : list
+            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
+            for each vertex.
+
+    )pbdoc");
+
+    pylinearring.def(py::init(&create_linearring<std::pair<double, double>>),
+                     py::arg("coordinates"));
+    pylinearring.def(py::init(&create_linearring<Point *>), py::arg("coordinates"));
+
+    pylinearring.def("__repr__", [](const LinearRing &geog) {
+        return static_cast<const s2geog::ClosedPolylineGeography *>(&geog.geog())->wkt(6);
+    });
 
     auto pypolygon = py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
         A geography type representing an area that is enclosed by a linear ring.
