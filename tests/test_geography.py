@@ -156,6 +156,7 @@ def test_get_type_id() -> None:
         [
             spherely.Point(45, 50),
             spherely.LineString([(50, 5), (51, 6)]),
+            spherely.LinearRing([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
         ]
     )
@@ -164,6 +165,7 @@ def test_get_type_id() -> None:
         [
             spherely.GeographyType.POINT.value,
             spherely.GeographyType.LINESTRING.value,
+            spherely.GeographyType.LINEARRING.value,
             spherely.GeographyType.POLYGON.value,
         ]
     )
