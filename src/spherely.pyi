@@ -5,6 +5,7 @@ from typing import (
     Iterable,
     List,
     Literal,
+    Optional,
     Tuple,
     TypeVar,
     overload,
@@ -58,9 +59,15 @@ class LinearRing(Geography):
 
 class Polygon(Geography):
     @overload
-    def __init__(self, coordinates: List[Tuple[float, float]]) -> None: ...
+    def __init__(
+        self,
+        shell: List[Tuple[float, float]],
+        holes: Optional[List[List[Tuple[float, float]]]] = None,
+    ) -> None: ...
     @overload
-    def __init__(self, coordinates: List[Point]) -> None: ...
+    def __init__(
+        self, shell: List[Point], holes: Optional[List[List[Point]]] = None
+    ) -> None: ...
 
 # Numpy-like vectorized (universal) functions
 

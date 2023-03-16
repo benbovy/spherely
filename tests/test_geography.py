@@ -107,11 +107,21 @@ def test_polygon_closing(coords) -> None:
 
 
 def test_polygon_error() -> None:
-    with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
+    with pytest.raises(ValueError, match="polygon is not valid.*duplicate vertex.*"):
         spherely.Polygon([(0, 0), (0, 2), (0, 2), (2, 0)])
 
-    with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
+    with pytest.raises(ValueError, match="polygon is not valid.*at least 3 vertices.*"):
         spherely.Polygon([(0, 0), (0, 2)])
+
+    with pytest.raises(ValueError, match="polygon is not valid.*Edge.*crosses.*"):
+        spherely.Polygon([(0, 0), (2, 0), (1, 2), (1, -2)])
+
+    with pytest.raises(ValueError, match="polygon is not valid.*crosses.*"):
+        # shell/hole rings are crossing each other
+        spherely.Polygon(
+            shell=[(0, 0), (0, 4), (4, 4), (4, 0)],
+            holes=[[(0, 1), (0, 5), (5, 5), (5, 1)]],
+        )
 
 
 def test_polygon_normalize() -> None:

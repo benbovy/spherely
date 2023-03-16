@@ -9,6 +9,7 @@
 #include <s2geography.h>
 
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
@@ -47,10 +48,10 @@ S2Point to_s2point(const Point *vertices) {
 // Additional normalization is made here:
 // - if the input loop is already closed, remove one of the end nodes
 //
-// TODO: add options to skip normalization and/or validation.
+// TODO: add option to skip normalization.
 //
 template <class V>
-std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices) {
+std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check = true) {
     std::vector<S2Point> points(vertices.size());
 
     std::transform(vertices.begin(), vertices.end(), points.begin(), [](const V &vertex) {
@@ -65,7 +66,7 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices) {
 
     loop_ptr->set_s2debug_override(S2Debug::DISABLE);
     loop_ptr->Init(points);
-    if (!loop_ptr->IsValid()) {
+    if (check && !loop_ptr->IsValid()) {
         std::stringstream err;
         S2Error s2err;
         err << "ring is not valid: ";
@@ -123,14 +124,31 @@ static std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &coord
 }
 
 template <class V>
-static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V> &shell) {
+static std::unique_ptr<spherely::Polygon> create_polygon(
+    const std::vector<V> &shell,
+    const std::optional<std::vector<std::vector<V>>> &holes) {
     std::vector<std::unique_ptr<S2Loop>> loops;
-    loops.push_back(make_s2loop(shell));
+    loops.push_back(make_s2loop(shell, false));
+
+    if (holes.has_value()) {
+        for (const auto &ring : holes.value()) {
+            loops.push_back(make_s2loop(ring, false));
+        }
+    }
 
     auto polygon_ptr = std::make_unique<S2Polygon>();
-    // TODO: maybe add an option to skip validity checks
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
-    polygon_ptr->InitOriented(std::move(loops));
+    polygon_ptr->InitNested(std::move(loops));
+
+    // Note: this also checks each loop of the polygon
+    if (!polygon_ptr->IsValid()) {
+        std::stringstream err;
+        S2Error s2err;
+        err << "polygon is not valid: ";
+        polygon_ptr->FindValidationError(&s2err);
+        err << s2err.text();
+        throw py::value_error(err.str());
+    }
 
     return make_geography<spherely::Polygon>(std::move(polygon_ptr));
 }
@@ -333,11 +351,17 @@ void init_geography(py::module &m) {
         shell : list
             A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
             for each vertex of the polygon.
+        holes : list of list, optional
+            A list of sequences of objects where each sequence satisfies the same
+            requirements as the ``shell`` argument.
 
     )pbdoc");
 
-    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>), py::arg("shell"));
-    pypolygon.def(py::init(&create_polygon<Point *>), py::arg("shell"));
+    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>),
+                  py::arg("shell"),
+                  py::arg("holes") = py::none());
+    pypolygon.def(
+        py::init(&create_polygon<Point *>), py::arg("shell"), py::arg("holes") = py::none());
 
     // Temp test
 
