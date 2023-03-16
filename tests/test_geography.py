@@ -48,10 +48,23 @@ def test_linearring(coords) -> None:
     assert spherely.intersects(ring, spherely.Point(0, 0))
 
 
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (0, 2), (2, 2), (2, 0)],
+        [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)],
+    ],
+)
+def test_linearring_closing(coords) -> None:
+    # support both manual and automated closing
+    ring = spherely.LinearRing(coords)
+    assert repr(ring).startswith("LINEARRING (0 0")
+    assert repr(ring).endswith("0 0)")
+
+
 def test_linearring_error() -> None:
     with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
-        # polygon vertices should be open (duplicate vertex error)
-        spherely.LinearRing([(0, 0), (0, 2), (2, 0), (0, 0)])
+        spherely.LinearRing([(0, 0), (0, 2), (0, 2), (2, 0)])
 
     with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
         spherely.LinearRing([(0, 0), (0, 2)])
@@ -79,10 +92,23 @@ def test_polygon(coords) -> None:
     assert repr(poly).startswith("POLYGON ((0 0")
 
 
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (0, 2), (2, 2), (2, 0)],
+        [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)],
+    ],
+)
+def test_polygon_closing(coords) -> None:
+    # support both manual and automated closing
+    ring = spherely.Polygon(coords)
+    assert repr(ring).startswith("POLYGON ((0 0")
+    assert repr(ring).endswith("0 0))")
+
+
 def test_polygon_error() -> None:
     with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
-        # polygon vertices should be open (duplicate vertex error)
-        spherely.Polygon([(0, 0), (0, 2), (2, 0), (0, 0)])
+        spherely.Polygon([(0, 0), (0, 2), (0, 2), (2, 0)])
 
     with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
         spherely.Polygon([(0, 0), (0, 2)])

@@ -44,6 +44,9 @@ S2Point to_s2point(const Point *vertices) {
 // Normalization (to CCW order for identifying the loop interior) and validation
 // are both enabled by default.
 //
+// Additional normalization is made here:
+// - if the input loop is already closed, remove one of the end nodes
+//
 // TODO: add options to skip normalization and/or validation.
 //
 template <class V>
@@ -53,6 +56,10 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices) {
     std::transform(vertices.begin(), vertices.end(), points.begin(), [](const V &vertex) {
         return to_s2point(vertex);
     });
+
+    if (points.front() == points.back()) {
+        points.pop_back();
+    }
 
     auto loop_ptr = std::make_unique<S2Loop>();
 
