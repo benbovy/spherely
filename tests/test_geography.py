@@ -43,10 +43,6 @@ def test_linearring(coords) -> None:
     assert ring.nshape == 1
     assert repr(ring).startswith("LINEARRING (0 0")
 
-    # A LineRing has no interior
-    assert not spherely.contains(ring, spherely.Point(1, 1))
-    assert spherely.intersects(ring, spherely.Point(0, 0))
-
 
 @pytest.mark.parametrize(
     "coords",
