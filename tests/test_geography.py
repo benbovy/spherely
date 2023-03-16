@@ -19,10 +19,10 @@ def test_point() -> None:
     ],
 )
 def test_multipoint(points) -> None:
-    line = spherely.MultiPoint(points)
-    assert line.dimensions == 0
-    assert line.nshape == 1
-    assert repr(line).startswith("MULTIPOINT ((5 50)")
+    multipoint = spherely.MultiPoint(points)
+    assert multipoint.dimensions == 0
+    assert multipoint.nshape == 1
+    assert repr(multipoint).startswith("MULTIPOINT ((5 50)")
 
 
 @pytest.mark.parametrize(
@@ -37,6 +37,27 @@ def test_linestring(coords) -> None:
     assert line.dimensions == 1
     assert line.nshape == 1
     assert repr(line).startswith("LINESTRING (5 50")
+
+
+@pytest.mark.parametrize(
+    "lines",
+    [
+        [[(50, 5), (51, 6)], [(60, 15), (61, 16)]],
+        [
+            [spherely.Point(50, 5), spherely.Point(51, 6)],
+            [spherely.Point(60, 15), spherely.Point(61, 16)],
+        ],
+        [
+            spherely.LineString([(50, 5), (51, 6)]),
+            spherely.LineString([(60, 15), (61, 16)]),
+        ],
+    ],
+)
+def test_multilinestring(lines) -> None:
+    multiline = spherely.MultiLineString(lines)
+    assert multiline.dimensions == 1
+    assert multiline.nshape == 2
+    assert repr(multiline).startswith("MULTILINESTRING ((5 50")
 
 
 @pytest.mark.parametrize(
@@ -171,6 +192,7 @@ def test_get_type_id() -> None:
             spherely.Point(45, 50),
             spherely.MultiPoint([(50, 5), (51, 6)]),
             spherely.LineString([(50, 5), (51, 6)]),
+            spherely.MultiLineString([[(50, 5), (51, 6)], [(60, 15), (61, 16)]]),
             spherely.LinearRing([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
         ]
@@ -181,6 +203,7 @@ def test_get_type_id() -> None:
             spherely.GeographyType.POINT.value,
             spherely.GeographyType.MULTIPOINT.value,
             spherely.GeographyType.LINESTRING.value,
+            spherely.GeographyType.MULTILINESTRING.value,
             spherely.GeographyType.LINEARRING.value,
             spherely.GeographyType.POLYGON.value,
         ]

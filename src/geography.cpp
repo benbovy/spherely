@@ -30,6 +30,9 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 ** Geography factories
 */
 
+using PointVec = std::vector<Point *>;
+using LatLngVec = std::vector<std::pair<double, double>>;
+
 // Used in Geography constructors to get a point either from a tuple of
 // coordinates or an existing Point object.
 S2Point to_s2point(const std::pair<double, double> &vertex) {
@@ -103,30 +106,57 @@ std::unique_ptr<T> make_geography(S &&s2_obj) {
     return std::make_unique<T>(std::move(s2geog_ptr));
 }
 
-static std::unique_ptr<Point> create_point(double lat, double lng) {
+std::unique_ptr<Point> create_point(double lat, double lng) {
     return make_geography<Point>(to_s2point(std::make_pair(lat, lng)));
 }
 
 template <class V>
-static std::unique_ptr<MultiPoint> create_multipoint(const std::vector<V> &pts) {
+std::unique_ptr<MultiPoint> create_multipoint(const std::vector<V> &pts) {
     return make_geography<MultiPoint>(to_s2points(pts));
 }
 
 template <class V>
-static std::unique_ptr<LineString> create_linestring(const std::vector<V> &pts) {
+std::unique_ptr<LineString> create_linestring(const std::vector<V> &pts) {
     auto s2points = to_s2points(pts);
     auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
 
     return make_geography<LineString>(std::move(polyline_ptr));
 }
 
+std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<LineString *> &lines) {
+    std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
+
+    auto func = [](const LineString *line_ptr) {
+        S2Polyline *cloned_ptr(line_ptr->s2polyline().Clone());
+        return std::make_unique<S2Polyline>(std::move(*cloned_ptr));
+    };
+
+    std::transform(lines.begin(), lines.end(), polylines.begin(), func);
+
+    return make_geography<MultiLineString>(std::move(polylines));
+}
+
 template <class V>
-static std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &pts) {
+std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<std::vector<V>> &lines) {
+    std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
+
+    auto func = [](const std::vector<V> &pts) {
+        auto s2points = to_s2points(pts);
+        return std::make_unique<S2Polyline>(s2points);
+    };
+
+    std::transform(lines.begin(), lines.end(), polylines.begin(), func);
+
+    return make_geography<MultiLineString>(std::move(polylines));
+}
+
+template <class V>
+std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &pts) {
     return make_geography<LinearRing>(*make_s2loop(pts));
 }
 
 template <class V>
-static std::unique_ptr<spherely::Polygon> create_polygon(
+std::unique_ptr<spherely::Polygon> create_polygon(
     const std::vector<V> &shell,
     const std::optional<std::vector<std::vector<V>>> &holes) {
     std::vector<std::unique_ptr<S2Loop>> loops;
@@ -251,6 +281,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("LINEARRING", GeographyType::LinearRing);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
+    pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
 
     // Geography classes
 
@@ -332,6 +363,30 @@ void init_geography(py::module &m) {
     pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
                      py::arg("coordinates"));
     pylinestring.def(py::init(&create_linestring<Point *>), py::arg("coordinates"));
+
+    auto pymultilinestring = py::class_<MultiLineString, Geography>(m, "MultiLineString", R"pbdoc(
+        A geography type composed of one or more LineStrings.
+
+        A MultiLineString has a non-zero length but zero area.
+
+        Parameters
+        ----------
+        lines : list
+            A list of lists of (lat, lon) tuple coordinates or :py:class:`LineString`
+            objects for each linestring.
+
+    )pbdoc");
+
+    pymultilinestring.def(py::init([](const std::vector<LineString *> &lines) {
+                              return create_multilinestring(lines);
+                          }),
+                          py::arg("lines"));
+    pymultilinestring.def(
+        py::init([](const std::vector<PointVec> &lines) { return create_multilinestring(lines); }),
+        py::arg("lines"));
+    pymultilinestring.def(
+        py::init([](const std::vector<LatLngVec> &lines) { return create_multilinestring(lines); }),
+        py::arg("lines"));
 
     auto pylinearring = py::class_<LinearRing, Geography>(m, "LinearRing", R"pbdoc(
         A geography type composed of two or more arc (geodesic) segments

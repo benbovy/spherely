@@ -5,6 +5,7 @@
 
 #include "s2/s2loop.h"
 #include "s2/s2point.h"
+#include "s2/s2polyline.h"
 #include "s2geography.h"
 #include "s2geography_addons.hpp"
 
@@ -24,7 +25,8 @@ enum class GeographyType : std::int8_t {
     LineString,
     LinearRing,
     Polygon,
-    MultiPoint
+    MultiPoint,
+    MultiLineString
 };
 
 /*
@@ -129,6 +131,23 @@ public:
 
     inline GeographyType geog_type() const override {
         return GeographyType::LineString;
+    }
+
+    inline const S2Polyline& s2polyline() const {
+        const auto& polylines = static_cast<const s2geog::PolylineGeography&>(geog()).Polylines();
+        // TODO: does not work for empty point geography
+        return *polylines[0];
+    }
+};
+
+class MultiLineString : public Geography {
+public:
+    using S2GeographyType = s2geog::PolylineGeography;
+
+    MultiLineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline GeographyType geog_type() const override {
+        return GeographyType::MultiLineString;
     }
 };
 
