@@ -36,8 +36,21 @@ S2Point to_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
 
-S2Point to_s2point(const Point *vertices) {
-    return vertices->s2point();
+S2Point to_s2point(const Point *vertex) {
+    return vertex->s2point();
+}
+
+template <class V>
+std::vector<S2Point> to_s2points(const std::vector<V> &vertices) {
+    std::vector<S2Point> points(vertices.size());
+
+    auto func = [](const V &vertex) {
+        return to_s2point(vertex);
+    };
+
+    std::transform(vertices.begin(), vertices.end(), points.begin(), func);
+
+    return std::move(points);
 }
 
 // create a S2Loop from coordinates or Point objects.
@@ -52,20 +65,16 @@ S2Point to_s2point(const Point *vertices) {
 //
 template <class V>
 std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check = true) {
-    std::vector<S2Point> points(vertices.size());
+    auto s2points = to_s2points(vertices);
 
-    std::transform(vertices.begin(), vertices.end(), points.begin(), [](const V &vertex) {
-        return to_s2point(vertex);
-    });
-
-    if (points.front() == points.back()) {
-        points.pop_back();
+    if (s2points.front() == s2points.back()) {
+        s2points.pop_back();
     }
 
     auto loop_ptr = std::make_unique<S2Loop>();
 
     loop_ptr->set_s2debug_override(S2Debug::DISABLE);
-    loop_ptr->Init(points);
+    loop_ptr->Init(s2points);
     if (check && !loop_ptr->IsValid()) {
         std::stringstream err;
         S2Error s2err;
@@ -94,33 +103,26 @@ std::unique_ptr<T> make_geography(S &&s2_obj) {
     return std::make_unique<T>(std::move(s2geog_ptr));
 }
 
-class PointFactory {
-public:
-    static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
-        auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
-
-        return make_geography<Point>(S2Point(latlng));
-    }
-
-    // TODO: from LatLonRadians
-};
+static std::unique_ptr<Point> create_point(double lat, double lng) {
+    return make_geography<Point>(to_s2point(std::make_pair(lat, lng)));
+}
 
 template <class V>
-static std::unique_ptr<LineString> create_linestring(const std::vector<V> &coords) {
-    std::vector<S2Point> pts(coords.size());
+static std::unique_ptr<MultiPoint> create_multipoint(const std::vector<V> &pts) {
+    return make_geography<MultiPoint>(to_s2points(pts));
+}
 
-    std::transform(coords.begin(), coords.end(), pts.begin(), [](const V &vertex) {
-        return to_s2point(vertex);
-    });
-
-    auto polyline_ptr = std::make_unique<S2Polyline>(pts);
+template <class V>
+static std::unique_ptr<LineString> create_linestring(const std::vector<V> &pts) {
+    auto s2points = to_s2points(pts);
+    auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
 
     return make_geography<LineString>(std::move(polyline_ptr));
 }
 
 template <class V>
-static std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &coords) {
-    return make_geography<LinearRing>(*make_s2loop(coords));
+static std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &pts) {
+    return make_geography<LinearRing>(*make_s2loop(pts));
 }
 
 template <class V>
@@ -189,7 +191,7 @@ py::array_t<PyObjectGeography> create(py::array_t<double> xs, py::array_t<double
     py::object *rptr = static_cast<py::object *>(rbuf.ptr);
 
     for (py::ssize_t i = 0; i < xbuf.shape[0]; i++) {
-        auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
+        auto point_ptr = create_point(xptr[i], yptr[i]);
         // rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
         rptr[i] = py::cast(std::move(point_ptr));
     }
@@ -248,6 +250,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("LINESTRING", GeographyType::LineString);
     pygeography_types.value("LINEARRING", GeographyType::LinearRing);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
+    pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
 
     // Geography classes
 
@@ -281,7 +284,7 @@ void init_geography(py::module &m) {
     });
 
     auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
-        A geography type that represents a single coordinate with lat,lon or x,y,z values.
+        A geography type that represents a single coordinate with lat,lon values.
 
         A point is a zero-dimensional feature and has zero length and zero area.
 
@@ -294,7 +297,23 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"), py::arg("lon"));
+    pypoint.def(py::init(&create_point), py::arg("lat"), py::arg("lon"));
+
+    auto pymultipoint = py::class_<MultiPoint, Geography>(m, "MultiPoint", R"pbdoc(
+        A geography type that represents one or more points with lat,lon values.
+
+        A MultiPoint has zero length and zero area.
+
+        Parameters
+        ----------
+        points : list
+            A list of (lat, lon) tuple coordinates or :py:class:`Point` objects
+            for each point.
+
+    )pbdoc");
+
+    pymultipoint.def(py::init(&create_multipoint<std::pair<double, double>>), py::arg("points"));
+    pymultipoint.def(py::init(&create_multipoint<Point *>), py::arg("points"));
 
     auto pylinestring = py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
         A geography type composed of one or more arc (geodesic) segments.

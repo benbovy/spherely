@@ -18,7 +18,14 @@ using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 /*
 ** The registered Geography types
 */
-enum class GeographyType : std::int8_t { None = -1, Point, LineString, LinearRing, Polygon };
+enum class GeographyType : std::int8_t {
+    None = -1,
+    Point,
+    LineString,
+    LinearRing,
+    Polygon,
+    MultiPoint
+};
 
 /*
 ** Thin wrapper around s2geography::Geography.
@@ -100,6 +107,17 @@ public:
         const auto& points = static_cast<const s2geog::PointGeography&>(geog()).Points();
         // TODO: does not work for empty point geography
         return points[0];
+    }
+};
+
+class MultiPoint : public Geography {
+public:
+    using S2GeographyType = s2geog::PointGeography;
+
+    MultiPoint(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline GeographyType geog_type() const override {
+        return GeographyType::MultiPoint;
     }
 };
 

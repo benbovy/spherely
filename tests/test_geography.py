@@ -12,6 +12,20 @@ def test_point() -> None:
 
 
 @pytest.mark.parametrize(
+    "points",
+    [
+        [(50, 5), (51, 6)],
+        [spherely.Point(50, 5), spherely.Point(51, 6)],
+    ],
+)
+def test_multipoint(points) -> None:
+    line = spherely.MultiPoint(points)
+    assert line.dimensions == 0
+    assert line.nshape == 1
+    assert repr(line).startswith("MULTIPOINT ((5 50)")
+
+
+@pytest.mark.parametrize(
     "coords",
     [
         [(50, 5), (51, 6)],
@@ -155,6 +169,7 @@ def test_get_type_id() -> None:
     geog = np.array(
         [
             spherely.Point(45, 50),
+            spherely.MultiPoint([(50, 5), (51, 6)]),
             spherely.LineString([(50, 5), (51, 6)]),
             spherely.LinearRing([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
@@ -164,6 +179,7 @@ def test_get_type_id() -> None:
     expected = np.array(
         [
             spherely.GeographyType.POINT.value,
+            spherely.GeographyType.MULTIPOINT.value,
             spherely.GeographyType.LINESTRING.value,
             spherely.GeographyType.LINEARRING.value,
             spherely.GeographyType.POLYGON.value,
