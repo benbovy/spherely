@@ -174,6 +174,7 @@ def test_collection() -> None:
     objs = [
         spherely.Point(0, 0),
         spherely.LineString([(0, 0), (1, 1)]),
+        # spherely.LinearRing([(0, 0), (0, 1), (1, 1)]),
         spherely.Polygon([(0, 0), (0, 1), (1, 1)]),
         spherely.MultiLineString([[(0, 0), (0, 1)], [(0, 2), (2, 2)]]),
     ]

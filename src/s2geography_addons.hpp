@@ -31,6 +31,8 @@ public:
     ClosedPolylineGeography() {}
     ClosedPolylineGeography(const S2Loop& loop)
         : m_polyline_ptr(new S2LaxClosedPolylineShape(loop)) {}
+    ClosedPolylineGeography(std::unique_ptr<S2LaxClosedPolylineShape> polyline_ptr)
+        : m_polyline_ptr(std::move(polyline_ptr)) {}
 
     int dimension() const {
         return 1;
@@ -46,6 +48,22 @@ public:
     // This should eventually be moved into s2geography::WKTWriter
     // (or we need to refactor s2geography::WKTWriter so that we can extend it)
     const std::string wkt(int significant_digits = 16) const;
+
+    const S2LaxClosedPolylineShape& Polyline() const {
+        return *m_polyline_ptr;
+    }
+
+    ClosedPolylineGeography* clone() const {
+        std::vector<S2Point> vertices;
+        vertices.reserve(static_cast<size_t>(m_polyline_ptr->num_vertices()));
+
+        for (int i = 0; i < m_polyline_ptr->num_vertices(); i++) {
+            vertices.push_back(m_polyline_ptr->vertex(i));
+        }
+
+        return new ClosedPolylineGeography(
+            std::make_unique<S2LaxClosedPolylineShape>(std::move(vertices)));
+    }
 
 private:
     std::unique_ptr<S2LaxClosedPolylineShape> m_polyline_ptr;

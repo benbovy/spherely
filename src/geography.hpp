@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "s2/s2lax_polyline_shape.h"
 #include "s2/s2loop.h"
 #include "s2/s2point.h"
 #include "s2/s2polyline.h"
@@ -194,9 +195,13 @@ public:
         return GeographyType::LinearRing;
     }
 
-    // TODO:
+    inline const S2LaxClosedPolylineShape& s2polyline() const {
+        return static_cast<const S2GeographyType&>(geog()).Polyline();
+    }
+
     LinearRing* clone() const override {
-        return new LinearRing(std::make_unique<S2GeographyType>(S2Loop()));
+        const auto& s2geog = static_cast<const S2GeographyType&>(geog());
+        return new LinearRing(std::unique_ptr<S2GeographyType>(s2geog.clone()));
     }
 };
 
