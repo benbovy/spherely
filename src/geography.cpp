@@ -98,7 +98,7 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
 ** @tparam T The Geography type (spherely wrapper)
 ** @tparam S The S2Geometry type
 */
-template <class T, class S, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
+template <class T, class S, std::enable_if_t<std::is_base_of_v<Geography, T>, bool> = true>
 std::unique_ptr<T> make_geography(S &&s2_obj) {
     using S2GeographyType = typename T::S2GeographyType;
 
@@ -188,6 +188,8 @@ std::unique_ptr<spherely::Polygon> create_polygon(
 std::unique_ptr<GeographyCollection> create_collection(const std::vector<Geography *> &features) {
     std::vector<std::unique_ptr<s2geog::Geography>> collection;
     collection.reserve(features.size());
+
+    // TODO: clean-up: use clone_s2geography instead
 
     for (const auto &feature_ptr : features) {
         const Geography *cloned(feature_ptr->clone());

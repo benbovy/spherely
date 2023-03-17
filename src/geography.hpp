@@ -95,6 +95,26 @@ private:
     S2GeographyIndexPtr m_s2geog_index_ptr;
 };
 
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PointGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography& geog) {
+    const auto& points = static_cast<const T&>(geog).Points();
+    return std::make_unique<T>(points);
+}
+
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PolylineGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography& geog) {
+    const auto& polylines = static_cast<const T&>(geog).Polylines();
+    std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
+
+    auto copy_polyline = [](const std::unique_ptr<S2Polyline>& polyline) {
+        return std::unique_ptr<S2Polyline>(polyline->Clone());
+    };
+
+    std::transform(polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
+
+    return std::make_unique<T>(std::move(polylines_copy));
+}
+
 class Point : public Geography {
 public:
     using S2GeographyType = s2geog::PointGeography;
@@ -112,7 +132,7 @@ public:
     }
 
     Point* clone() const override {
-        return new Point(std::make_unique<s2geog::PointGeography>(S2Point(s2point())));
+        return new Point(clone_s2geography<S2GeographyType>(geog()));
     }
 };
 
@@ -235,9 +255,38 @@ public:
         return GeographyType::GeographyCollection;
     }
 
-    // TODO:
+    const std::vector<std::unique_ptr<s2geog::Geography>>& features() const {
+        return static_cast<const S2GeographyType&>(geog()).Features();
+    }
+
     GeographyCollection* clone() const override {
-        return new GeographyCollection(std::make_unique<S2GeographyType>());
+        const auto& s2geog_features = features();
+        std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+        features_copy.reserve(s2geog_features.size());
+
+        // Wrap each underlying s2geography::Geography feature into
+        // spherely::Geography, call the clone method and get back the
+        // wrapped s2geography::Geography object.
+        //
+        // This is an ugly hack that would be much nicer if
+        // s2geography::Geography provided a virtual ``clone`` method
+        for (const auto& feature_ptr : s2geog_features) {
+            std::unique_ptr<s2geog::Geography> cloned;
+
+            auto point_ptr = dynamic_cast<s2geog::PointGeography*>(feature_ptr.get());
+            if (point_ptr != nullptr) {
+                cloned = clone_s2geography<s2geog::PointGeography>(*point_ptr);
+            } else {
+                auto polyline_ptr = dynamic_cast<s2geog::PolylineGeography*>(feature_ptr.get());
+                if (polyline_ptr != nullptr) {
+                    cloned = clone_s2geography<s2geog::PolylineGeography>(*polyline_ptr);
+                }
+            }
+
+            features_copy.push_back(std::move(cloned));
+        }
+
+        return new GeographyCollection(std::make_unique<S2GeographyType>(std::move(features_copy)));
     }
 };
 
