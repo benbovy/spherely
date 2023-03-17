@@ -185,6 +185,22 @@ std::unique_ptr<spherely::Polygon> create_polygon(
     return make_geography<spherely::Polygon>(std::move(polygon_ptr));
 }
 
+std::unique_ptr<GeographyCollection> create_collection(const std::vector<Geography *> &features) {
+    std::vector<std::unique_ptr<s2geog::Geography>> collection;
+    collection.reserve(features.size());
+
+    for (const auto &feature_ptr : features) {
+        const Geography *cloned(feature_ptr->clone());
+        std::unique_ptr<s2geog::Geography> s2geog_ptr(
+            const_cast<s2geog::Geography *>(&cloned->geog()));
+        collection.push_back(std::move(s2geog_ptr));
+    }
+
+    S2GeographyPtr s2geog_ptr =
+        std::make_unique<s2geog::GeographyCollection>(std::move(collection));
+    return std::make_unique<GeographyCollection>(std::move(s2geog_ptr));
+}
+
 /*
 ** Temporary testing Numpy-vectorized API (TODO: remove)
 */
@@ -282,6 +298,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("POLYGON", GeographyType::Polygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
     pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
+    pygeography_types.value("GEOGRAPHYCOLLECTION", GeographyType::GeographyCollection);
 
     // Geography classes
 
@@ -436,6 +453,19 @@ void init_geography(py::module &m) {
                   py::arg("holes") = py::none());
     pypolygon.def(
         py::init(&create_polygon<Point *>), py::arg("shell"), py::arg("holes") = py::none());
+
+    auto pycollection =
+        py::class_<GeographyCollection, Geography>(m, "GeographyCollection", R"pbdoc(
+        A collection of one or more geographic features that may contain more than one type of geography.
+
+        Parameters
+        ----------
+        geogs : list
+            List of :py:class:`Geography` objects (may be any sub-type).
+
+    )pbdoc");
+
+    pycollection.def(py::init(&create_collection), py::arg("geogs"));
 
     // Temp test
 

@@ -26,16 +26,20 @@ enum class GeographyType : std::int8_t {
     LinearRing,
     Polygon,
     MultiPoint,
-    MultiLineString
+    MultiLineString,
+    GeographyCollection
 };
 
 /*
 ** Thin wrapper around s2geography::Geography.
 **
-** Implements move semantics (avoid implicit copies).
-** Allows getting the geography type.
-** Wraps a s2geography::ShapeIndexGeography to speed-up operations
-** (the index is built on demand).
+** This wrapper implements the following specific features (that might
+** eventually move into s2geography::Geography?):
+**
+** - Implement move semantics only.
+** - Add a virtual ``clone()`` method for explicit copies (similarly to s2geometry).
+** - Add a virtual ``geog_type()`` method for getting the geography type.
+** - Encapsulate a lazy ``s2geography::ShapeIndexGeography`` accessible via ``geog_index()``.
 **
 */
 class Geography {
@@ -43,23 +47,18 @@ public:
     using S2GeographyType = s2geog::Geography;
 
     Geography(const Geography&) = delete;
-    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
-        // std::cout << "Geography move constructor called: " << this <<
-        // std::endl;
-    }
+    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {}
     Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {}
 
-    ~Geography() {
-        // std::cout << "Geography destructor called: " << this << std::endl;
-    }
+    virtual ~Geography() {}
 
     Geography& operator=(const Geography&) = delete;
     Geography& operator=(Geography&& other) {
-        // std::cout << "Geography move assignment called: " << this <<
-        // std::endl;
         m_s2geog_ptr = std::move(other.m_s2geog_ptr);
         return *this;
     }
+
+    virtual Geography* clone() const = 0;
 
     inline virtual GeographyType geog_type() const {
         return GeographyType::None;
@@ -110,6 +109,10 @@ public:
         // TODO: does not work for empty point geography
         return points[0];
     }
+
+    Point* clone() const override {
+        return new Point(std::make_unique<s2geog::PointGeography>(S2Point(s2point())));
+    }
 };
 
 class MultiPoint : public Geography {
@@ -120,6 +123,14 @@ public:
 
     inline GeographyType geog_type() const override {
         return GeographyType::MultiPoint;
+    }
+
+    inline const std::vector<S2Point>& s2points() const {
+        return static_cast<const s2geog::PointGeography&>(geog()).Points();
+    }
+
+    MultiPoint* clone() const override {
+        return new MultiPoint(std::make_unique<s2geog::PointGeography>(s2points()));
     }
 };
 
@@ -134,9 +145,14 @@ public:
     }
 
     inline const S2Polyline& s2polyline() const {
-        const auto& polylines = static_cast<const s2geog::PolylineGeography&>(geog()).Polylines();
+        const auto& polylines = static_cast<const S2GeographyType&>(geog()).Polylines();
         // TODO: does not work for empty point geography
         return *polylines[0];
+    }
+
+    LineString* clone() const override {
+        std::unique_ptr<S2Polyline> line_ptr(s2polyline().Clone());
+        return new LineString(std::make_unique<S2GeographyType>(std::move(line_ptr)));
     }
 };
 
@@ -149,6 +165,23 @@ public:
     inline GeographyType geog_type() const override {
         return GeographyType::MultiLineString;
     }
+
+    inline const std::vector<std::unique_ptr<S2Polyline>>& s2polylines() const {
+        return static_cast<const S2GeographyType&>(geog()).Polylines();
+    }
+
+    MultiLineString* clone() const override {
+        const auto& polylines = s2polylines();
+        std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
+
+        auto copy_polyline = [](const std::unique_ptr<S2Polyline>& polyline) {
+            return std::unique_ptr<S2Polyline>(polyline->Clone());
+        };
+
+        std::transform(polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
+
+        return new MultiLineString(std::make_unique<S2GeographyType>(std::move(polylines_copy)));
+    }
 };
 
 class LinearRing : public Geography {
@@ -160,6 +193,11 @@ public:
     inline GeographyType geog_type() const override {
         return GeographyType::LinearRing;
     }
+
+    // TODO:
+    LinearRing* clone() const override {
+        return new LinearRing(std::make_unique<S2GeographyType>(S2Loop()));
+    }
 };
 
 class Polygon : public Geography {
@@ -170,6 +208,31 @@ public:
 
     inline GeographyType geog_type() const override {
         return GeographyType::Polygon;
+    }
+
+    inline const S2Polygon& polygon() const {
+        return *static_cast<const S2GeographyType&>(geog()).Polygon();
+    }
+
+    Polygon* clone() const override {
+        std::unique_ptr<S2Polygon> poly_ptr(polygon().Clone());
+        return new Polygon(std::make_unique<S2GeographyType>(std::move(poly_ptr)));
+    }
+};
+
+class GeographyCollection : public Geography {
+public:
+    using S2GeographyType = s2geog::GeographyCollection;
+
+    GeographyCollection(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+
+    inline GeographyType geog_type() const override {
+        return GeographyType::GeographyCollection;
+    }
+
+    // TODO:
+    GeographyCollection* clone() const override {
+        return new GeographyCollection(std::make_unique<S2GeographyType>());
     }
 };
 

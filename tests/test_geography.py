@@ -170,6 +170,25 @@ def test_polygon_normalize() -> None:
     assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
+def test_collection() -> None:
+    objs = [
+        spherely.Point(0, 0),
+        spherely.LineString([(0, 0), (1, 1)]),
+        spherely.Polygon([(0, 0), (0, 1), (1, 1)]),
+        spherely.MultiLineString([[(0, 0), (0, 1)], [(0, 2), (2, 2)]]),
+    ]
+
+    coll = spherely.GeographyCollection(objs)
+
+    assert coll.dimensions == -1
+    assert coll.nshape == 5
+    assert repr(coll).startswith("GEOMETRYCOLLECTION (POINT (0 0)")
+
+    # TODO: test objects are copied
+    # (for now only test that original objects are preserved)
+    assert [o.nshape for o in objs] == [1, 1, 1, 2]
+
+
 def test_is_geography() -> None:
     arr = np.array([1, 2.33, spherely.Point(30, 6)])
 
@@ -195,6 +214,7 @@ def test_get_type_id() -> None:
             spherely.MultiLineString([[(50, 5), (51, 6)], [(60, 15), (61, 16)]]),
             spherely.LinearRing([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
+            spherely.GeographyCollection([spherely.Point(40, 50)]),
         ]
     )
     actual = spherely.get_type_id(geog)
@@ -206,6 +226,7 @@ def test_get_type_id() -> None:
             spherely.GeographyType.MULTILINESTRING.value,
             spherely.GeographyType.LINEARRING.value,
             spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]
     )
     np.testing.assert_array_equal(actual, expected)

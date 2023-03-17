@@ -18,6 +18,8 @@ Geography types
    LinearRing
    Polygon
    MultiPoint
+   MultiLineString
+   GeographyCollection
 
 .. _api_properties:
 
