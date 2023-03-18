@@ -15,7 +15,9 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
 }
 
 void init_accessors(py::module& m) {
-    m.def("convex_hull", py::vectorize(&convex_hull), py::arg("a"),
+    m.def("convex_hull",
+          py::vectorize(&convex_hull),
+          py::arg("a"),
           R"pbdoc(
         Computes the convex hull of each geography.
 

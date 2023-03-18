@@ -84,11 +84,10 @@ public:
     // Note: pybind11's `type_caster<std::unique_ptr<wrapped_type>>` implements
     // move semantics (Python takes ownership).
     //
-    template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value,
-                                        bool> = true>
+    template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
     static PyObjectGeography from_geog(std::unique_ptr<T> geog_ptr) {
         auto pyobj = py::cast(std::move(geog_ptr));
-        auto pyobj_geog = static_cast<PyObjectGeography&>(pyobj);
+        auto pyobj_geog = static_cast<PyObjectGeography &>(pyobj);
         return std::move(pyobj_geog);
     }
 
