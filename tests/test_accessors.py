@@ -8,15 +8,14 @@ import pytest
 @pytest.mark.parametrize(
     "geog, expected",
     [
-        # (spherely.Point(0, 0), spherely.Point(0, 0)),
         (
             spherely.LineString([(0, 0), (0, 2), (2, 2)]),
             spherely.Polygon([(0, 0), (0, 2), (2, 2)])
         ),
-        # (
-        #     spherely.Polygon([(0, 0), (0, 2), (2, 2), (1, 0.5)]),
-        #     spherely.Polygon([(0, 0), (0, 2), (2, 2)])
-        # ),
+        (
+            spherely.Polygon([(0, 0), (2, 0), (2, 2), (1.5, 0.5)]),
+            spherely.Polygon([(0, 0), (2, 0), (2, 2)])
+        ),
     ],
 )
 def test_convex_hull(geog, expected) -> None:
