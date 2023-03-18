@@ -27,3 +27,8 @@ Repository = "https://github.com/benbovy/spherely"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
+
+[tool.mypy]
+files = ["tests", "src/spherely.pyi"]
+show_error_codes = true
+warn_unused_ignores = true

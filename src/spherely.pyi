@@ -104,6 +104,8 @@ destroy_prepared: _VFunc_Nin1_Nout1[Literal["destroy_prepared"], Geography, Any]
 intersects: _VFunc_Nin2_Nout1[Literal["intersects"], bool, bool]
 equals: _VFunc_Nin2_Nout1[Literal["intersects"], bool, bool]
 contains: _VFunc_Nin2_Nout1[Literal["contains"], bool, bool]
+within: _VFunc_Nin2_Nout1[Literal["within"], bool, bool]
+disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
 # temp (remove)
 

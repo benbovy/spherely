@@ -94,7 +94,9 @@ public:
 
     // Just check whether the object is a Geography
     //
-    bool is_geog_ptr() const { return check_type(false); }
+    bool is_geog_ptr() const {
+        return check_type(false);
+    }
 };
 }  // namespace spherely
 
@@ -124,9 +126,7 @@ struct vectorize_arg<spherely::PyObjectGeography> {
     static constexpr bool vectorize = true;
     // Accept this type: an array for vectorized types, otherwise the type
     // as-is:
-    using type =
-        conditional_t<vectorize,
-                      array_t<remove_cv_t<call_type>, array::forcecast>, T>;
+    using type = conditional_t<vectorize, array_t<remove_cv_t<call_type>, array::forcecast>, T>;
 };
 
 // Register PyObjectGeography as a valid numpy dtype (numpy.object alias)
@@ -144,7 +144,8 @@ struct npy_format_descriptor<spherely::PyObjectGeography> {
 };
 
 // Override signature type hint for vectorized Geography arguments
-template <int Flags> struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
+template <int Flags>
+struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
     static constexpr auto name = _("Geography | array_like");
 };
 
@@ -155,9 +156,9 @@ template <int Flags> struct handle_type_name<array_t<spherely::PyObjectGeography
 //
 // Allows using PyObjectGeography as return type of vectorized functions.
 //
-template <typename T,
-          typename detail::enable_if_t<
-              std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
+template <
+    typename T,
+    typename detail::enable_if_t<std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
 object cast(T &&value) {
     return value;
 }

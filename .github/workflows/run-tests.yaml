@@ -10,6 +10,9 @@ jobs:
   test:
     name: ${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
     strategy:
       fail-fast: false
       matrix:
@@ -36,41 +39,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup mambaforge
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: spherely-dev
-          use-mamba: true
-          python-version: ${{ matrix.python-version }}
-          environment-file: ${{ matrix.env }}
-
       - name: Get Date
         id: get-date
-        shell: bash -l {0}
         # cache will last one day
         run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
 
-      - name: Cache environment
-        uses: actions/cache@v2
+      - name: Setup micromamba
+        uses: mamba-org/provision-with-micromamba@v15
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ runner.os }}-{{ matrix.python-version }}-conda-${{ hashFiles( matrix.env ) }}-${{ steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
-        env:
-          # Increase this value to reset cache if ci/environment.yml has not changed
-          CACHE_NUMBER: 0
-        id: conda-cache
-
-      - name: Update environment
-        run: mamba env update -n spherely-dev -f ${{ matrix.env }}
-        if: steps.conda-cache.outputs.cache-hit != 'true'
-
-      - name: Conda info
-        shell: bash -l {0}
-        run: |
-          conda info
-          conda list
+          environment-file: ${{ matrix.env }}
+          environment-name: spherely-dev
+          cache-env: true
+          cache-env-key: "${{ runner.os }}-${{ runner.arch }}-py${{ matrix.python-version }}-${{ steps.get-date.outputs.today }}-${{ hashFiles( matrix.env) }}"
+          extra-specs: |
+            python=${{ matrix.python-version }}
 
       - name: Fetch s2geography
         uses: actions/checkout@v3
@@ -80,11 +62,9 @@ jobs:
           path: deps/s2geography
           fetch-depth: 0
         if: |
-          matrix.dev == true &&
-          steps.conda-cache.outputs.cache-hit != 'true'
+          matrix.dev == true
 
       - name: Configure, build & install s2geography (unix)
-        shell: bash -l {0}
         run: |
           cd deps/s2geography
           cmake -S . -B build \
@@ -96,11 +76,9 @@ jobs:
           cmake --install build
         if: |
           matrix.dev == true &&
-          (steps.conda-cache.outputs.cache-hit != 'true' &&
-          (runner.os == 'Linux' || runner.os == 'macOS'))
+          (runner.os == 'Linux' || runner.os == 'macOS')
 
       - name: Configure, build & install s2geography (win)
-        shell: bash -l {0}
         run: |
           cd deps/s2geography
           cmake -S . -B build \
@@ -111,15 +89,27 @@ jobs:
           cmake --build build --config Release
           cmake --install build
         if: |
-          matrix.dev == true &&
-          (steps.conda-cache.outputs.cache-hit != 'true' &&
-          runner.os == 'Windows')
+          matrix.dev == true && runner.os == 'Windows'
 
       - name: Build and install spherely
-        shell: bash -l {0}
-        run: python -m pip install . -v --no-build-isolation
+        run: |
+          python -m pip install . -v --no-build-isolation --config-settings cmake.define.SPHERELY_CODE_COVERAGE=ON --config-settings build-dir=_skbuild
 
       - name: Run tests
-        shell: bash -l {0}
         run: |
           pytest . -vv
+
+      - name: Generate coverage report
+        run: |
+          python -m pip install gcovr
+          gcovr --exclude-unreachable-branches --print-summary -x -o coverage.xml
+        if: |
+          runner.os == 'Linux' && matrix.python-version == '3.11' && matrix.dev == false
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          verbose: true
+        if: |
+          runner.os == 'Linux' && matrix.python-version == '3.11' && matrix.dev == false

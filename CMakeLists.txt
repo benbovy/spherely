@@ -7,6 +7,8 @@ project(
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "The C++ standard to build with")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(SPHERELY_CODE_COVERAGE "Enable coverage reporting" OFF)
+
 # Dependencies
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/third_party/cmake")
@@ -24,6 +26,11 @@ set(S2GEOGRAPHY_ROOT_DIR "$ENV{CONDA_PREFIX}")
 
 find_package(s2 REQUIRED)
 find_package(s2geography REQUIRED)
+
+if(SPHERELY_CODE_COVERAGE)
+  message(STATUS "Building spherely with coverage enabled")
+  add_library(coverage_config INTERFACE)
+endif()
 
 # Compile definitions and flags
 
@@ -72,6 +79,12 @@ if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
 endif()
 
 set_target_properties(spherely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+
+if (SPHERELY_CODE_COVERAGE)
+  target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
+  target_link_options(coverage_config INTERFACE --coverage)
+  target_link_libraries(spherely PUBLIC coverage_config)
+endif()
 
 # Install
 
