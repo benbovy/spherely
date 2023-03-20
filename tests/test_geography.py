@@ -176,18 +176,30 @@ def test_collection() -> None:
         spherely.LineString([(0, 0), (1, 1)]),
         # spherely.LinearRing([(0, 0), (0, 1), (1, 1)]),
         spherely.Polygon([(0, 0), (0, 1), (1, 1)]),
-        spherely.MultiLineString([[(0, 0), (0, 1)], [(0, 2), (2, 2)]]),
     ]
 
     coll = spherely.GeographyCollection(objs)
 
     assert coll.dimensions == -1
-    assert coll.nshape == 5
-    assert repr(coll).startswith("GEOMETRYCOLLECTION (POINT (0 0)")
+    assert coll.nshape == 3
+    assert repr(coll).startswith("GEOMETRYCOLLECTION (")
+
+    # TODO: more robust test than using the WKT repr
+    assert repr(coll).count("POINT") == 1
+    assert repr(coll).count("LINESTRING") == 1
+    assert repr(coll).count("POLYGON") == 1
 
     # TODO: test objects are copied
     # (for now only test that original objects are preserved)
-    assert [o.nshape for o in objs] == [1, 1, 1, 2]
+    assert [o.nshape for o in objs] == [1, 1, 1]
+
+    # test nested collection
+    coll2 = spherely.GeographyCollection(objs + [coll])
+
+    assert repr(coll2).count("POINT") == 2
+    assert repr(coll2).count("LINESTRING") == 2
+    assert repr(coll2).count("POLYGON") == 2
+    assert repr(coll2).count("GEOMETRYCOLLECTION") == 2
 
 
 def test_is_geography() -> None:

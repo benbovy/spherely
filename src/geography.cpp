@@ -92,6 +92,78 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
     return std::move(loop_ptr);
 }
 
+// Helper for dynamic downcasting of an s2geography::Geography object.
+template <class T, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
+const T *downcast(const s2geog::Geography &geog) {
+    return dynamic_cast<const T *>(&geog);
+}
+
+// Helpers for explicit copy of s2geography objects.
+//
+// Use some dirty worarounds and would probably better to be implemented
+// via a `s2geography::Geography::clone` virtual method.
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PointGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
+    const auto &points = static_cast<const T &>(geog).Points();
+    return std::make_unique<T>(points);
+}
+
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PolylineGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
+    const auto &polylines = static_cast<const T &>(geog).Polylines();
+    std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
+
+    auto copy_polyline = [](const std::unique_ptr<S2Polyline> &polyline) {
+        return std::unique_ptr<S2Polyline>(polyline->Clone());
+    };
+
+    std::transform(polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
+
+    return std::make_unique<T>(std::move(polylines_copy));
+}
+
+template <class T,
+          std::enable_if_t<std::is_same_v<T, s2geog::ClosedPolylineGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
+    return std::unique_ptr<T>(static_cast<const T &>(geog).clone());
+}
+
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PolygonGeography>, bool> = true>
+std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
+    const auto &poly = static_cast<const T &>(geog).Polygon();
+    std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
+    return std::make_unique<T>(std::move(poly_ptr));
+}
+
+template <class T, std::enable_if_t<std::is_same_v<T, s2geog::GeographyCollection>, bool> = true>
+std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
+    const auto &features = static_cast<const T &>(geog).Features();
+    std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+    features_copy.reserve(features.size());
+
+    for (const auto &feature_ptr : features) {
+        features_copy.push_back(clone_s2geography(*feature_ptr));
+    }
+
+    return std::make_unique<T>(std::move(features_copy));
+}
+
+std::unique_ptr<s2geog::Geography> spherely::clone_s2geography(const s2geog::Geography &geog) {
+    if (const auto *ptr = downcast<s2geog::PointGeography>(geog); ptr) {
+        return _clone_s2geography<s2geog::PointGeography>(*ptr);
+    } else if (const auto *ptr = downcast<s2geog::PolylineGeography>(geog); ptr) {
+        return _clone_s2geography<s2geog::PolylineGeography>(*ptr);
+    } else if (const auto *ptr = downcast<s2geog::ClosedPolylineGeography>(geog); ptr) {
+        return _clone_s2geography<s2geog::ClosedPolylineGeography>(*ptr);
+    } else if (const auto *ptr = downcast<s2geog::PolygonGeography>(geog); ptr) {
+        return _clone_s2geography<s2geog::PolygonGeography>(*ptr);
+    } else if (const auto *ptr = downcast<s2geog::GeographyCollection>(geog); ptr) {
+        return _clone_s2geography<s2geog::GeographyCollection>(*ptr);
+    } else {
+        throw std::runtime_error("invalid Geography type");
+    }
+}
+
 /*
 ** Helper to create Geography object wrappers.
 **
@@ -186,21 +258,16 @@ std::unique_ptr<spherely::Polygon> create_polygon(
 }
 
 std::unique_ptr<GeographyCollection> create_collection(const std::vector<Geography *> &features) {
-    std::vector<std::unique_ptr<s2geog::Geography>> collection;
-    collection.reserve(features.size());
-
-    // TODO: clean-up: use clone_s2geography instead
+    std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+    features_copy.reserve(features.size());
 
     for (const auto &feature_ptr : features) {
-        const Geography *cloned(feature_ptr->clone());
-        std::unique_ptr<s2geog::Geography> s2geog_ptr(
-            const_cast<s2geog::Geography *>(&cloned->geog()));
-        collection.push_back(std::move(s2geog_ptr));
+        features_copy.push_back(clone_s2geography(feature_ptr->geog()));
     }
 
-    S2GeographyPtr s2geog_ptr =
-        std::make_unique<s2geog::GeographyCollection>(std::move(collection));
-    return std::make_unique<GeographyCollection>(std::move(s2geog_ptr));
+    return std::make_unique<GeographyCollection>(
+        std::make_unique<s2geog::GeographyCollection>(std::move(features_copy)));
+    ;
 }
 
 /*
