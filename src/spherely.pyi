@@ -107,6 +107,12 @@ contains: _VFunc_Nin2_Nout1[Literal["contains"], bool, bool]
 within: _VFunc_Nin2_Nout1[Literal["within"], bool, bool]
 disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
+# geography accessors
+
+centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, Point]
+boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
+convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, Polygon]
+
 # temp (remove)
 
 def create(arg0: Iterable[float], arg1: Iterable[float]) -> npt.NDArray[Any]: ...
