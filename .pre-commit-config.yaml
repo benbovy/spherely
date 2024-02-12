@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -8,12 +8,12 @@ repos:
       - id: debug-statements
       - id: mixed-line-ending
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 24.2.0
     hooks:
       - id: black
         args: [--safe, --quiet]
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v15.0.7
+    rev: v17.0.6
     hooks:
       - id: clang-format
         args: [--style=file]
