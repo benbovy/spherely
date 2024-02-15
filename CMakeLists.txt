@@ -61,6 +61,7 @@ add_library(spherely MODULE
   src/geography.cpp
   src/predicates.cpp
   src/spherely.cpp
+  src/s2geography_addons.cpp
   )
 
 target_compile_definitions(spherely
