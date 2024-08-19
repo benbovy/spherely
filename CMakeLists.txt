@@ -20,10 +20,6 @@ find_package(
 
 find_package(pybind11 CONFIG REQUIRED)
 
-# TODO: make it more flexible (non-conda)
-set(S2_ROOT_DIR "$ENV{CONDA_PREFIX}")
-set(S2GEOGRAPHY_ROOT_DIR "$ENV{CONDA_PREFIX}")
-
 find_package(s2 CONFIG REQUIRED)
 find_package(s2geography CONFIG REQUIRED)
 
