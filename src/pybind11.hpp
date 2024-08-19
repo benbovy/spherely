@@ -85,8 +85,10 @@ public:
     // move semantics (Python takes ownership).
     //
     template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
-    static py::object as_py_object(std::unique_ptr<T> geog_ptr) {
-        return py::cast(std::move(geog_ptr));
+    static PyObjectGeography from_geog(std::unique_ptr<T> geog_ptr) {
+        auto pyobj = py::cast(std::move(geog_ptr));
+        auto pyobj_geog = static_cast<PyObjectGeography &>(pyobj);
+        return std::move(pyobj_geog);
     }
 
     // Just check whether the object is a Geography
