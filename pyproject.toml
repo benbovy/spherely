@@ -28,6 +28,10 @@ Repository = "https://github.com/benbovy/spherely"
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
 
+[tool.scikit-build]
+sdist.exclude = [".github"]
+sdist.cmake = false
+
 [tool.mypy]
 files = ["tests", "src/spherely.pyi"]
 show_error_codes = true
