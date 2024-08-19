@@ -11,7 +11,7 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
-double get_lat(PyObjectGeography a) {
+double get_y(PyObjectGeography a) {
     auto geog = a.as_geog_ptr();
     if (geog->geog_type() != GeographyType::Point) {
         throw py::value_error("Only Point geometries supported");
@@ -23,7 +23,7 @@ double get_lat(PyObjectGeography a) {
     return lat;
 }
 
-double get_lng(PyObjectGeography a) {
+double get_x(PyObjectGeography a) {
     auto geog = a.as_geog_ptr();
     if (geog->geog_type() != GeographyType::Point) {
         throw py::value_error("Only Point geometries supported");
@@ -36,8 +36,8 @@ double get_lng(PyObjectGeography a) {
 }
 
 void init_coords(py::module& m) {
-    m.def("get_lat",
-          py::vectorize(&get_lat),
+    m.def("get_y",
+          py::vectorize(&get_y),
           py::arg("a"),
           R"pbdoc(
         Returns the latitude value of the Point (in degrees).
@@ -49,8 +49,8 @@ void init_coords(py::module& m) {
 
     )pbdoc");
 
-    m.def("get_lng",
-          py::vectorize(&get_lng),
+    m.def("get_x",
+          py::vectorize(&get_x),
           py::arg("a"),
           R"pbdoc(
         Returns the longitude value of the Point (in degrees).

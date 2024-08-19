@@ -109,8 +109,8 @@ disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
 # coords
 
-get_lat: _VFunc_Nin1_Nout1[Literal["get_lan"], float, np.float64]
-get_lng: _VFunc_Nin1_Nout1[Literal["get_lng"], float, np.float64]
+get_y: _VFunc_Nin1_Nout1[Literal["get_lan"], float, np.float64]
+get_x: _VFunc_Nin1_Nout1[Literal["get_x"], float, np.float64]
 
 # temp (remove)
 
