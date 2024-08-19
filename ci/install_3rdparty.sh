@@ -54,8 +54,9 @@ build_install_dependencies(){
     echo "Downloading, building and installing absl-$ABSL_VERSION"
 
     cd $DEPENDENCIES_DIR
-    curl -OL https://github.com/abseil/abseil-cpp/archive/refs/tags/$ABSL_VERSION.tar.gz
-    tar xf abseil-cpp-$ABSL_VERSION.tar.gz -C $SRC_DIR
+    curl -o absl.tar.gz -L https://github.com/abseil/abseil-cpp/archive/refs/tags/$ABSL_VERSION.tar.gz
+    tar -xf absl.tar.gz -C $SRC_DIR
+    rm -f absl.tar.gz
 
     cmake -S $SRC_DIR/abseil-cpp-$ABSL_VERSION -B $ABSL_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
@@ -70,10 +71,11 @@ build_install_dependencies(){
     echo "Downloading, building and installing s2geometry-$S2GEOMETRY_VERSION"
 
     cd $DEPENDENCIES_DIR
-    curl -OL https://github.com/google/s2geometry/archive/refs/tags/v$S2GEOMETRY_VERSION.tar.gz
-    tar xf s2geometry-v$S2GEOMETRY_VERSION.tar.gz -C $SRC_DIR
+    curl -o s2geometry.tar.gz -L https://github.com/google/s2geometry/archive/refs/tags/v$S2GEOMETRY_VERSION.tar.gz
+    tar -xf s2geometry.tar.gz -C $SRC_DIR
+    rm -f s2geometry.tar.gz
 
-    cmake -S $SRC_DIR/s2geometry-v$S2GEOMETRY_VERSION -B $S2GEOMETRY_BUILD_DIR \
+    cmake -S $SRC_DIR/s2geometry-$S2GEOMETRY_VERSION -B $S2GEOMETRY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
         -DABSL_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
@@ -89,8 +91,9 @@ build_install_dependencies(){
     echo "Downloading, building and installing s2geography-$S2GEOGRAPHY_VERSION"
 
     cd $DEPENDENCIES_DIR
-    curl -OL https://github.com/paleolimbot/s2geography/archive/refs/tags/$S2GEOGRAPHY_VERSION.tar.gz
-    tar xf s2geography-$S2GEOGRAPHY_VERSION.tar.gz -C $SRC_DIR
+    curl -o s2geography.tar.gz -L https://github.com/paleolimbot/s2geography/archive/refs/tags/$S2GEOGRAPHY_VERSION.tar.gz
+    tar -xf s2geography.tar.gz -C $SRC_DIR
+    rm -f s2geography.tar.gz
 
     cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
