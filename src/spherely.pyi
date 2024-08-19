@@ -107,6 +107,11 @@ contains: _VFunc_Nin2_Nout1[Literal["contains"], bool, bool]
 within: _VFunc_Nin2_Nout1[Literal["within"], bool, bool]
 disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
+# coords
+
+get_lat: _VFunc_Nin1_Nout1[Literal["get_lan"], float, np.float64]
+get_lng: _VFunc_Nin1_Nout1[Literal["get_lng"], float, np.float64]
+
 # temp (remove)
 
 def create(arg0: Iterable[float], arg1: Iterable[float]) -> npt.NDArray[Any]: ...
