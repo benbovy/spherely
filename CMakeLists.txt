@@ -21,7 +21,22 @@ find_package(
 find_package(pybind11 CONFIG REQUIRED)
 
 find_package(s2 CONFIG REQUIRED)
+if(s2_FOUND)
+  message(STATUS "Found s2")
+  get_target_property(s2_INCLUDE_DIRS s2::s2 INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Found s2: ${s2_INCLUDE_DIRS}")
+else()
+  message(FATAL_ERROR "Couldn't find s2")
+endif()
+
 find_package(s2geography CONFIG REQUIRED)
+if(${s2geography_FOUND})
+  # not yet provided by s2geography
+  # get_target_property(s2geography_INCLUDE_DIRS s2geography INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Found s2geography v${s2geography_VERSION}")
+else()
+  message(FATAL_ERROR "Couldn't find s2geography")
+endif()
 
 if(SPHERELY_CODE_COVERAGE)
   message(STATUS "Building spherely with coverage enabled")
