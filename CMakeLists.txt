@@ -22,7 +22,6 @@ find_package(pybind11 CONFIG REQUIRED)
 
 find_package(s2 CONFIG REQUIRED)
 if(s2_FOUND)
-  message(STATUS "Found s2")
   get_target_property(s2_INCLUDE_DIRS s2::s2 INTERFACE_INCLUDE_DIRECTORIES)
   message(STATUS "Found s2: ${s2_INCLUDE_DIRS}")
 else()
