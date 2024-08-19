@@ -43,7 +43,7 @@ ABSL_BUILD_DIR=$BUILD_DIR/absl-src-$ABSL_VERSION
 S2GEOMETRY_BUILD_DIR=$BUILD_DIR/s2geometry-src-$S2GEOMETRY_VERSION
 S2GEOGRAPHY_BUILD_DIR=$BUILD_DIR/s2geography-src-$S2GEOGRAPHY_VERSION
 
-build_3rd_party(){
+build_install_dependencies(){
     echo "Installing cmake"
     pip install cmake
 
@@ -96,7 +96,7 @@ build_3rd_party(){
 if [ -d "$INSTALL_DIR/include/s2geography" ]; then
     echo "Using cached install directory $INSTALL_DIR"
 else
-    build_geos
+    build_install_dependencies
 fi
 
 popd
