@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - cxx-compiler
-  - s2geometry
+  - s2geometry>=0.11.1
   - libabseil
   - cmake
   - python
