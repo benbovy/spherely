@@ -65,39 +65,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache 3rd-party Directory
+      - name: Cache 3rd-party install directory
         id: cache-build
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/3rd-party
+          path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
-
-      - name: Fetch absl
-        if: steps.cache-build.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: abseil/abseil-cpp
-          ref: ${{ env.ABSL_VERSION }}
-          path: ${{ github.workspace }}/3rd-party/absl-src-${{ env.ABSL_VERSION }}
-          fetch-depth: 0
-
-      - name: Fetch s2geometry
-        if: steps.cache-build.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: google/s2geometry
-          ref: v${{ env.S2GEOMETRY_VERSION }}
-          path: ${{ github.workspace }}/3rd-party/s2geometry-src-${{ env.S2GEOMETRY_VERSION }}
-          fetch-depth: 0
-
-      - name: Fetch s2geography
-        if: steps.cache-build.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: paleolimbot/s2geography
-          ref: ${{ env.S2GEOGRAPHY_VERSION }}
-          path: ${{ github.workspace }}/3rd-party/s2geography-src-${{ env.S2GEOGRAPHY_VERSION }}
-          fetch-depth: 0
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
@@ -105,17 +78,28 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
-          CIBW_ENVIRONMENT:
-            DEPENDENCIES_DIR=${{ github.workspace }}/3rd-party
+          CIBW_ENVIRONMENT_LINUX:
+            DEPENDENCIES_DIR=/host${{ runner.temp }}/3rd-party
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXXSTANDARD=${{ env.CXXSTANDARD }}
           CIBW_ENVIRONMENT_MACOS:
+            DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
+            ABSL_VERSION=${{ env.ABSL_VERSION }}
+            S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
+            S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
+            CXXSTANDARD=${{ env.CXXSTANDARD }}
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
+          CIBW_ENVIRONMENT_WINDOWS:
+            DEPENDENCIES_DIR='${{ runner.temp }}\3rd-party'
+            ABSL_VERSION=${{ env.ABSL_VERSION }}
+            S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
+            S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
+            CXXSTANDARD=${{ env.CXXSTANDARD }}
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
-          CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
+          CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           # CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           # CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest

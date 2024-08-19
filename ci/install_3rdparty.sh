@@ -29,6 +29,7 @@ elif [ -z "$S2GEOGRAPHY_VERSION" ]; then
     exit 1
 fi
 
+SRC_DIR=$DEPENDENCIES_DIR/src
 BUILD_DIR=$DEPENDENCIES_DIR/build
 INSTALL_DIR=$DEPENDENCIES_DIR/dist
 
@@ -50,9 +51,13 @@ build_install_dependencies(){
     rm -rf $BUILD_DIR
     rm -rf $INSTALL_DIR
 
-    echo "Building and installing absl-$ABSL_VERSION"
+    echo "Downloading, building and installing absl-$ABSL_VERSION"
 
-    cmake -S $ABSL_SRC_DIR -B $ABSL_BUILD_DIR \
+    cd $BUILD_DIR
+    curl -OL https://github.com/abseil/abseil-cpp/archive/refs/tags/$ABSL_VERSION.tar.gz
+    tar xfj abseil-cpp-$ABSL_VERSION.tar.gz -C $SRC_DIR
+
+    cmake -S $SRC_DIR/abseil-cpp-$ABSL_VERSION -B $ABSL_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
         -DCMAKE_CXX_STANDARD=$CXX_STANDARD \
@@ -62,9 +67,13 @@ build_install_dependencies(){
     cmake --build $ABSL_BUILD_DIR
     cmake --install $ABSL_BUILD_DIR
 
-    echo "Building and installing s2geometry-$S2GEOMETRY_VERSION"
+    echo "Downloading, building and installing s2geometry-$S2GEOMETRY_VERSION"
 
-    cmake -S $S2GEOMETRY_SRC_DIR -B $S2GEOMETRY_BUILD_DIR \
+    cd $BUILD_DIR
+    curl -OL https://github.com/google/s2geometry/archive/refs/tags/v$S2GEOMETRY_VERSION.tar.gz
+    tar xfj s2geometry-v$S2GEOMETRY_VERSION.tar.gz -C $SRC_DIR
+
+    cmake -S $SRC_DIR/s2geometry-v$S2GEOMETRY_VERSION -B $S2GEOMETRY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
         -DABSL_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
@@ -77,9 +86,13 @@ build_install_dependencies(){
     cmake --build $S2GEOMETRY_BUILD_DIR
     cmake --install $S2GEOMETRY_BUILD_DIR
 
-    echo "Building and installing s2geography-$S2GEOGRAPHY_VERSION"
+    echo "Downloading, building and installing s2geography-$S2GEOGRAPHY_VERSION"
 
-    cmake -S $S2GEOGRAPHY_SRC_DIR -B $S2GEOGRAPHY_BUILD_DIR \
+    cd $BUILD_DIR
+    curl -OL https://github.com/paleolimbot/s2geography/archive/refs/tags/$S2GEOGRAPHY_VERSION.tar.gz
+    tar xfj s2geography-$S2GEOGRAPHY_VERSION.tar.gz -C $SRC_DIR
+
+    cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
         -DABSL_ROOT=$INSTALL_DIR \
         -DS2_ROOT=$INSTALL_DIR \
