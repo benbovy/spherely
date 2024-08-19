@@ -8,7 +8,7 @@ dependencies:
   - cxx-compiler
   - cmake
   - make
-  - s2geometry
+  - s2geometry=0.10
   - libabseil
   - sphinx
   - pydata-sphinx-theme>=0.8.1
