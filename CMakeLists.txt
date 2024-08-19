@@ -31,8 +31,8 @@ endif()
 find_package(s2geography CONFIG REQUIRED)
 if(${s2geography_FOUND})
   # not yet provided by s2geography
-  get_target_property(s2geography_INCLUDE_DIRS s2geography INTERFACE_INCLUDE_DIRECTORIES)
-  message(STATUS "Found s2geography v${s2geography_VERSION}: ${s2geography_INCLUDE_DIRS}")
+  # get_target_property(s2geography_INCLUDE_DIRS s2geography INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Found s2geography v${s2geography_VERSION}")
 else()
   message(FATAL_ERROR "Couldn't find s2geography")
 endif()
@@ -43,6 +43,14 @@ if(SPHERELY_CODE_COVERAGE)
 endif()
 
 # Compile definitions and flags
+
+if (MSVC)
+  # used in s2geometry's CMakeLists.txt but not defined in target
+  # TODO: move this in FindS2.cmake?
+  target_compile_definitions(s2::s2 INTERFACE _USE_MATH_DEFINES)
+  target_compile_definitions(s2::s2 INTERFACE NOMINMAX)
+  target_compile_options(s2::s2 INTERFACE /J)
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
     CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
