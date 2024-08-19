@@ -7,7 +7,7 @@
 #  - ABSL_VERSION
 #  - S2GEOMETRY_VERSION
 #  - S2GEOGRAPHY_VERSION
-#  - CXXSTANDARD
+#  - CXX_STANDARD
 #
 # This script assumes that library sources have been downloaded or copied in
 # DEPENDENCIES_DIR (e.g., $DEPENDENCIES_DIR/absl-src-$ABSL_VERSION).
@@ -26,6 +26,9 @@ elif [ -z "$S2GEOMETRY_VERSION" ]; then
     exit 1
 elif [ -z "$S2GEOGRAPHY_VERSION" ]; then
     echo "S2GEOGRAPHY_VERSION must be set"
+    exit 1
+elif [ -z "$CXX_STANDARD" ]; then
+    echo "CXX_STANDARD must be set"
     exit 1
 fi
 
@@ -78,7 +81,7 @@ build_install_dependencies(){
 
     cmake -S $SRC_DIR/s2geometry-$S2GEOMETRY_VERSION -B $S2GEOMETRY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-        -DABSL_ROOT=$INSTALL_DIR \
+        -Dabsl_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
         -DBUILD_EXAMPLES=OFF \
         -UGOOGLETEST_ROOT \
@@ -99,7 +102,7 @@ build_install_dependencies(){
     cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
         -DABSL_ROOT=$INSTALL_DIR \
-        -DS2_ROOT=$INSTALL_DIR \
+        -Ds2_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
         -DS2GEOGRAPHY_S2_SOURCE=SYSTEM \
         -DBUILD_EXAMPLES=OFF \

@@ -40,7 +40,7 @@ jobs:
       ABSL_VERSION: "20240722.0"
       S2GEOMETRY_VERSION: "0.11.1"
       S2GEOGRAPHY_VERSION: "0.1.2"
-      CXX_STANDARD: "17"
+      CXX_STANDARD: 17
     strategy:
       fail-fast: false
       matrix:
@@ -83,13 +83,13 @@ jobs:
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
-            CXXSTANDARD=${{ env.CXXSTANDARD }}
+            CXX_STANDARD=${{ env.CXX_STANDARD }}
           CIBW_ENVIRONMENT_MACOS:
             DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
-            CXXSTANDARD=${{ env.CXXSTANDARD }}
+            CXX_STANDARD=${{ env.CXX_STANDARD }}
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
@@ -97,7 +97,7 @@ jobs:
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
-            CXXSTANDARD=${{ env.CXXSTANDARD }}
+            CXX_STANDARD=${{ env.CXX_STANDARD }}
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           # CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
