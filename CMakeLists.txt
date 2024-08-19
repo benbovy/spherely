@@ -78,7 +78,7 @@ target_compile_definitions(spherely
 
 target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras
-  PUBLIC s2 s2geography
+  PUBLIC s2::s2 s2geography
   )
 
 pybind11_extension(spherely)
