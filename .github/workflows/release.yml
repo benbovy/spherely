@@ -95,7 +95,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: paleolimbot/s2geography
-          ref: v${{ env.S2GEOGRAPHY_VERSION }}
+          ref: ${{ env.S2GEOGRAPHY_VERSION }}
           path: ${{ github.workspace }}/3rd-party/s2geography-src-${{ env.S2GEOGRAPHY_VERSION }}
           fetch-depth: 0
 
