@@ -82,7 +82,7 @@ private:
 
 class Point : public Geography {
 public:
-    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::Point;
@@ -97,7 +97,7 @@ public:
 
 class LineString : public Geography {
 public:
-    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::LineString;
@@ -106,7 +106,7 @@ public:
 
 class Polygon : public Geography {
 public:
-    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::Polygon;
