@@ -48,12 +48,12 @@ build_install_dependencies(){
     echo "Installing cmake"
     pip install cmake
 
-    rm -rf $BUILD_DIR
-    rm -rf $INSTALL_DIR
+    rm -rf $BUILD_DIR/*
+    rm -rf $INSTALL_DIR/*
 
     echo "Downloading, building and installing absl-$ABSL_VERSION"
 
-    cd $BUILD_DIR
+    cd $DEPENDENCIES_DIR
     curl -OL https://github.com/abseil/abseil-cpp/archive/refs/tags/$ABSL_VERSION.tar.gz
     tar xfj abseil-cpp-$ABSL_VERSION.tar.gz -C $SRC_DIR
 
@@ -69,7 +69,7 @@ build_install_dependencies(){
 
     echo "Downloading, building and installing s2geometry-$S2GEOMETRY_VERSION"
 
-    cd $BUILD_DIR
+    cd $DEPENDENCIES_DIR
     curl -OL https://github.com/google/s2geometry/archive/refs/tags/v$S2GEOMETRY_VERSION.tar.gz
     tar xfj s2geometry-v$S2GEOMETRY_VERSION.tar.gz -C $SRC_DIR
 
@@ -88,7 +88,7 @@ build_install_dependencies(){
 
     echo "Downloading, building and installing s2geography-$S2GEOGRAPHY_VERSION"
 
-    cd $BUILD_DIR
+    cd $DEPENDENCIES_DIR
     curl -OL https://github.com/paleolimbot/s2geography/archive/refs/tags/$S2GEOGRAPHY_VERSION.tar.gz
     tar xfj s2geography-$S2GEOGRAPHY_VERSION.tar.gz -C $SRC_DIR
 
