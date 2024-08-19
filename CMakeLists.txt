@@ -24,8 +24,8 @@ find_package(pybind11 CONFIG REQUIRED)
 set(S2_ROOT_DIR "$ENV{CONDA_PREFIX}")
 set(S2GEOGRAPHY_ROOT_DIR "$ENV{CONDA_PREFIX}")
 
-find_package(s2 REQUIRED)
-find_package(s2geography REQUIRED)
+find_package(s2 CONFIG REQUIRED)
+find_package(s2geography CONFIG REQUIRED)
 
 if(SPHERELY_CODE_COVERAGE)
   message(STATUS "Building spherely with coverage enabled")
