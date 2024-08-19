@@ -60,6 +60,7 @@ endif()
 add_library(spherely MODULE
   src/geography.cpp
   src/predicates.cpp
+  src/projections.cpp
   src/spherely.cpp
   )
 
