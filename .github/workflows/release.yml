@@ -105,7 +105,7 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           # CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: 'LD_LIBRARY_PATH=/host${{ runner.temp }}/3rd-party/dist/lib64 auditwheel repair -w {dest_dir} {wheel}'
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: 'LD_LIBRARY_PATH=${{ runner.temp }}/3rd-party/dist/lib delocate-wheel --require-archs=${{ matrix.arch }} -w {dest_dir} -v {wheel}'
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: 'DYLD_LIBRARY_PATH=${{ runner.temp }}/3rd-party/dist/lib delocate-wheel --require-archs=${{ matrix.arch }} -w {dest_dir} -v {wheel}'
           # CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest spherely
