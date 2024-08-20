@@ -57,6 +57,7 @@ build_install_dependencies(){
     if [ "$(uname)" != "Darwin" ]; then
         # assume manylinux2014 https://cibuildwheel.pypa.io/en/stable/faq/
         yum install -y openssl-devel
+    fi
 
     echo "------ Clean build and install directories"
 
