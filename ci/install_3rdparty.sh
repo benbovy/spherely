@@ -107,12 +107,21 @@ build_install_dependencies(){
     tar -xf s2geography.tar.gz -C $SRC_DIR
     rm -f s2geography.tar.gz
 
+    # TODO: remove when fixed in s2geography
+    cd $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION
+    if [ "$(uname)" == "Darwin" ]; then
+        patch -p1 < $PROJECT_DIR/ci/s2geography-add-openssl-as-requirement.patch
+    else
+        patch -p1 < /project/ci/s2geography-add-openssl-as-requirement.patch
+    fi
+
     cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-        -DBUILD_TESTS=OFF \
+        -DS2GEOGRAPHY_BUILD_TESTS=OFF \
         -DS2GEOGRAPHY_S2_SOURCE=AUTO \
-        -DBUILD_EXAMPLES=OFF \
+        -DS2GEOGRAPHY_BUILD_EXAMPLES=OFF \
         -DCMAKE_CXX_STANDARD=$CXX_STANDARD \
+        -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=ON
 
     cmake --build $S2GEOGRAPHY_BUILD_DIR
