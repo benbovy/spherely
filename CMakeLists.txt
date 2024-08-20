@@ -28,6 +28,12 @@ else()
   message(FATAL_ERROR "Couldn't find s2")
 endif()
 
+# this shouldn't required here and should be managed upstream in
+# either s2geometry or s2geography, but in a few cases openssl headers
+# included from s2geometry headers are not found.
+find_package(OpenSSL)
+target_include_directories(s2::s2 INTERFACE ${OPENSSL_INCLUDE_DIR})
+
 find_package(s2geography CONFIG REQUIRED)
 if(${s2geography_FOUND})
   # not yet provided by s2geography
