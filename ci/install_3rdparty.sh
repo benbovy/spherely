@@ -126,11 +126,6 @@ build_install_dependencies(){
 
     cmake --build $S2GEOGRAPHY_BUILD_DIR
     cmake --install $S2GEOGRAPHY_BUILD_DIR
-
-    echo "----- Log installed files"
-
-    ls -all $INSTALL_DIR/lib
-    ls -all $INSTALL_DIR/include
 }
 
 if [ -d "$INSTALL_DIR/include/s2geography" ]; then
