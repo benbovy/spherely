@@ -72,16 +72,6 @@ jobs:
           path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
 
-      - name: Install OpenSSL SDK (Linux / MacOS)
-        shell: bash
-        run:   |
-         if [ "$RUNNER_OS" == "Linux" ]; then
-              sudo apt-get update
-              sudo apt-get install libssl-dev -v --reinstall
-         elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew install openssl@3
-         fi
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
         env:
@@ -94,7 +84,6 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            OPENSSL_ROOT_DIR=/host/usr
           CIBW_ENVIRONMENT_MACOS:
             DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
             ABSL_VERSION=${{ env.ABSL_VERSION }}

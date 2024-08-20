@@ -52,6 +52,14 @@ build_install_dependencies(){
     echo "----- Installing cmake"
     pip install cmake
 
+    echo "----- Installing OpenSSL in Linux container"
+
+    if [ "$(uname)" != "Darwin" ]; then
+        # assume manylinux2014 https://cibuildwheel.pypa.io/en/stable/faq/
+        yum install -y openssl-devel
+
+    echo "------ Clean build and install directories"
+
     rm -rf $BUILD_DIR/*
     rm -rf $INSTALL_DIR/*
 
@@ -104,7 +112,7 @@ build_install_dependencies(){
         -DABSL_ROOT=$INSTALL_DIR \
         -Ds2_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
-        -DS2GEOGRAPHY_S2_SOURCE=SYSTEM \
+        -DS2GEOGRAPHY_S2_SOURCE=AUTO \
         -DBUILD_EXAMPLES=OFF \
         -DCMAKE_CXX_STANDARD=$CXX_STANDARD \
         -DBUILD_SHARED_LIBS=ON
