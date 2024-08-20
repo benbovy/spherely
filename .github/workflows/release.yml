@@ -86,7 +86,7 @@ jobs:
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
           CIBW_ENVIRONMENT_MACOS:
-            PROJECT_DIR=${{ github.workspace }}/spherely/spherely
+            PROJECT_DIR=${{ github.workspace }}
             DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
             CMAKE_PREFIX_PATH=${{ runner.temp }}/3rd-party/dist
             ABSL_VERSION=${{ env.ABSL_VERSION }}
