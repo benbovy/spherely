@@ -55,18 +55,6 @@ build_install_dependencies(){
     rm -rf $BUILD_DIR/*
     rm -rf $INSTALL_DIR/*
 
-    echo "----- Downloading, building and installing openssl-3.3.1"
-
-    export OPENSSL_ROOT_DIR=$INSTALL_DIR/ssl
-
-    cd $DEPENDENCIES_DIR
-    curl -L -O https://www.openssl.org/source/openssl-3.3.1.tar.gz
-    tar -zxf openssl-3.3.1.tar.gz -C $SRC_DIR
-    cd $SRC_DIR/openssl-3.3.1
-    ./config --prefix=$OPENSSL_ROOT_DIR --openssldir=$OPENSSL_ROOT_DIR shared
-    make
-    make install
-
     echo "----- Downloading, building and installing absl-$ABSL_VERSION"
 
     cd $DEPENDENCIES_DIR

@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-latest
           arch: x86_64
         # - os: windows-2019
         #   arch: x86
@@ -84,6 +84,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
+            OPENSSL_ROOT_DIR=/host/usr
           CIBW_ENVIRONMENT_MACOS:
             DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
             ABSL_VERSION=${{ env.ABSL_VERSION }}
