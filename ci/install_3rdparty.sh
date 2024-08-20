@@ -90,7 +90,6 @@ build_install_dependencies(){
 
     cmake -S $SRC_DIR/s2geometry-$S2GEOMETRY_VERSION -B $S2GEOMETRY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-        -Dabsl_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
         -DBUILD_EXAMPLES=OFF \
         -UGOOGLETEST_ROOT \
@@ -110,8 +109,6 @@ build_install_dependencies(){
 
     cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-        -DABSL_ROOT=$INSTALL_DIR \
-        -Ds2_ROOT=$INSTALL_DIR \
         -DBUILD_TESTS=OFF \
         -DS2GEOGRAPHY_S2_SOURCE=AUTO \
         -DBUILD_EXAMPLES=OFF \

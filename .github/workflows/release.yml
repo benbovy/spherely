@@ -80,12 +80,14 @@ jobs:
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_LINUX:
             DEPENDENCIES_DIR=/host${{ runner.temp }}/3rd-party
+            CMAKE_PREFIX_PATH=/host${{ runner.temp }}/3rd-party/dist
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
           CIBW_ENVIRONMENT_MACOS:
             DEPENDENCIES_DIR=${{ runner.temp }}/3rd-party
+            CMAKE_PREFIX_PATH=${{ runner.temp }}/3rd-party/dist
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
