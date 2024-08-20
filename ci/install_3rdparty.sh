@@ -49,13 +49,25 @@ S2GEOMETRY_BUILD_DIR=$BUILD_DIR/s2geometry-src-$S2GEOMETRY_VERSION
 S2GEOGRAPHY_BUILD_DIR=$BUILD_DIR/s2geography-src-$S2GEOGRAPHY_VERSION
 
 build_install_dependencies(){
-    echo "Installing cmake"
+    echo "----- Installing cmake"
     pip install cmake
 
     rm -rf $BUILD_DIR/*
     rm -rf $INSTALL_DIR/*
 
-    echo "Downloading, building and installing absl-$ABSL_VERSION"
+    echo "----- Downloading, building and installing openssl-3.3.1"
+
+    export OPENSSL_ROOT_DIR=$INSTALL_DIR/ssl
+
+    cd $DEPENDENCIES_DIR
+    curl -L -O https://www.openssl.org/source/openssl-3.3.1.tar.gz
+    tar -zxf openssl-3.3.1.tar.gz -C $SRC_DIR
+    cd $SRC_DIR/openssl-3.3.1
+    ./config --prefix=$OPENSSL_ROOT_DIR --openssldir=$OPENSSL_ROOT_DIR shared
+    make
+    make install
+
+    echo "----- Downloading, building and installing absl-$ABSL_VERSION"
 
     cd $DEPENDENCIES_DIR
     curl -o absl.tar.gz -L https://github.com/abseil/abseil-cpp/archive/refs/tags/$ABSL_VERSION.tar.gz
@@ -72,7 +84,7 @@ build_install_dependencies(){
     cmake --build $ABSL_BUILD_DIR
     cmake --install $ABSL_BUILD_DIR
 
-    echo "Downloading, building and installing s2geometry-$S2GEOMETRY_VERSION"
+    echo "----- Downloading, building and installing s2geometry-$S2GEOMETRY_VERSION"
 
     cd $DEPENDENCIES_DIR
     curl -o s2geometry.tar.gz -L https://github.com/google/s2geometry/archive/refs/tags/v$S2GEOMETRY_VERSION.tar.gz
@@ -92,7 +104,7 @@ build_install_dependencies(){
     cmake --build $S2GEOMETRY_BUILD_DIR
     cmake --install $S2GEOMETRY_BUILD_DIR
 
-    echo "Downloading, building and installing s2geography-$S2GEOGRAPHY_VERSION"
+    echo "----- Downloading, building and installing s2geography-$S2GEOGRAPHY_VERSION"
 
     cd $DEPENDENCIES_DIR
     curl -o s2geography.tar.gz -L https://github.com/paleolimbot/s2geography/archive/refs/tags/$S2GEOGRAPHY_VERSION.tar.gz
