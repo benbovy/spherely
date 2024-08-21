@@ -76,6 +76,12 @@ jobs:
           path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
 
+      - name: Copy 3rd-party license files
+        run: |
+          cp ci/LICENSE_* .
+          ls -all .
+        shell: bash
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
         env:
