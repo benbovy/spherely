@@ -138,7 +138,7 @@ jobs:
       - name: Get dist files
         uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: release-*
           path: dist
 
       - name: Publish on PyPI
