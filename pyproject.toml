@@ -18,7 +18,7 @@ authors = [
 maintainers = [
     {name = "Spherely contributors"},
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 dependencies = ["numpy"]
 
 [project.urls]
@@ -27,6 +27,9 @@ Repository = "https://github.com/benbovy/spherely"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
+
+[tool.scikit-build]
+sdist.exclude = [".github"]
 
 [tool.mypy]
 files = ["tests", "src/spherely.pyi"]
