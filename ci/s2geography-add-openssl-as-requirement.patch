@@ -38,14 +38,14 @@ index f71ff49..518d124 100644
    set(S2_SOURCE "SYSTEM")
  else()
    set(S2_SOURCE ${S2GEOGRAPHY_S2_SOURCE})
-@@ -159,6 +151,11 @@ if (MSVC AND NOT ${S2_SOURCE} STREQUAL "BUNDLED")
+@@ -159,4 +151,9 @@ if (MSVC AND NOT ${S2_SOURCE} STREQUAL "BUNDLED")
    target_compile_options(s2::s2 INTERFACE /J)
  endif()
 
 +# this might be needed since s2geometry includes it in general
 +# but not for any target explicilty?
 +find_package(OpenSSL REQUIRED)
-+target_include_directories(s2 INTERFACE ${OPENSSL_INCLUDE_DIR})
++target_include_directories(s2::s2 INTERFACE ${OPENSSL_INCLUDE_DIR})
 +
  # --- Abseil (bundled build not supported)
 
