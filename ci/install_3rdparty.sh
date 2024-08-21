@@ -52,13 +52,6 @@ build_install_dependencies(){
     echo "----- Installing cmake"
     pip install cmake
 
-    echo "----- Installing OpenSSL in Linux container"
-
-    if [ "$(uname)" != "Darwin" ]; then
-        # assume manylinux2014 https://cibuildwheel.pypa.io/en/stable/faq/
-        yum install -y openssl-devel
-    fi
-
     echo "------ Clean build and install directories"
 
     rm -rf $BUILD_DIR/*
@@ -128,8 +121,21 @@ build_install_dependencies(){
     cmake --install $S2GEOGRAPHY_BUILD_DIR
 }
 
+
+echo "----- Installing OpenSSL in Linux container"
+
+if [ "$(uname)" != "Darwin" ]; then
+    # assume manylinux2014 https://cibuildwheel.pypa.io/en/stable/faq/
+    # TODO: this is done outside of build_install_dependencies so it can
+    # work with a cached install directory, but it doesn't prevent
+    # installing an openssl version greater than the one used to build
+    # libraries in build_install_dependencies (shoudn't be likely, though).
+    yum install -y openssl-devel
+fi
+
+
 if [ -d "$INSTALL_DIR/include/s2geography" ]; then
-    echo "Using cached install directory $INSTALL_DIR"
+    echo "----- Using cached install directory $INSTALL_DIR"
 else
     build_install_dependencies
 fi
