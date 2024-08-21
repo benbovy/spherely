@@ -56,9 +56,11 @@ jobs:
         - os: macos-13
           arch: x86_64
           cmake_osx_architectures: x86_64
+          macosx_deployment_target: 13.0
         - os: macos-14
           arch: arm64
           cmake_osx_architectures: arm64
+          macosx_deployment_target: 14.0
 
     steps:
       - uses: actions/checkout@v4
@@ -93,7 +95,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            MACOSX_DEPLOYMENT_TARGET=10.9
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macosx_deployment_target }}
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
             DEPENDENCIES_DIR='${{ runner.temp }}\3rd-party'
