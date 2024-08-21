@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-sdist
-          path: ./dist/*
+          path: ./dist/*.tar.gz
           retention-days: 30
 
       - name: Check metadata
@@ -139,6 +139,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-*
+          merge-multiple: true
           path: dist
 
       - name: Publish on PyPI
