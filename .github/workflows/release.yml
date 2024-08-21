@@ -6,12 +6,12 @@ on:
   release:
     types:
       - published
-  pull_request:  # also build on PRs touching this file
+  pull_request:  # also build on PRs touching any file below
     paths:
       - ".github/workflows/release.yml"
+      - "ci/*"
       - "MANIFEST.in"
       - "pyproject.toml"
-      - "setup.py"
 
 jobs:
   build_sdist:
@@ -126,3 +126,20 @@ jobs:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
+
+  upload_all:
+    needs: [build_sdist, build_wheels]
+    environment: pypi
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - name: Get dist files
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact
+          path: dist
+
+      - name: Publish on PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
