@@ -110,4 +110,4 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: 'DYLD_LIBRARY_PATH=${{ runner.temp }}/3rd-party/dist/lib delocate-wheel --require-archs=${{ matrix.arch }} -w {dest_dir} -v {wheel}'
           # CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest tests
+          CIBW_TEST_COMMAND: pytest {project}/tests
