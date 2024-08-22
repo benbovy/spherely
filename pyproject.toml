@@ -7,7 +7,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "spherely"
-version = "0.2.0"
+version = "0.1.0"
 description = "Manipulation and analysis of geometric objects on the sphere"
 keywords = ["gis", "geometry", "s2geometry", "shapely"]
 readme = "README.md"
