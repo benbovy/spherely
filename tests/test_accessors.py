@@ -1,8 +1,9 @@
 import numpy as np
+import pytest
 
 import spherely
 
-import pytest
+earth_radius_meters = 6_371_010
 
 
 @pytest.mark.parametrize(
@@ -81,3 +82,47 @@ def test_convex_hull(geog, expected) -> None:
     actual = actual[0]
     assert isinstance(actual, spherely.Polygon)
     assert spherely.equals(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "geog_a, geog_b, expected",
+    [
+        (
+            spherely.Point(0, 0),
+            spherely.Point(90, 0),
+            np.pi / 2 * spherely.EARTH_RADIUS_METERS,
+        ),
+        (
+            spherely.Point(90, 0),
+            spherely.Point(30, 90),
+            np.pi / 3 * spherely.EARTH_RADIUS_METERS,
+        ),
+        (
+            spherely.Polygon([(0, 0), (60, 30), (-30, 60)]),
+            spherely.Point(90, 0),
+            np.pi / 6 * spherely.EARTH_RADIUS_METERS,
+        ),
+    ],
+)
+def test_distance(geog_a, geog_b, expected) -> None:
+    # scalar
+    actual = spherely.distance(geog_a, geog_b)
+    assert isinstance(actual, float)
+    assert actual == pytest.approx(expected, 1e-9)
+
+    # array
+    actual = spherely.distance([geog_a], [geog_b])
+    assert isinstance(actual, np.ndarray)
+    actual = actual[0]
+    assert isinstance(actual, float)
+    assert actual == pytest.approx(expected, 1e-9)
+
+
+def test_distance_with_custom_radius() -> None:
+    actual = spherely.distance(
+        spherely.Point(90, 0),
+        spherely.Point(0, 0),
+        radius=1,
+    )
+    assert isinstance(actual, float)
+    assert actual == pytest.approx(np.pi / 2)

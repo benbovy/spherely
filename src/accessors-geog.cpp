@@ -7,6 +7,8 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
+const double EARTH_RADIUS_METERS = 6371.01 * 1000;
+
 PyObjectGeography centroid(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
     auto s2_point = s2geog::s2_centroid(a_ptr);
@@ -30,7 +32,15 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
     return PyObjectGeography::from_geog(std::move(geog_ptr));
 }
 
+double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
+    const auto& a_index = a.as_geog_ptr()->geog_index();
+    const auto& b_index = b.as_geog_ptr()->geog_index();
+    return s2geog::s2_distance(a_index, b_index) * radius;
+}
+
 void init_accessors(py::module& m) {
+    m.attr("EARTH_RADIUS_METERS") = py::float_(EARTH_RADIUS_METERS);
+
     m.def("centroid",
           py::vectorize(&centroid),
           py::arg("a"),
@@ -67,6 +77,25 @@ void init_accessors(py::module& m) {
         ----------
         a : :py:class:`Geography` or array_like
             Geography object
+
+    )pbdoc");
+
+    m.def("distance",
+          py::vectorize(&distance),
+          py::arg("a"),
+          py::arg("b"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculate the distance between two geographies.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+        b : :py:class:`Geography` or array_like
+            Geography object
+        radius : float
+            Radius of Earth in meters, default 6,371,010
 
     )pbdoc");
 }
