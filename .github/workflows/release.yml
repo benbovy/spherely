@@ -82,13 +82,24 @@ jobs:
           ls -all .
         shell: bash
 
+      # install openssl on windows using vcpkg
       # https://github.com/actions/runner-images/issues/8344
+
+      - name: Cache OpenSSL build directory (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}\vcpkg_cache
+          key: vcpkg-openssl-${{ runner.os }}
+
       - name: Install OpenSSL (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          New-Item -Path "${{ runner.temp }}" -Name "vcpkg_cache" -ItemType "directory" -Force
           vcpkg install openssl:x64-windows-static-md
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}\vcpkg_cache
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
@@ -119,6 +130,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
+            OPENSSL_ROOT_DIR=${{ env.VCPKG_INSTALLATION_ROOT }}
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
