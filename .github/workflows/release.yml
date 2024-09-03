@@ -97,7 +97,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -Path "${{ runner.temp }}" -Name "vcpkg_cache" -ItemType "directory" -Force
-          vcpkg install openssl:x64-windows-static-md
+          vcpkg install openssl:x64-windows
         env:
           VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}\vcpkg_cache
 
@@ -130,7 +130,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            OPENSSL_ROOT_DIR=${{ env.VCPKG_INSTALLATION_ROOT }}\packages\openssl_x64-windows-static-md
+            OPENSSL_ROOT_DIR=${{ env.VCPKG_INSTALLATION_ROOT }}\packages\openssl_x64-windows
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
