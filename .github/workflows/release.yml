@@ -82,6 +82,14 @@ jobs:
           ls -all .
         shell: bash
 
+      # https://github.com/actions/runner-images/issues/8344
+      - name: Install OpenSSL (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x64-windows-static-md
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
         env:
