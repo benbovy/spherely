@@ -97,7 +97,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -Path "${{ runner.temp }}" -Name "vcpkg_cache" -ItemType "directory" -Force
-          vcpkg install openssl:x64-windows-dynamic-release
+          vcpkg install openssl:x64-windows-release
           vcpkg list
         env:
           VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}\vcpkg_cache
