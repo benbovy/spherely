@@ -49,9 +49,9 @@ jobs:
         include:
         - os: ubuntu-latest
           arch: x86_64
-        - os: windows-2019
-          arch: x86
-          msvc_arch: x86
+        # - os: windows-2019
+        #   arch: x86
+        #   msvc_arch: x86
         - os: windows-2019
           arch: AMD64
           msvc_arch: x64
