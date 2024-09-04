@@ -130,8 +130,8 @@ jobs:
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macosx_deployment_target }}
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
-            DEPENDENCIES_DIR='${{ runner.temp }}\\3rd-party'
-            CMAKE_PREFIX_PATH="c:\\vcpkg\\installed\\x64-windows;${{ runner.temp }}\\3rd-party\\dist"
+            DEPENDENCIES_DIR='${{ runner.temp }}\3rd-party'
+            CMAKE_PREFIX_PATH='c:\vcpkg\installed\x64-windows;${{ runner.temp }}\3rd-party\dist'
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
