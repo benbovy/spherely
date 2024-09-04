@@ -82,8 +82,12 @@ jobs:
           ls -all .
         shell: bash
 
-      # install openssl on windows using vcpkg
-      # https://github.com/actions/runner-images/issues/8344
+      # for some reason mingw is selected by cmake within cibuildwheel before_all
+      - name: Prepare compiler environment for Windows
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Cache vcpkg install directory (Windows)
         if: runner.os == 'Windows'
