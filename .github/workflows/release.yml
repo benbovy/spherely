@@ -85,18 +85,18 @@ jobs:
       # install openssl on windows using vcpkg
       # https://github.com/actions/runner-images/issues/8344
 
-      - name: Cache OpenSSL install directory (Windows)
+      - name: Cache vcpkg install directory (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v4
         with:
           path: "c:\\vcpkg\\installed"
           key: vcpkg-${{ runner.os }}
 
-      - name: Install OpenSSL (Windows)
+      - name: Install abseil openssl and s2geometry (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          vcpkg install openssl:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
+          vcpkg install s2geometry:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
           vcpkg list
           ls /c/vcpkg/installed
           ls /c/vcpkg/installed/x64-windows
@@ -131,7 +131,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            OPENSSL_ROOT_DIR="c:\\vcpkg\\installed\\x64-windows"
+            CMAKE_PREFIX_PATH="c:\\vcpkg\\installed\\x64-windows"
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
