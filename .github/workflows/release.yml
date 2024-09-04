@@ -99,8 +99,8 @@ jobs:
           vcpkg install openssl:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
           vcpkg list
           ls /c/vcpkg/installed
-          ls /c/vcpkg/installed/openssl_x64-windows
-          ls /c/vcpkg/installed/openssl_x64-windows/bin
+          ls /c/vcpkg/installed/x64-windows
+          ls /c/vcpkg/installed/x64-windows/bin
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
@@ -131,7 +131,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            OPENSSL_ROOT_DIR="c:\\vcpkg\\installed\\openssl_x64-windows"
+            OPENSSL_ROOT_DIR="c:\\vcpkg\\installed\\x64-windows"
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
