@@ -56,6 +56,8 @@ cmake --install %ABSL_BUILD_DIR%
 
 echo "----- Downloading, building and installing s2geometry-%S2GEOMETRY_VERSION%"
 
+echo %OPENSSL_ROOT_DIR%
+
 cd %DEPENDENCIES_DIR%
 curl -o s2geometry.tar.gz -L https://github.com/google/s2geometry/archive/refs/tags/v%S2GEOMETRY_VERSION%.tar.gz
 tar -xf s2geometry.tar.gz -C %SRC_DIR%
