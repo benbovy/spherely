@@ -31,6 +31,8 @@ rem set ABSL_BUILD_DIR=%BUILD_DIR%\absl-src-%ABSL_VERSION%
 rem set S2GEOMETRY_BUILD_DIR=%BUILD_DIR%\s2geometry-src-%S2GEOMETRY_VERSION%
 set S2GEOGRAPHY_BUILD_DIR=%BUILD_DIR%\s2geography-src-%S2GEOGRAPHY_VERSION%
 
+echo %CMAKE_PREFIX_PATH%
+
 echo "----- Installing cmake"
 pip install ninja cmake
 
