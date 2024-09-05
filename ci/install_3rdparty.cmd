@@ -1,4 +1,4 @@
-:: Build and install absl, s2 and s2geography on posix systems.
+:: Build and install absl, s2 and s2geography on Windows.
 ::
 :: This script requires environment variables to be set
 ::  - DEPENDENCIES_DIR=/path/to/cached/prefix -- to build or use as cache
