@@ -136,7 +136,7 @@ jobs:
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
-            PROJECT_DIR='${{ runner.workspace }}'
+            PROJECT_DIR='${{ runner.workspace }}\spherely'
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
