@@ -90,8 +90,8 @@ tar -xf s2geography.tar.gz -C %SRC_DIR%
 
 rem TODO: remove when fixed in s2geography
 cd %SRC_DIR%/s2geography-%S2GEOGRAPHY_VERSION%
-patch -p1 < %PROJECT_DIR%\ci\s2geography-add-openssl-as-requirement.patch
-patch -p1 < %PROJECT_DIR%\ci\s2geography-add-include-dir.patch
+patch -i %PROJECT_DIR%\ci\s2geography-add-openssl-as-requirement.patch
+patch -i %PROJECT_DIR%\ci\s2geography-add-include-dir.patch
 
 cmake -GNinja ^
     -S %SRC_DIR%/s2geography-%S2GEOGRAPHY_VERSION% ^
