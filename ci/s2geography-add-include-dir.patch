@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d0d5e56..a520a1f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -212,6 +212,10 @@ add_library(s2geography
+ set_target_properties(s2geography PROPERTIES
+     POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
+
++target_include_directories(s2geography PUBLIC
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
++  $<INSTALL_INTERFACE:include>)
++
+ target_compile_definitions(
+   s2geography
+   PUBLIC

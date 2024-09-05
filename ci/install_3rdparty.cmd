@@ -88,9 +88,10 @@ cd %DEPENDENCIES_DIR%
 curl -o s2geography.tar.gz -L https://github.com/paleolimbot/s2geography/archive/refs/tags/%S2GEOGRAPHY_VERSION%.tar.gz
 tar -xf s2geography.tar.gz -C %SRC_DIR%
 
-# TODO: remove when fixed in s2geography
+rem TODO: remove when fixed in s2geography
 cd %SRC_DIR%/s2geography-%S2GEOGRAPHY_VERSION%
 patch -p1 < %PROJECT_DIR%\ci\s2geography-add-openssl-as-requirement.patch
+patch -p1 < %PROJECT_DIR%\ci\s2geography-add-include-dir.patch
 
 cmake -GNinja ^
     -S %SRC_DIR%/s2geography-%S2GEOGRAPHY_VERSION% ^
