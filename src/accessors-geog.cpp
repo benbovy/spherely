@@ -94,7 +94,7 @@ void init_accessors(py::module& m) {
             Geography object
         b : :py:class:`Geography` or array_like
             Geography object
-        radius : float
+        radius : float, optional
             Radius of Earth in meters, default 6,371,010
 
     )pbdoc");
