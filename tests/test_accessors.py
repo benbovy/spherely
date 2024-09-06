@@ -3,8 +3,6 @@ import pytest
 
 import spherely
 
-earth_radius_meters = 6_371_010
-
 
 @pytest.mark.parametrize(
     "geog, expected",
