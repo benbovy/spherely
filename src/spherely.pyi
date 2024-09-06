@@ -62,14 +62,10 @@ _ScalarReturnType = TypeVar("_ScalarReturnType", bound=Any)
 _ArrayReturnDType = TypeVar("_ArrayReturnDType", bound=Any)
 
 # The following types are auto-generated. Please don't edit them by hand.
-# Instead, create lines with n_in and optional arguments like below and run
-# generate_spherely_vfunc_types.py to update them.
+# Instead, update the generate_spherely_vfunc_types.py script and run it
+# to update the types.
 #
 # /// Begin types
-#
-#     - n_in=1
-#     - n_in=2
-#
 class _VFunc_Nin1_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
     @property
     def __name__(self) -> _NameType: ...
