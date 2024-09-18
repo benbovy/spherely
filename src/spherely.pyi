@@ -13,6 +13,8 @@ from typing import (
 import numpy as np
 import numpy.typing as npt
 
+EARTH_RADIUS_METERS: float = ...
+
 class Geography:
     def __init__(self, *args, **kwargs) -> None: ...
     @property
@@ -87,6 +89,28 @@ class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
         self, a: npt.ArrayLike, b: Geography
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
+class _VFunc_Nin2optradius_Nout1(
+    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
+):
+    @property
+    def __name__(self) -> _NameType: ...
+    @overload
+    def __call__(
+        self, a: Geography, b: Geography, radius: float = ...
+    ) -> _ScalarReturnType: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, b: npt.ArrayLike, radius: float = ...
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+    @overload
+    def __call__(
+        self, a: Geography, b: npt.ArrayLike, radius: float = ...
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, b: Geography, radius: float = ...
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+
 # Geography properties
 
 get_dimensions: _VFunc_Nin1_Nout1[Literal["get_dimensions"], Geography, Any]
@@ -112,6 +136,7 @@ disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, Point]
 boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
 convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, Polygon]
+distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
 
 # temp (remove)
 
