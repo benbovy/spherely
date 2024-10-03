@@ -8,6 +8,7 @@ namespace py = pybind11;
 void init_geography(py::module&);
 void init_predicates(py::module&);
 void init_accessors(py::module&);
+void init_io(py::module&);
 
 PYBIND11_MODULE(spherely, m) {
     m.doc() = R"pbdoc(
@@ -21,6 +22,7 @@ PYBIND11_MODULE(spherely, m) {
     init_geography(m);
     init_predicates(m);
     init_accessors(m);
+    init_io(m);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
