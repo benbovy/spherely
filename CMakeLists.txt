@@ -74,6 +74,7 @@ endif()
 add_library(spherely MODULE
   src/geography.cpp
   src/accessors-geog.cpp
+  src/geoarrow.cpp
   src/predicates.cpp
   src/spherely.cpp
   )
