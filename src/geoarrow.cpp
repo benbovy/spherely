@@ -103,6 +103,8 @@ void init_geoarrow(py::module& m) {
     m.def("from_geoarrow",
           &from_geoarrow,
           py::arg("input"),
+          py::pos_only(),
+          py::kw_only(),
           py::arg("oriented") = false,
           py::arg("planar") = false,
           R"pbdoc(
