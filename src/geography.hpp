@@ -39,7 +39,8 @@ enum class GeographyType : std::int8_t {
 ** eventually move into s2geography::Geography?):
 **
 ** - Implement move semantics only.
-** - Add a virtual ``geog_type()`` method for getting the geography type.
+** - Add ``geog_type()`` method for getting the geography type
+** - Eagerly infer the geography type as well as other properties
 ** - Encapsulate a lazy ``s2geography::ShapeIndexGeography`` accessible via ``geog_index()``.
 **
 */
@@ -73,6 +74,11 @@ public:
         return *m_s2geog_ptr;
     }
 
+    template <class T>
+    inline const T* downcast_geog() const {
+        return dynamic_cast<const T*>(&geog());
+    }
+
     inline const s2geog::ShapeIndexGeography& geog_index() {
         if (!m_s2geog_index_ptr) {
             m_s2geog_index_ptr = std::make_unique<s2geog::ShapeIndexGeography>(geog());
@@ -102,11 +108,6 @@ private:
     S2GeographyIndexPtr m_s2geog_index_ptr;
     bool m_is_empty = false;
     GeographyType m_geog_type;
-
-    template <class T>
-    const T* downcast_geog() const {
-        return dynamic_cast<const T*>(&geog());
-    }
 
     void extract_geog_properties() {
         if (const auto* ptr = downcast_geog<s2geog::PointGeography>(); ptr) {
@@ -147,116 +148,6 @@ private:
         }
     }
 };
-
-class Point : public Geography {
-public:
-    using S2GeographyType = s2geog::PointGeography;
-
-    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::Point;
-    }
-
-    inline const S2Point& s2point() const {
-        const auto& points = static_cast<const s2geog::PointGeography&>(geog()).Points();
-        // TODO: does not work for empty point geography
-        return points[0];
-    }
-};
-
-class MultiPoint : public Geography {
-public:
-    using S2GeographyType = s2geog::PointGeography;
-
-    MultiPoint(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::MultiPoint;
-    }
-
-    inline const std::vector<S2Point>& s2points() const {
-        return static_cast<const s2geog::PointGeography&>(geog()).Points();
-    }
-};
-
-class LineString : public Geography {
-public:
-    using S2GeographyType = s2geog::PolylineGeography;
-
-    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::LineString;
-    }
-
-    inline const S2Polyline& s2polyline() const {
-        const auto& polylines = static_cast<const S2GeographyType&>(geog()).Polylines();
-        // TODO: does not work for empty point geography
-        return *polylines[0];
-    }
-};
-
-class MultiLineString : public Geography {
-public:
-    using S2GeographyType = s2geog::PolylineGeography;
-
-    MultiLineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::MultiLineString;
-    }
-
-    inline const std::vector<std::unique_ptr<S2Polyline>>& s2polylines() const {
-        return static_cast<const S2GeographyType&>(geog()).Polylines();
-    }
-};
-
-class Polygon : public Geography {
-public:
-    using S2GeographyType = s2geog::PolygonGeography;
-
-    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::Polygon;
-    }
-
-    inline const S2Polygon& polygon() const {
-        return *static_cast<const S2GeographyType&>(geog()).Polygon();
-    }
-};
-
-class GeographyCollection : public Geography {
-public:
-    using S2GeographyType = s2geog::GeographyCollection;
-
-    GeographyCollection(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const {
-        return GeographyType::GeographyCollection;
-    }
-
-    const std::vector<std::unique_ptr<s2geog::Geography>>& features() const {
-        return static_cast<const S2GeographyType&>(geog()).Features();
-    }
-};
-
-/*
-** Helper to create Geography object wrappers.
-**
-** @tparam T1 The S2Geography wrapper type
-** @tparam T2 This library wrapper type.
-** @tparam S The S2Geometry type
-*/
-template <class T1, class T2, class S>
-std::unique_ptr<T2> make_geography(S&& s2_obj) {
-    S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
-    return std::make_unique<T2>(std::move(s2geog_ptr));
-}
-
-// Helpers for explicit copy of s2geography objects.
-std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography& geog);
 
 }  // namespace spherely
 
