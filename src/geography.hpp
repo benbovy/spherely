@@ -97,7 +97,7 @@ class Point : public Geography {
 public:
     using S2GeographyType = s2geog::PointGeography;
 
-    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::Point;
@@ -114,7 +114,7 @@ class MultiPoint : public Geography {
 public:
     using S2GeographyType = s2geog::PointGeography;
 
-    MultiPoint(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    MultiPoint(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::MultiPoint;
@@ -129,7 +129,7 @@ class LineString : public Geography {
 public:
     using S2GeographyType = s2geog::PolylineGeography;
 
-    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::LineString;
@@ -146,7 +146,7 @@ class MultiLineString : public Geography {
 public:
     using S2GeographyType = s2geog::PolylineGeography;
 
-    MultiLineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    MultiLineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::MultiLineString;
@@ -161,7 +161,7 @@ class LinearRing : public Geography {
 public:
     using S2GeographyType = s2geog::ClosedPolylineGeography;
 
-    LinearRing(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    LinearRing(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::LinearRing;
@@ -181,7 +181,7 @@ class Polygon : public Geography {
 public:
     using S2GeographyType = s2geog::PolygonGeography;
 
-    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::Polygon;
@@ -196,7 +196,7 @@ class GeographyCollection : public Geography {
 public:
     using S2GeographyType = s2geog::GeographyCollection;
 
-    GeographyCollection(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)){};
+    GeographyCollection(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
     inline GeographyType geog_type() const override {
         return GeographyType::GeographyCollection;

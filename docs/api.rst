@@ -46,6 +46,18 @@ Geography creation
    prepare
    destroy_prepared
 
+.. _api_accessors:
+
+Geography accessors
+-------------------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   centroid
+   boundary
+   convex_hull
+
 .. _api_predicates:
 
 Predicates
