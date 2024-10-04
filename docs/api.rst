@@ -67,3 +67,13 @@ Predicates
    contains
    within
    disjoint
+
+
+Input/Output
+------------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   from_wkt
+   to_wkt
