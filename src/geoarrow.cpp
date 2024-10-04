@@ -7,28 +7,6 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
-// PyObjectGeography from_wkt(std::string a) {
-//     s2geog::WKTReader reader;
-//     std::unique_ptr<s2geog::Geography> s2geog = reader.read_feature(a);
-//     auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog));
-//     return PyObjectGeography::from_geog(std::move(geog_ptr));
-// }
-
-// void init_geoarrow(py::module& m) {
-//     m.def("from_wkt",
-//           py::vectorize(&from_wkt),
-//           py::arg("a"),
-//           R"pbdoc(
-//         Creates a geography object from a WKT string.
-
-//         Parameters
-//         ----------
-//         a : str
-//             WKT string
-
-//     )pbdoc");
-// }
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -83,7 +61,9 @@ struct ArrowArray {
 }
 #endif
 
-py::array_t<PyObjectGeography> from_geoarrow(py::object input) {
+py::array_t<PyObjectGeography> from_geoarrow(py::object input,
+                                             bool oriented = false,
+                                             bool planar = false) {
     py::tuple capsules = input.attr("__arrow_c_array__")();
     py::capsule schema_capsule = capsules[0];
     py::capsule array_capsule = capsules[1];
@@ -94,7 +74,14 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input) {
     s2geog::geoarrow::Reader reader;
     std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
 
-    reader.Init(schema, s2geog::geoarrow::ImportOptions());
+    s2geog::geoarrow::ImportOptions options;
+    options.set_oriented(oriented);
+    if (planar) {
+        // TODO replace with constant
+        auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
+        options.set_tessellate_tolerance(tol);
+    }
+    reader.Init(schema, options);
     reader.ReadGeography(array, 0, array->length, &s2geog_vec);
 
     // Convert resulting vector to array of python objects
@@ -113,5 +100,41 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input) {
 }
 
 void init_geoarrow(py::module& m) {
-    m.def("from_geoarrow", &from_geoarrow);
+    m.def("from_geoarrow",
+          &from_geoarrow,
+          py::arg("input"),
+          py::arg("oriented") = false,
+          py::arg("planar") = false,
+          R"pbdoc(
+        Create an array of geographies from an Arrow array object with a GeoArrow
+        extension type.
+
+        See https://geoarrow.org/ for details on the GeoArrow specification.
+
+        This functions accepts any Arrow array object implementing
+        the `Arrow PyCapsule Protocol`_ (i.e. having an ``__arrow_c_array__``
+        method).
+
+        .. _Arrow PyCapsule Protocol: https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html
+
+        Parameters
+        ----------
+        input : pyarrow.Array, Arrow array
+            Any array object implementing the Arrow PyCapsule Protocol
+            (i.e. has a ``__arrow_c_array__`` method). The type of the array
+            should be one of the geoarrow geometry types.
+        oriented : bool, default False
+            Set to True if polygon ring directions are known to be correct
+            (i.e., exterior rings are defined counter clockwise and interior
+            rings are defined clockwise).
+            By default (False), it will return the polygon with the smaller
+            area.
+        planar : bool, default False
+            If set to True, the edges linestrings and polygons are assumed to
+            be planar. In that case, additional points will be added to the line
+            while creating the geography objects, to ensure every point is
+            within 100m of the original line.
+            By default (False), it is assumed that the edges are spherical
+            (i.e. represent the shortest path on the sphere between two points).
+    )pbdoc");
 }

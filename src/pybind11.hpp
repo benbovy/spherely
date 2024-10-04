@@ -142,20 +142,6 @@ struct npy_format_descriptor<spherely::PyObjectGeography> {
     }
 };
 
-// // Register PyObjectGeography as a valid numpy dtype (numpy.object alias)
-// // from: https://github.com/pybind/pybind11/pull/1152
-// template <>
-// struct npy_format_descriptor<std::string> {
-//     static constexpr auto name = _("object");
-//     enum { value = npy_api::NPY_OBJECT_ };
-//     static pybind11::dtype dtype() {
-//         if (auto ptr = npy_api::get().PyArray_DescrFromType_(value)) {
-//             return reinterpret_borrow<pybind11::dtype>(ptr);
-//         }
-//         pybind11_fail("Unsupported buffer format!");
-//     }
-// };
-
 // Override signature type hint for vectorized Geography arguments
 template <int Flags>
 struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {

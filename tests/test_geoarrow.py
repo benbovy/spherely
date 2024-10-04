@@ -1,4 +1,3 @@
-import numpy as np
 import pyarrow as pa
 import geoarrow.pyarrow as ga
 
@@ -36,3 +35,38 @@ def test_from_geoarrow_native():
     result = spherely.from_geoarrow(arr_point)
     expected = spherely.create([1, 2, 3], [1, 2, 3])
     assert spherely.equals(result, expected).all()
+
+
+polygon_with_bad_hole_wkt = (
+    "POLYGON "
+    "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+    "(30 20, 20 25, 20 15, 30 20))"
+)
+
+
+# @pytest.mark.skipif(
+#     Version(spherely.__s2geography_version__) < Version("0.2.0"),
+#     reason="Needs s2geography >= 0.2.0",
+# )
+def test_from_geoarrow_oriented():
+    # by default re-orients the inner ring
+    arr = ga.as_geoarrow([polygon_with_bad_hole_wkt])
+
+    result = spherely.from_geoarrow(arr)
+    assert (
+        str(result[0])
+        == "POLYGON ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35), (20 15, 20 25, 30 20, 20 15))"
+    )
+
+    # if we force to not orient, we get an error
+    with pytest.raises(RuntimeError, match="Inconsistent loop orientations detected"):
+        spherely.from_geoarrow(arr, oriented=True)
+
+
+def test_from_wkt_planar():
+    arr = ga.as_geoarrow(["LINESTRING (-64 45, 0 45)"])
+    result = spherely.from_geoarrow(arr)
+    assert spherely.distance(result[0], spherely.Point(45, -30)) > 10000
+
+    result = spherely.from_geoarrow(arr, planar=True)
+    assert spherely.distance(result[0], spherely.Point(45, -30)) < 100
