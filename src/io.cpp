@@ -10,7 +10,7 @@ namespace s2geog = s2geography;
 using namespace spherely;
 
 PyObjectGeography from_wkt(py::str a, bool oriented, bool planar) {
-#if defined(S2GEOGRAPHY_VERSION_MAJORe) && \
+#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
     (S2GEOGRAPHY_VERSION_MAJOR >= 0 || S2GEOGRAPHY_VERSION_MINOR >= 2)
     s2geog::geoarrow::ImportOptions options;
     options.set_oriented(oriented);
