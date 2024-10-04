@@ -1,6 +1,8 @@
 #ifndef SPHERELY_GEOGRAPHY_H_
 #define SPHERELY_GEOGRAPHY_H_
 
+#include <s2geography/geography.h>
+
 #include <memory>
 
 #include "s2/s2lax_polyline_shape.h"
@@ -26,6 +28,7 @@ enum class GeographyType : std::int8_t {
     Polygon,
     MultiPoint,
     MultiLineString,
+    MultiPolygon,
     GeographyCollection
 };
 
@@ -36,7 +39,6 @@ enum class GeographyType : std::int8_t {
 ** eventually move into s2geography::Geography?):
 **
 ** - Implement move semantics only.
-** - Add a virtual ``clone()`` method for explicit copies (similarly to s2geometry).
 ** - Add a virtual ``geog_type()`` method for getting the geography type.
 ** - Encapsulate a lazy ``s2geography::ShapeIndexGeography`` accessible via ``geog_index()``.
 **
@@ -46,19 +48,25 @@ public:
     using S2GeographyType = s2geog::Geography;
 
     Geography(const Geography&) = delete;
-    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {}
-    Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {}
+    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
+        extract_geog_properties();
+    }
+    Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {
+        extract_geog_properties();
+    }
 
     virtual ~Geography() {}
 
     Geography& operator=(const Geography&) = delete;
     Geography& operator=(Geography&& other) {
         m_s2geog_ptr = std::move(other.m_s2geog_ptr);
+        m_is_empty = other.m_is_empty;
+        m_geog_type = other.m_geog_type;
         return *this;
     }
 
-    inline virtual GeographyType geog_type() const {
-        return GeographyType::None;
+    inline GeographyType geog_type() const {
+        return m_geog_type;
     }
 
     inline const s2geog::Geography& geog() const {
@@ -85,10 +93,59 @@ public:
     int num_shapes() const {
         return m_s2geog_ptr->num_shapes();
     }
+    bool is_empty() const {
+        return m_is_empty;
+    }
 
 private:
     S2GeographyPtr m_s2geog_ptr;
     S2GeographyIndexPtr m_s2geog_index_ptr;
+    bool m_is_empty = false;
+    GeographyType m_geog_type;
+
+    template <class T>
+    const T* downcast_geog() const {
+        return dynamic_cast<const T*>(&geog());
+    }
+
+    void extract_geog_properties() {
+        if (const auto* ptr = downcast_geog<s2geog::PointGeography>(); ptr) {
+            if (ptr->Points().empty()) {
+                m_is_empty = true;
+            }
+            if (ptr->Points().size() <= 1) {
+                m_geog_type = GeographyType::Point;
+            } else {
+                m_geog_type = GeographyType::MultiPoint;
+            }
+        } else if (const auto* ptr = downcast_geog<s2geog::PolylineGeography>(); ptr) {
+            if (ptr->Polylines().empty()) {
+                m_is_empty = true;
+            }
+            if (ptr->Polylines().size() <= 1) {
+                m_geog_type = GeographyType::LineString;
+            } else {
+                m_geog_type = GeographyType::MultiLineString;
+            }
+        } else if (const auto* ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
+            int nloops = ptr->Polygon()->num_loops();
+            if (nloops == 0) {
+                m_is_empty = 0;
+            }
+            if (nloops <= 1) {
+                m_geog_type = GeographyType::Polygon;
+            } else {
+                m_geog_type = GeographyType::MultiPolygon;
+            }
+        } else if (const auto* ptr = downcast_geog<s2geog::GeographyCollection>(); ptr) {
+            if (ptr->Features().empty()) {
+                m_is_empty = 0;
+            }
+            m_geog_type = GeographyType::GeographyCollection;
+        } else {
+            m_geog_type = GeographyType::None;
+        }
+    }
 };
 
 class Point : public Geography {
@@ -97,7 +154,7 @@ public:
 
     Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::Point;
     }
 
@@ -114,7 +171,7 @@ public:
 
     MultiPoint(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::MultiPoint;
     }
 
@@ -129,7 +186,7 @@ public:
 
     LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::LineString;
     }
 
@@ -146,7 +203,7 @@ public:
 
     MultiLineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::MultiLineString;
     }
 
@@ -161,7 +218,7 @@ public:
 
     Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::Polygon;
     }
 
@@ -176,7 +233,7 @@ public:
 
     GeographyCollection(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
 
-    inline GeographyType geog_type() const override {
+    inline GeographyType geog_type() const {
         return GeographyType::GeographyCollection;
     }
 

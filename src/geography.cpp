@@ -351,6 +351,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
+    pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
     pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
     pygeography_types.value("GEOGRAPHYCOLLECTION", GeographyType::GeographyCollection);
@@ -386,21 +387,21 @@ void init_geography(py::module &m) {
         return writer.write_feature(geog.geog());
     });
 
-    auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
-        A geography type that represents a single coordinate with lat,lon values.
+    // auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
+    //     A geography type that represents a single coordinate with lat,lon values.
 
-        A point is a zero-dimensional feature and has zero length and zero area.
+    //     A point is a zero-dimensional feature and has zero length and zero area.
 
-        Parameters
-        ----------
-        lat : float
-            latitude coordinate, in degrees
-        lon : float
-            longitude coordinate, in degrees
+    //     Parameters
+    //     ----------
+    //     lat : float
+    //         latitude coordinate, in degrees
+    //     lon : float
+    //         longitude coordinate, in degrees
 
-    )pbdoc");
+    // )pbdoc");
 
-    pypoint.def(py::init(&create_point), py::arg("lat"), py::arg("lon"));
+    // pypoint.def(py::init(&create_point), py::arg("lat"), py::arg("lon"));
 
     auto pymultipoint = py::class_<MultiPoint, Geography>(m, "MultiPoint", R"pbdoc(
         A geography type that represents one or more points with lat,lon values.
