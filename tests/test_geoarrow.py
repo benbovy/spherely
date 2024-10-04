@@ -1,6 +1,5 @@
 from packaging.version import Version
 
-import pyarrow as pa
 import geoarrow.pyarrow as ga
 
 import pytest
