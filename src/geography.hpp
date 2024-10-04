@@ -207,6 +207,19 @@ public:
     }
 };
 
+/*
+** Helper to create Geography object wrappers.
+**
+** @tparam T1 The S2Geography wrapper type
+** @tparam T2 This library wrapper type.
+** @tparam S The S2Geometry type
+*/
+template <class T1, class T2, class S>
+std::unique_ptr<T2> make_geography(S&& s2_obj) {
+    S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
+    return std::make_unique<T2>(std::move(s2geog_ptr));
+}
+
 // Helpers for explicit copy of s2geography objects.
 std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography& geog);
 

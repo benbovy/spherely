@@ -171,7 +171,7 @@ std::unique_ptr<s2geog::Geography> spherely::clone_s2geography(const s2geog::Geo
 ** @tparam S The S2Geometry type
 */
 template <class T, class S, std::enable_if_t<std::is_base_of_v<Geography, T>, bool> = true>
-std::unique_ptr<T> make_geography(S &&s2_obj) {
+std::unique_ptr<T> make_geography2(S &&s2_obj) {
     using S2GeographyType = typename T::S2GeographyType;
 
     S2GeographyPtr s2geog_ptr = std::make_unique<S2GeographyType>(std::forward<S>(s2_obj));
@@ -179,12 +179,12 @@ std::unique_ptr<T> make_geography(S &&s2_obj) {
 }
 
 std::unique_ptr<Point> create_point(double lat, double lng) {
-    return make_geography<Point>(to_s2point(std::make_pair(lat, lng)));
+    return make_geography2<Point>(to_s2point(std::make_pair(lat, lng)));
 }
 
 template <class V>
 std::unique_ptr<MultiPoint> create_multipoint(const std::vector<V> &pts) {
-    return make_geography<MultiPoint>(to_s2points(pts));
+    return make_geography2<MultiPoint>(to_s2points(pts));
 }
 
 template <class V>
@@ -192,7 +192,7 @@ std::unique_ptr<LineString> create_linestring(const std::vector<V> &pts) {
     auto s2points = to_s2points(pts);
     auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
 
-    return make_geography<LineString>(std::move(polyline_ptr));
+    return make_geography2<LineString>(std::move(polyline_ptr));
 }
 
 std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<LineString *> &lines) {
@@ -205,7 +205,7 @@ std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<LineSt
 
     std::transform(lines.begin(), lines.end(), polylines.begin(), func);
 
-    return make_geography<MultiLineString>(std::move(polylines));
+    return make_geography2<MultiLineString>(std::move(polylines));
 }
 
 template <class V>
@@ -219,12 +219,12 @@ std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<std::v
 
     std::transform(lines.begin(), lines.end(), polylines.begin(), func);
 
-    return make_geography<MultiLineString>(std::move(polylines));
+    return make_geography2<MultiLineString>(std::move(polylines));
 }
 
 template <class V>
 std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &pts) {
-    return make_geography<LinearRing>(*make_s2loop(pts));
+    return make_geography2<LinearRing>(*make_s2loop(pts));
 }
 
 template <class V>
@@ -254,7 +254,7 @@ std::unique_ptr<spherely::Polygon> create_polygon(
         throw py::value_error(err.str());
     }
 
-    return make_geography<spherely::Polygon>(std::move(polygon_ptr));
+    return make_geography2<spherely::Polygon>(std::move(polygon_ptr));
 }
 
 std::unique_ptr<GeographyCollection> create_collection(const std::vector<Geography *> &features) {
