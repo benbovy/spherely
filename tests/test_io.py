@@ -39,6 +39,34 @@ def test_from_wkt_wrong_type():
         spherely.from_wkt(["POINT (1 1)", None])
 
 
+polygon_with_bad_hole_wkt = (
+    "POLYGON "
+    "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),"
+    "(30 20, 20 25, 20 15, 30 20))"
+)
+
+
+def test_from_wkt_oriented():
+    # by default re-orients the inner ring
+    result = spherely.from_wkt(polygon_with_bad_hole_wkt)
+    assert (
+        str(result)
+        == "POLYGON ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35), (20 15, 20 25, 30 20, 20 15))"
+    )
+
+    # if we force to not orient, we get an error
+    with pytest.raises(RuntimeError, match="Inconsistent loop orientations detected"):
+        spherely.from_wkt(polygon_with_bad_hole_wkt, oriented=True)
+
+
+def test_from_wkt_planar():
+    result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
+    assert spherely.distance(result, spherely.Point(45, -30)) > 10000
+
+    result = spherely.from_wkt("LINESTRING (-64 45, 0 45)", planar=True)
+    assert spherely.distance(result, spherely.Point(45, -30)) < 100
+
+
 def test_to_wkt():
     arr = spherely.create([1.1, 2, 3], [1.1, 2, 3])
     result = spherely.to_wkt(arr)

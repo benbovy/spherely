@@ -142,7 +142,9 @@ distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
 
 to_wkt: _VFunc_Nin1_Nout1[Literal["to_wkt"], str, object]
 
-def from_wkt(a: Iterable[str]) -> npt.NDArray[Any]: ...
+def from_wkt(
+    a: Iterable[str], oriented: bool = False, planar: bool = False
+) -> npt.NDArray[Any]: ...
 
 # temp (remove)
 
