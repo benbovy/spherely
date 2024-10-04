@@ -71,16 +71,23 @@ endif()
 
 # Build
 
-add_library(spherely MODULE
+set(CPP_SOURCES
   src/geography.cpp
   src/accessors-geog.cpp
-  src/geoarrow.cpp
   src/predicates.cpp
-  src/spherely.cpp
-  )
+  src/spherely.cpp)
 
-target_compile_definitions(spherely
-                           PRIVATE VERSION_INFO=${PROJECT_VERSION})
+if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")
+    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp)
+endif()
+
+add_library(spherely MODULE ${CPP_SOURCES})
+
+target_compile_definitions(
+  spherely
+  PRIVATE
+  VERSION_INFO=${PROJECT_VERSION}
+  S2GEOGRAPHY_VERSION=${s2geography_VERSION})
 
 target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras

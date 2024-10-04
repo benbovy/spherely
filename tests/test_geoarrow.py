@@ -1,9 +1,17 @@
+from packaging.version import Version
+
 import pyarrow as pa
 import geoarrow.pyarrow as ga
 
 import pytest
 
 import spherely
+
+
+pytestmark = pytest.mark.skipif(
+    Version(spherely.__s2geography_version__) < Version("0.2.0"),
+    reason="Needs s2geography >= 0.2.0",
+)
 
 
 def test_from_geoarrow_wkt():
