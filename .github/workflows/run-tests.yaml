@@ -45,13 +45,13 @@ jobs:
         run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
 
       - name: Setup micromamba
-        uses: mamba-org/provision-with-micromamba@v15
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: ${{ matrix.env }}
           environment-name: spherely-dev
-          cache-env: true
-          cache-env-key: "${{ runner.os }}-${{ runner.arch }}-py${{ matrix.python-version }}-${{ steps.get-date.outputs.today }}-${{ hashFiles( matrix.env) }}"
-          extra-specs: |
+          cache-environment: true
+          cache-environment-key: "${{ runner.os }}-${{ runner.arch }}-py${{ matrix.python-version }}-${{ steps.get-date.outputs.today }}-${{ hashFiles( matrix.env) }}"
+          create-args: >-
             python=${{ matrix.python-version }}
 
       - name: Fetch s2geography
