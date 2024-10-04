@@ -87,7 +87,9 @@ target_compile_definitions(
   spherely
   PRIVATE
   VERSION_INFO=${PROJECT_VERSION}
-  S2GEOGRAPHY_VERSION=${s2geography_VERSION})
+  S2GEOGRAPHY_VERSION=${s2geography_VERSION}
+  S2GEOGRAPHY_VERSION_MAJOR=${s2geography_VERSION_MAJOR}
+  S2GEOGRAPHY_VERSION_MINOR=${s2geography_VERSION_MINOR})
 
 target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras
