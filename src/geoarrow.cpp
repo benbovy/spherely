@@ -62,8 +62,9 @@ struct ArrowArray {
 #endif
 
 py::array_t<PyObjectGeography> from_geoarrow(py::object input,
-                                             bool oriented = false,
-                                             bool planar = false) {
+                                             bool oriented,
+                                             bool planar,
+                                             py::object geometry_encoding) {
     py::tuple capsules = input.attr("__arrow_c_array__")();
     py::capsule schema_capsule = capsules[0];
     py::capsule array_capsule = capsules[1];
@@ -81,7 +82,15 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
         auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
         options.set_tessellate_tolerance(tol);
     }
-    reader.Init(schema, options);
+    if (geometry_encoding.is(py::none())) {
+        reader.Init(schema, options);
+    } else if (geometry_encoding.equal(py::str("WKT"))) {
+        reader.Init(s2geog::geoarrow::Reader::InputType::kWKT, options);
+    } else if (geometry_encoding.equal(py::str("WKB"))) {
+        reader.Init(s2geog::geoarrow::Reader::InputType::kWKB, options);
+    } else {
+        throw std::invalid_argument("'geometry_encoding' should be one of None, 'WKT' or 'WKB'");
+    }
     reader.ReadGeography(array, 0, array->length, &s2geog_vec);
 
     // Convert resulting vector to array of python objects
@@ -107,6 +116,7 @@ void init_geoarrow(py::module& m) {
           py::kw_only(),
           py::arg("oriented") = false,
           py::arg("planar") = false,
+          py::arg("geometry_encoding") = py::none(),
           R"pbdoc(
         Create an array of geographies from an Arrow array object with a GeoArrow
         extension type.
@@ -138,5 +148,12 @@ void init_geoarrow(py::module& m) {
             within 100m of the original line.
             By default (False), it is assumed that the edges are spherical
             (i.e. represent the shortest path on the sphere between two points).
+        geometry_encoding : str, default None
+            By default, the encoding is inferred from the GeoArrow extension
+            type of the input array.
+            However, for parsing WKT and WKB it is also possible to pass an
+            Arrow array without geoarrow type but with a plain string or
+            binary type, if specifying this keyword with "WKT" or "WKB",
+            respectively.
     )pbdoc");
 }

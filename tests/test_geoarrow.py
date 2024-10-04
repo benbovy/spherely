@@ -1,5 +1,6 @@
 from packaging.version import Version
 
+import pyarrow as pa
 import geoarrow.pyarrow as ga
 
 import pytest
@@ -23,6 +24,11 @@ def test_from_geoarrow_wkt():
     # np.testing.assert_array_equal(result, expected)
     assert spherely.equals(result, expected).all()
 
+    # without extension type
+    arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
+    result = spherely.from_geoarrow(arr, geometry_encoding="WKT")
+    assert spherely.equals(result, expected).all()
+
 
 def test_from_geoarrow_wkb():
 
@@ -31,6 +37,12 @@ def test_from_geoarrow_wkb():
 
     result = spherely.from_geoarrow(arr_wkb)
     expected = spherely.create([1, 2, 3], [1, 2, 3])
+    assert spherely.equals(result, expected).all()
+
+    # without extension type
+    arr_wkb = ga.as_wkb(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
+    arr = arr_wkb.cast(pa.binary())
+    result = spherely.from_geoarrow(arr, geometry_encoding="WKB")
     assert spherely.equals(result, expected).all()
 
 
@@ -70,10 +82,24 @@ def test_from_geoarrow_oriented():
         spherely.from_geoarrow(arr, oriented=True)
 
 
-def test_from_wkt_planar():
+def test_from_geoarrow_planar():
     arr = ga.as_geoarrow(["LINESTRING (-64 45, 0 45)"])
     result = spherely.from_geoarrow(arr)
     assert spherely.distance(result[0], spherely.Point(45, -30)) > 10000
 
     result = spherely.from_geoarrow(arr, planar=True)
     assert spherely.distance(result[0], spherely.Point(45, -30)) < 100
+
+
+def test_from_geoarrow_no_extension_type():
+    arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
+
+    with pytest.raises(RuntimeError, match="Expected extension type"):
+        spherely.from_geoarrow(arr)
+
+
+def test_from_geoarrow_no_extension_type():
+    arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
+
+    with pytest.raises(ValueError, match="'geometry_encoding' should be one"):
+        spherely.from_geoarrow(arr, geometry_encoding="point")
