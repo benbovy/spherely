@@ -29,4 +29,8 @@ PYBIND11_MODULE(spherely, m) {
 #else
     m.attr("__version__") = "dev";
 #endif
+
+#ifdef S2GEOGRAPHY_VERSION
+    m.attr("__s2geography_version__") = MACRO_STRINGIFY(S2GEOGRAPHY_VERSION);
+#endif
 }

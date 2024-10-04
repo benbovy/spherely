@@ -10,6 +10,8 @@ namespace s2geog = s2geography;
 using namespace spherely;
 
 PyObjectGeography from_wkt(py::str a, bool oriented, bool planar) {
+#if defined(S2GEOGRAPHY_VERSION_MAJORe) && \
+    (S2GEOGRAPHY_VERSION_MAJOR >= 0 || S2GEOGRAPHY_VERSION_MINOR >= 2)
     s2geog::geoarrow::ImportOptions options;
     options.set_oriented(oriented);
     if (planar) {
@@ -17,6 +19,13 @@ PyObjectGeography from_wkt(py::str a, bool oriented, bool planar) {
         options.set_tessellate_tolerance(tol);
     }
     s2geog::WKTReader reader(options);
+#else
+    if (planar || oriented) {
+        throw std::invalid_argument(
+            "planar and oriented options are only available with s2geography >= 0.2");
+    }
+    s2geog::WKTReader reader;
+#endif
     std::unique_ptr<s2geog::Geography> s2geog = reader.read_feature(a);
     auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog));
     return PyObjectGeography::from_geog(std::move(geog_ptr));

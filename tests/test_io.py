@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from packaging.version import Version
 
 import spherely
 
@@ -46,6 +47,10 @@ polygon_with_bad_hole_wkt = (
 )
 
 
+@pytest.mark.skipif(
+    Version(spherely.__s2geography_version__) < Version("0.2.0"),
+    reason="Needs s2geography >= 0.2.0",
+)
 def test_from_wkt_oriented():
     # by default re-orients the inner ring
     result = spherely.from_wkt(polygon_with_bad_hole_wkt)
@@ -59,12 +64,29 @@ def test_from_wkt_oriented():
         spherely.from_wkt(polygon_with_bad_hole_wkt, oriented=True)
 
 
+@pytest.mark.skipif(
+    Version(spherely.__s2geography_version__) < Version("0.2.0"),
+    reason="Needs s2geography >= 0.2.0",
+)
 def test_from_wkt_planar():
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
     assert spherely.distance(result, spherely.Point(45, -30)) > 10000
 
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)", planar=True)
     assert spherely.distance(result, spherely.Point(45, -30)) < 100
+
+
+@pytest.mark.skipif(
+    Version(spherely.__s2geography_version__) >= Version("0.2.0"),
+    reason="Needs s2geography >= 0.2.0",
+)
+def test_from_wkt_unsupported_keywords():
+
+    with pytest.raises(ValueError):
+        spherely.from_wkt(polygon_with_bad_hole_wkt, oriented=True)
+
+    with pytest.raises(ValueError):
+        spherely.from_wkt("LINESTRING (-64 45, 0 45)", planar=True)
 
 
 def test_to_wkt():
