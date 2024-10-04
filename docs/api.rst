@@ -15,7 +15,6 @@ Geography types
 
    Point
    LineString
-   LinearRing
    Polygon
    MultiPoint
    MultiLineString

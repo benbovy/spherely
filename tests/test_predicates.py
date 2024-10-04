@@ -102,14 +102,6 @@ def test_disjoint():
     assert spherely.disjoint(a2, b2)
 
 
-def test_predicates_linearring():
-    # A LineRing has no interior
-    ring = spherely.LinearRing([(0, 0), (0, 2), (2, 2), (2, 0)])
-    assert not spherely.contains(ring, spherely.Point(1, 1))
-    assert not spherely.within(spherely.Point(1, 1), ring)
-    assert spherely.intersects(ring, spherely.Point(0, 0))
-
-
 def test_predicates_polygon():
     # plain vs. hole polygon
     poly_plain = spherely.Polygon(shell=[(0, 0), (0, 4), (4, 4), (4, 0)])

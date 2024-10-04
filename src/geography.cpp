@@ -122,12 +122,6 @@ std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &g
     return std::make_unique<T>(std::move(polylines_copy));
 }
 
-template <class T,
-          std::enable_if_t<std::is_same_v<T, s2geog::ClosedPolylineGeography>, bool> = true>
-std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
-    return std::unique_ptr<T>(static_cast<const T &>(geog).clone());
-}
-
 template <class T, std::enable_if_t<std::is_same_v<T, s2geog::PolygonGeography>, bool> = true>
 std::unique_ptr<s2geog::Geography> _clone_s2geography(const s2geog::Geography &geog) {
     const auto &poly = static_cast<const T &>(geog).Polygon();
@@ -153,8 +147,6 @@ std::unique_ptr<s2geog::Geography> spherely::clone_s2geography(const s2geog::Geo
         return _clone_s2geography<s2geog::PointGeography>(*ptr);
     } else if (const auto *ptr = downcast<s2geog::PolylineGeography>(geog); ptr) {
         return _clone_s2geography<s2geog::PolylineGeography>(*ptr);
-    } else if (const auto *ptr = downcast<s2geog::ClosedPolylineGeography>(geog); ptr) {
-        return _clone_s2geography<s2geog::ClosedPolylineGeography>(*ptr);
     } else if (const auto *ptr = downcast<s2geog::PolygonGeography>(geog); ptr) {
         return _clone_s2geography<s2geog::PolygonGeography>(*ptr);
     } else if (const auto *ptr = downcast<s2geog::GeographyCollection>(geog); ptr) {
@@ -220,11 +212,6 @@ std::unique_ptr<MultiLineString> create_multilinestring(const std::vector<std::v
     std::transform(lines.begin(), lines.end(), polylines.begin(), func);
 
     return make_geography2<MultiLineString>(std::move(polylines));
-}
-
-template <class V>
-std::unique_ptr<LinearRing> create_linearring(const std::vector<V> &pts) {
-    return make_geography2<LinearRing>(*make_s2loop(pts));
 }
 
 template <class V>
@@ -363,7 +350,6 @@ void init_geography(py::module &m) {
     pygeography_types.value("NONE", GeographyType::None);
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
-    pygeography_types.value("LINEARRING", GeographyType::LinearRing);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
     pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
@@ -473,33 +459,6 @@ void init_geography(py::module &m) {
     pymultilinestring.def(
         py::init([](const std::vector<LatLngVec> &lines) { return create_multilinestring(lines); }),
         py::arg("lines"));
-
-    auto pylinearring = py::class_<LinearRing, Geography>(m, "LinearRing", R"pbdoc(
-        A geography type composed of two or more arc (geodesic) segments
-        that form a closed loop.
-
-        A LinearRing is a closed, one-dimensional feature. It must have at least 3
-        vertices, cannot crosses itself and cannot have duplicate vertices.
-        Arcs of length 180 degrees are not allowed.
-
-        The ring is automatically closed. There is no need to specify a final coordinate
-        pair or point identical to the first.
-
-        Parameters
-        ----------
-        coordinates : list
-            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
-            for each vertex.
-
-    )pbdoc");
-
-    pylinearring.def(py::init(&create_linearring<std::pair<double, double>>),
-                     py::arg("coordinates"));
-    pylinearring.def(py::init(&create_linearring<Point *>), py::arg("coordinates"));
-
-    pylinearring.def("__repr__", [](const LinearRing &geog) {
-        return static_cast<const s2geog::ClosedPolylineGeography *>(&geog.geog())->wkt(6);
-    });
 
     auto pypolygon = py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
         A geography type representing an area that is enclosed by a linear ring.

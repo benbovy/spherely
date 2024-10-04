@@ -72,50 +72,6 @@ def test_multilinestring(lines) -> None:
         ],
     ],
 )
-def test_linearring(coords) -> None:
-    ring = spherely.LinearRing(coords)
-    assert ring.dimensions == 1
-    assert ring.nshape == 1
-    assert repr(ring).startswith("LINEARRING (0 0")
-
-
-@pytest.mark.parametrize(
-    "coords",
-    [
-        [(0, 0), (0, 2), (2, 2), (2, 0)],
-        [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)],
-    ],
-)
-def test_linearring_closing(coords) -> None:
-    # support both manual and automated closing
-    ring = spherely.LinearRing(coords)
-    assert repr(ring).startswith("LINEARRING (0 0")
-    assert repr(ring).endswith("0 0)")
-
-
-def test_linearring_error() -> None:
-    with pytest.raises(ValueError, match="ring is not valid.*duplicate vertex.*"):
-        spherely.LinearRing([(0, 0), (0, 2), (0, 2), (2, 0)])
-
-    with pytest.raises(ValueError, match="ring is not valid.*at least 3 vertices.*"):
-        spherely.LinearRing([(0, 0), (0, 2)])
-
-    with pytest.raises(ValueError, match="ring is not valid.*Edge.*crosses.*"):
-        spherely.LinearRing([(0, 0), (2, 0), (1, 2), (1, -2)])
-
-
-@pytest.mark.parametrize(
-    "coords",
-    [
-        [(0, 0), (0, 2), (2, 2), (2, 0)],
-        [
-            spherely.Point(0, 0),
-            spherely.Point(0, 2),
-            spherely.Point(2, 2),
-            spherely.Point(2, 0),
-        ],
-    ],
-)
 def test_polygon(coords) -> None:
     poly = spherely.Polygon(coords)
     assert poly.dimensions == 2
@@ -174,7 +130,6 @@ def test_collection() -> None:
     objs = [
         spherely.Point(0, 0),
         spherely.LineString([(0, 0), (1, 1)]),
-        # spherely.LinearRing([(0, 0), (0, 1), (1, 1)]),
         spherely.Polygon([(0, 0), (0, 1), (1, 1)]),
     ]
 
@@ -225,7 +180,6 @@ def test_get_type_id() -> None:
             spherely.MultiPoint([(50, 5), (51, 6)]),
             spherely.LineString([(50, 5), (51, 6)]),
             spherely.MultiLineString([[(50, 5), (51, 6)], [(60, 15), (61, 16)]]),
-            spherely.LinearRing([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
             spherely.GeographyCollection([spherely.Point(40, 50)]),
         ]
@@ -237,7 +191,6 @@ def test_get_type_id() -> None:
             spherely.GeographyType.MULTIPOINT.value,
             spherely.GeographyType.LINESTRING.value,
             spherely.GeographyType.MULTILINESTRING.value,
-            spherely.GeographyType.LINEARRING.value,
             spherely.GeographyType.POLYGON.value,
             spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]

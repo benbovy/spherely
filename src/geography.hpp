@@ -8,7 +8,6 @@
 #include "s2/s2point.h"
 #include "s2/s2polyline.h"
 #include "s2geography.h"
-#include "s2geography_addons.hpp"
 
 namespace s2geog = s2geography;
 
@@ -24,7 +23,6 @@ enum class GeographyType : std::int8_t {
     None = -1,
     Point,
     LineString,
-    LinearRing,
     Polygon,
     MultiPoint,
     MultiLineString,
@@ -154,26 +152,6 @@ public:
 
     inline const std::vector<std::unique_ptr<S2Polyline>>& s2polylines() const {
         return static_cast<const S2GeographyType&>(geog()).Polylines();
-    }
-};
-
-class LinearRing : public Geography {
-public:
-    using S2GeographyType = s2geog::ClosedPolylineGeography;
-
-    LinearRing(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const override {
-        return GeographyType::LinearRing;
-    }
-
-    inline const S2LaxClosedPolylineShape& s2polyline() const {
-        return static_cast<const S2GeographyType&>(geog()).Polyline();
-    }
-
-    LinearRing* clone() const {
-        const auto& s2geog = static_cast<const S2GeographyType&>(geog());
-        return new LinearRing(std::unique_ptr<S2GeographyType>(s2geog.clone()));
     }
 };
 
