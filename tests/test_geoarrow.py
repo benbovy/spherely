@@ -98,7 +98,7 @@ def test_from_geoarrow_no_extension_type():
         spherely.from_geoarrow(arr)
 
 
-def test_from_geoarrow_no_extension_type():
+def test_from_geoarrow_invalid_encoding():
     arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
     with pytest.raises(ValueError, match="'geometry_encoding' should be one"):
