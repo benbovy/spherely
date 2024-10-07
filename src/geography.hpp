@@ -4,6 +4,7 @@
 #include <s2geography/geography.h>
 
 #include <memory>
+#include <type_traits>
 
 #include "s2/s2lax_polyline_shape.h"
 #include "s2/s2loop.h"
@@ -39,6 +40,7 @@ enum class GeographyType : std::int8_t {
 ** eventually move into s2geography::Geography?):
 **
 ** - Implement move semantics only.
+** - add ``clone()`` method for explicit copy
 ** - Add ``geog_type()`` method for getting the geography type
 ** - Eagerly infer the geography type as well as other properties
 ** - Encapsulate a lazy ``s2geography::ShapeIndexGeography`` accessible via ``geog_index()``.
@@ -46,8 +48,6 @@ enum class GeographyType : std::int8_t {
 */
 class Geography {
 public:
-    using S2GeographyType = s2geog::Geography;
-
     Geography(const Geography&) = delete;
     Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
         extract_geog_properties();
@@ -55,8 +55,6 @@ public:
     Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {
         extract_geog_properties();
     }
-
-    virtual ~Geography() {}
 
     Geography& operator=(const Geography&) = delete;
     Geography& operator=(Geography&& other) {
@@ -66,15 +64,15 @@ public:
         return *this;
     }
 
-    inline GeographyType geog_type() const {
+    inline GeographyType geog_type() const noexcept {
         return m_geog_type;
     }
 
-    inline const s2geog::Geography& geog() const {
+    inline const s2geog::Geography& geog() const noexcept {
         return *m_s2geog_ptr;
     }
 
-    template <class T>
+    template <class T, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
     inline const T* downcast_geog() const {
         return dynamic_cast<const T*>(&geog());
     }
@@ -86,22 +84,24 @@ public:
 
         return *m_s2geog_index_ptr;
     }
-    void reset_index() {
+    inline void reset_index() {
         m_s2geog_index_ptr.reset();
     }
-    bool has_index() {
+    inline bool has_index() const noexcept {
         return m_s2geog_index_ptr != nullptr;
     }
 
-    int dimension() const {
+    inline int dimension() const {
         return m_s2geog_ptr->dimension();
     }
-    int num_shapes() const {
+    inline int num_shapes() const {
         return m_s2geog_ptr->num_shapes();
     }
-    bool is_empty() const {
+    inline bool is_empty() const noexcept {
         return m_is_empty;
     }
+
+    Geography clone() const;
 
 private:
     S2GeographyPtr m_s2geog_ptr;
@@ -109,44 +109,11 @@ private:
     bool m_is_empty = false;
     GeographyType m_geog_type;
 
-    void extract_geog_properties() {
-        if (const auto* ptr = downcast_geog<s2geog::PointGeography>(); ptr) {
-            if (ptr->Points().empty()) {
-                m_is_empty = true;
-            }
-            if (ptr->Points().size() <= 1) {
-                m_geog_type = GeographyType::Point;
-            } else {
-                m_geog_type = GeographyType::MultiPoint;
-            }
-        } else if (const auto* ptr = downcast_geog<s2geog::PolylineGeography>(); ptr) {
-            if (ptr->Polylines().empty()) {
-                m_is_empty = true;
-            }
-            if (ptr->Polylines().size() <= 1) {
-                m_geog_type = GeographyType::LineString;
-            } else {
-                m_geog_type = GeographyType::MultiLineString;
-            }
-        } else if (const auto* ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
-            int nloops = ptr->Polygon()->num_loops();
-            if (nloops == 0) {
-                m_is_empty = 0;
-            }
-            if (nloops <= 1) {
-                m_geog_type = GeographyType::Polygon;
-            } else {
-                m_geog_type = GeographyType::MultiPolygon;
-            }
-        } else if (const auto* ptr = downcast_geog<s2geog::GeographyCollection>(); ptr) {
-            if (ptr->Features().empty()) {
-                m_is_empty = 0;
-            }
-            m_geog_type = GeographyType::GeographyCollection;
-        } else {
-            m_geog_type = GeographyType::None;
-        }
-    }
+    // We don't want Geography to be default constructible, except internally via `clone()`
+    // where there is no need to infer geography properties as we already know them.
+    Geography() : m_is_empty(true) {}
+
+    void extract_geog_properties();
 };
 
 }  // namespace spherely
