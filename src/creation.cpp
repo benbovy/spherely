@@ -1,7 +1,9 @@
 #include "creation.hpp"
 
+#include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 #include <s2/s2latlng.h>
 #include <s2/s2loop.h>
 #include <s2/s2point.h>
@@ -9,6 +11,7 @@
 #include <s2geography.h>
 #include <s2geography/geography.h>
 
+#include <array>
 #include <memory>
 #include <sstream>
 #include <type_traits>
@@ -26,9 +29,6 @@ using namespace spherely;
 // ---- S2geometry object creation functions.
 //
 
-// using PointVec = std::vector<Point *>;
-using LatLngVec = std::vector<std::pair<double, double>>;
-
 S2Point make_s2point(double lng, double lat) {
     return S2LatLng::FromDegrees(lat, lng).ToPoint();
 }
@@ -36,10 +36,6 @@ S2Point make_s2point(double lng, double lat) {
 S2Point make_s2point(const std::pair<double, double> &vertex) {
     return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
 }
-
-// S2Point to_s2point2(const Point *vertex) {
-//     return vertex->s2point();
-// }
 
 template <class V>
 std::vector<S2Point> make_s2points(const std::vector<V> &vertices) {
@@ -190,8 +186,49 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
 // ---- Spherely Python Geography creation functions
 //
 
+// support array_like (list of lists) of longitude, latitude coordinates
+using VectorLngLat = std::vector<std::pair<double, double>>;
+PYBIND11_MAKE_OPAQUE(VectorLngLat)
+
 PyObjectGeography point(double longitude, double latitude) {
     return make_py_geography<s2geog::PointGeography>(make_s2point(longitude, latitude));
+}
+
+py::array_t<PyObjectGeography> points(const VectorLngLat &coords) {
+    auto npoints = static_cast<py::ssize_t>(coords.size());
+    auto points = py::array_t<PyObjectGeography>(npoints);
+
+    py::buffer_info buf = points.request();
+    py::object *data = static_cast<py::object *>(buf.ptr);
+
+    for (size_t i = 0; i < coords.size(); i++) {
+        auto lnglat = coords[i];
+        auto point_ptr = point(lnglat.first, lnglat.second);
+        data[i] = py::cast(std::move(point_ptr));
+    }
+
+    return points;
+}
+
+py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
+    auto coords_data = coords.unchecked<2>();
+
+    if (coords_data.shape(1) != 2) {
+        throw std::runtime_error("coords array must be of shape (N, 2)");
+    }
+
+    auto npoints = coords_data.shape(0);
+    auto points = py::array_t<PyObjectGeography>(npoints);
+
+    py::buffer_info buf = points.request();
+    py::object *data = static_cast<py::object *>(buf.ptr);
+
+    for (py::ssize_t i = 0; i < npoints; i++) {
+        auto point_ptr = point(coords_data(i, 0), coords_data(i, 1));
+        data[i] = py::cast(std::move(point_ptr));
+    }
+
+    return points;
 }
 
 //
@@ -199,6 +236,9 @@ PyObjectGeography point(double longitude, double latitude) {
 //
 
 void init_creation(py::module &m) {
+    py::bind_vector<VectorLngLat>(m, "_VectorLngLat");
+    py::implicitly_convertible<py::list, VectorLngLat>();
+
     m.def("points",
           py::vectorize(&point),
           py::arg("longitude"),
@@ -212,6 +252,32 @@ void init_creation(py::module &m) {
             longitude coordinate(s), in degrees.
         latitude : array_like
             latitude coordinate(s), in degrees.
+
+    )pbdoc");
+
+    m.def("points",
+          py::overload_cast<const VectorLngLat &>(&points),
+          py::arg("coords"),
+          R"pbdoc(
+        Create an array of points.
+
+        Parameters
+        ----------
+        coords : array_like
+            A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
+
+    )pbdoc");
+
+    m.def("points",
+          py::overload_cast<const py::array_t<double> &>(&points),
+          py::arg("coords"),
+          R"pbdoc(
+        Create an array of points.
+
+        Parameters
+        ----------
+        coords : array_like
+            A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
 
     )pbdoc");
 }
