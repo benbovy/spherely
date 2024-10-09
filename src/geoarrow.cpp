@@ -71,7 +71,167 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
     return result;
 }
 
+/// \brief Object holding (and managing the memory) of an Arrow array (ArrowArray and ArraySchema
+/// combo)
+class ArrowArrayHolder {
+public:
+    /// \brief Construct an invalid instance holding no resources
+    ArrowArrayHolder() {
+        array_.release = nullptr;
+        schema_.release = nullptr;
+    }
+
+    /// \brief Move and take ownership of data
+    ArrowArrayHolder(ArrowArray* array, ArrowSchema* schema) {
+        move(array, schema, &array_, &schema_);
+    }
+
+    /// \brief Move and take ownership of data wrapped by rhs
+    ArrowArrayHolder(ArrowArrayHolder&& rhs) : ArrowArrayHolder(rhs.array(), rhs.schema()) {}
+    ArrowArrayHolder& operator=(ArrowArrayHolder&& rhs) {
+        reset(rhs.array(), rhs.schema());
+        return *this;
+    }
+
+    // These objects are not copyable
+    ArrowArrayHolder(const ArrowArrayHolder& rhs) = delete;
+
+    /// \brief Get a pointer to the data owned by this object
+    ArrowArray* array() noexcept {
+        return &array_;
+    }
+    const ArrowArray* array() const noexcept {
+        return &array_;
+    }
+
+    ArrowSchema* schema() noexcept {
+        return &schema_;
+    }
+    const ArrowSchema* schema() const noexcept {
+        return &schema_;
+    }
+
+    py::tuple return_capsules(py::args args, const py::kwargs& kwargs) {
+        if ((args.size() > 0) && (!args[0].is_none())) {
+            throw std::invalid_argument(
+                "Additional arguments (such as requested_schema) with a non-default value are not "
+                "supported");
+        }
+        if (kwargs) {
+            for (auto& item : kwargs) {
+                if (!item.second.is_none()) {
+                    throw std::invalid_argument(
+                        "Additional arguments (such as requested_schema) with a non-default value "
+                        "are not supported");
+                }
+            }
+        }
+
+        ArrowArray* c_array = static_cast<ArrowArray*>(malloc(sizeof(ArrowArray)));
+        ArrowSchema* c_schema = static_cast<ArrowSchema*>(malloc(sizeof(ArrowSchema)));
+        move(&array_, &schema_, c_array, c_schema);
+
+        constexpr auto array_cleanup = [](void* ptr) noexcept {
+            auto array = static_cast<ArrowArray*>(ptr);
+            if (array->release != nullptr) {
+                array->release(array);
+            }
+            free(array);
+        };
+        py::capsule array_capsule{c_array, "arrow_array", array_cleanup};
+
+        constexpr auto schema_cleanup = [](void* ptr) noexcept {
+            auto schema = static_cast<ArrowSchema*>(ptr);
+            if (schema->release != nullptr) {
+                schema->release(schema);
+            }
+            free(schema);
+        };
+        py::capsule schema_capsule{c_schema, "arrow_schema", schema_cleanup};
+
+        return py::make_tuple(schema_capsule, array_capsule);
+    }
+
+    void move(ArrowArray* array_src,
+              ArrowSchema* schema_src,
+              ArrowArray* array_dst,
+              ArrowSchema* schema_dst) {
+        memcpy(array_dst, array_src, sizeof(struct ArrowArray));
+        array_src->release = nullptr;
+
+        memcpy(schema_dst, schema_src, sizeof(struct ArrowSchema));
+        schema_src->release = nullptr;
+    }
+
+    /// \brief Call data's release callback if valid
+    void reset() {
+        if (array_.release != nullptr) {
+            array_.release(&array_);
+        }
+
+        if (schema_.release != nullptr) {
+            schema_.release(&schema_);
+        }
+    }
+
+    /// \brief Call data's release callback if valid and move ownership of the data
+    /// pointed to by data
+    void reset(ArrowArray* array_src, ArrowSchema* schema_src) {
+        reset();
+        move(array_src, schema_src, &array_, &schema_);
+    }
+
+    ~ArrowArrayHolder() {
+        reset();
+    }
+
+protected:
+    ArrowArray array_;
+    ArrowSchema schema_;
+};
+
+ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input, py::object geometry_encoding) {
+    ArrowArrayHolder array = ArrowArrayHolder();
+
+    s2geog::geoarrow::Writer writer;
+    std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
+
+    if (geometry_encoding.is(py::none())) {
+        // writer.Init(schema, options);
+        throw std::invalid_argument("not yet implemented");
+    } else if (geometry_encoding.equal(py::str("points"))) {
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kPoints, array.schema());
+    } else if (geometry_encoding.equal(py::str("WKT"))) {
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, array.schema());
+    } else if (geometry_encoding.equal(py::str("WKB"))) {
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, array.schema());
+    } else {
+        throw std::invalid_argument("'geometry_encoding' should be one of None, 'WKT' or 'WKB'");
+    }
+
+    size_t num_geographies = static_cast<size_t>(input.size());
+
+    const s2geog::Geography** geographies = static_cast<const s2geog::Geography**>(
+        malloc(sizeof(const s2geog::Geography*) * num_geographies));
+
+    for (int i = 0; i < input.size(); i++) {
+        geographies[i] = &((*input.data(i)).as_geog_ptr()->geog());
+    }
+
+    // for (int i = 0; i < input.size(); i++) {
+    //     auto geog_ptr = (*input.data(i)).as_geog_ptr();
+    //     s2geog_vec.push_back(std::make_unique<s2geog::Geography>(geog_ptr->geog()));
+    // }
+
+    writer.WriteGeography(geographies, num_geographies, array.array());
+
+    return std::move(array);
+}
+
 void init_geoarrow(py::module& m) {
+    py::class_<ArrowArrayHolder>(m, "ArrowArrayHolder")
+        .def("__arrow_c_array__", &ArrowArrayHolder::return_capsules);
+
     m.def("from_geoarrow",
           &from_geoarrow,
           py::arg("input"),
@@ -123,5 +283,27 @@ void init_geoarrow(py::module& m) {
             Arrow array without geoarrow type but with a plain string or
             binary type, if specifying this keyword with "WKT" or "WKB",
             respectively.
+    )pbdoc");
+
+    m.def("to_geoarrow",
+          &to_geoarrow,
+          py::arg("input"),
+          py::pos_only(),
+          py::kw_only(),
+          py::arg("geometry_encoding") = py::none(),
+          R"pbdoc(
+        Convert an array of geographies to an Arrow array object with a GeoArrow
+        extension type.
+
+        See https://geoarrow.org/ for details on the GeoArrow specification.
+
+        Parameters
+        ----------
+        input : array_like
+            An array of geography objects.
+        geometry_encoding : str, default None
+            By default, the encoding is inferred from the GeoArrow extension
+            type of the input array.
+            However, for serializing to WKT and WKB it is also possible to pass
     )pbdoc");
 }

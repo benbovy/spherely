@@ -99,10 +99,10 @@ target_link_libraries(spherely
   )
 
 pybind11_extension(spherely)
-if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
-    # Strip unnecessary sections of the binary on Linux/macOS
-    pybind11_strip(spherely)
-endif()
+# if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
+#     # Strip unnecessary sections of the binary on Linux/macOS
+#     pybind11_strip(spherely)
+# endif()
 
 set_target_properties(spherely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 
