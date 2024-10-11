@@ -153,6 +153,7 @@ def polygon(
     shell: Iterable[PointGeography],
     holes: Iterable[Iterable[PointGeography]] | None = None,
 ) -> PolygonGeography: ...
+def geography_collection(geographies: Iterable[Geography]) -> GeographyCollection: ...
 
 # Geography utils
 

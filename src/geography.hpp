@@ -100,6 +100,7 @@ public:
     }
 
     Geography clone() const;
+    std::unique_ptr<s2geog::Geography> clone_geog() const;
 
 private:
     S2GeographyPtr m_s2geog_ptr;

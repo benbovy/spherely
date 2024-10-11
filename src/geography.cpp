@@ -79,6 +79,10 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
 ** Geography implementation
 */
 
+std::unique_ptr<s2geog::Geography> Geography::clone_geog() const {
+    return clone_s2geography(*m_s2geog_ptr, m_geog_type);
+}
+
 Geography Geography::clone() const {
     auto new_geog_ptr = clone_s2geography(*m_s2geog_ptr, m_geog_type);
 

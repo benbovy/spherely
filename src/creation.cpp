@@ -220,19 +220,16 @@ std::unique_ptr<Geography> polygon(const std::vector<V> &shell,
     return make_geography<s2geog::PolygonGeography>(std::move(polygon_ptr));
 }
 
-// std::unique_ptr<GeographyCollection> create_collection2(const std::vector<Geography *> &features)
-// {
-//     std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
-//     features_copy.reserve(features.size());
+std::unique_ptr<Geography> geography_collection(const std::vector<Geography *> &features) {
+    std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+    features_copy.reserve(features.size());
 
-//     for (const auto &feature_ptr : features) {
-//         features_copy.push_back(clone_s2geography(feature_ptr->geog()));
-//     }
+    for (const auto &feature_ptr : features) {
+        features_copy.push_back(feature_ptr->clone_geog());
+    }
 
-//     return std::make_unique<GeographyCollection>(
-//         std::make_unique<s2geog::GeographyCollection>(std::move(features_copy)));
-//     ;
-// }
+    return make_geography<s2geog::GeographyCollection>(std::move(features_copy));
+}
 
 //
 // ---- Geography creation Python bindings
@@ -248,7 +245,7 @@ void init_creation(py::module &m) {
           py::arg("latitude"),
           R"pbdoc(point(longitude: float, latitude: float) -> Geography
 
-        Create a single point.
+        Create a POINT geography.
 
         Parameters
         ----------
@@ -307,7 +304,7 @@ void init_creation(py::module &m) {
           &multipoint<Geography *>,
           py::arg("points"),
           R"pbdoc(
-        Create a MULTIPOINT geography from POINT geography objects:
+        Create a MULTIPOINT geography from POINT geographies:
 
         Parameters
         ----------
@@ -335,7 +332,7 @@ void init_creation(py::module &m) {
           &linestring<Geography *>,
           py::arg("vertices"),
           R"pbdoc(
-        Create a LINESTRING geography from POINT geography objects:
+        Create a LINESTRING geography from POINT geographies:
 
         Parameters
         ----------
@@ -363,7 +360,7 @@ void init_creation(py::module &m) {
           &multilinestring<Geography *>,
           py::arg("lines"),
           R"pbdoc(
-        Create a MULTILINESTRING geography from POINT geography objects:
+        Create a MULTILINESTRING geography from POINT geographies:
 
         Parameters
         ----------
@@ -377,7 +374,7 @@ void init_creation(py::module &m) {
         [](const std::vector<Geography *> lines) { return multilinestring(lines); },
         py::arg("lines"),
         R"pbdoc(
-        Create a MULTILINESTRING geography from LINESTRING geography objects:
+        Create a MULTILINESTRING geography from LINESTRING geographies:
 
         Parameters
         ----------
@@ -411,7 +408,7 @@ void init_creation(py::module &m) {
           py::arg("shell"),
           py::arg("holes") = py::none(),
           R"pbdoc(
-        Create a POLYGON geography from POINT geography objects:
+        Create a POLYGON geography from POINT geographies:
 
         Parameters
         ----------
@@ -421,6 +418,19 @@ void init_creation(py::module &m) {
         holes : sequence, optional
             A list of sequences of objects where each sequence satisfies the same
             requirements as the ``shell`` argument.
+
+    )pbdoc");
+
+    m.def("geography_collection",
+          &geography_collection,
+          py::arg("geographies"),
+          R"pbdoc(geography_collection(geographies: Sequence) -> Geography
+        Create a GEOGRAPHYCOLLECTION geography from arbitrary geographies:
+
+        Parameters
+        ----------
+        geographies : sequence
+            A sequence of :class:`~spherely.Geography` objects.
 
     )pbdoc");
 }

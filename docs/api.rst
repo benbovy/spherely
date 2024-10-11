@@ -30,6 +30,8 @@ Geography creation
    linestring
    multipoint
    multilinestring
+   polygon
+   geography_collection
    is_prepared
    prepare
    destroy_prepared

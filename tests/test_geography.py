@@ -126,35 +126,35 @@ def test_polygon_normalize() -> None:
     assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
-# def test_collection() -> None:
-#     objs = [
-#         spherely.points(0, 0),
-#         spherely.LineString([(0, 0), (1, 1)]),
-#         spherely.Polygon([(0, 0), (0, 1), (1, 1)]),
-#     ]
+def test_collection() -> None:
+    objs = [
+        spherely.point(0, 0),
+        spherely.linestring([(0, 0), (1, 1)]),
+        spherely.polygon([(0, 0), (1, 0), (1, 1)]),
+    ]
 
-#     coll = spherely.GeographyCollection(objs)
+    coll = spherely.geography_collection(objs)
 
-#     assert coll.dimensions == -1
-#     assert coll.nshape == 3
-#     assert repr(coll).startswith("GEOMETRYCOLLECTION (")
+    assert coll.dimensions == -1
+    assert coll.nshape == 3
+    assert repr(coll).startswith("GEOMETRYCOLLECTION (")
 
-#     # TODO: more robust test than using the WKT repr
-#     assert repr(coll).count("POINT") == 1
-#     assert repr(coll).count("LINESTRING") == 1
-#     assert repr(coll).count("POLYGON") == 1
+    # TODO: more robust test than using the WKT repr
+    assert repr(coll).count("POINT") == 1
+    assert repr(coll).count("LINESTRING") == 1
+    assert repr(coll).count("POLYGON") == 1
 
-#     # TODO: test objects are copied
-#     # (for now only test that original objects are preserved)
-#     assert [o.nshape for o in objs] == [1, 1, 1]
+    # TODO: test objects are copied
+    # (for now only test that original objects are preserved)
+    assert [o.nshape for o in objs] == [1, 1, 1]
 
-#     # test nested collection
-#     coll2 = spherely.GeographyCollection(objs + [coll])
+    # test nested collection
+    # coll2 = spherely.geography_collection(objs + [coll])
 
-#     assert repr(coll2).count("POINT") == 2
-#     assert repr(coll2).count("LINESTRING") == 2
-#     assert repr(coll2).count("POLYGON") == 2
-#     assert repr(coll2).count("GEOMETRYCOLLECTION") == 2
+    # assert repr(coll2).count("POINT") == 2
+    # assert repr(coll2).count("LINESTRING") == 2
+    # assert repr(coll2).count("POLYGON") == 2
+    # assert repr(coll2).count("GEOMETRYCOLLECTION") == 2
 
 
 def test_is_geography() -> None:
@@ -181,7 +181,7 @@ def test_get_type_id() -> None:
             spherely.linestring([(5, 50), (6, 51)]),
             spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
             spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
-            # spherely.GeographyCollection([spherely.points(40, 50)]),
+            spherely.geography_collection([spherely.point(40, 50)]),
         ]
     )
     actual = spherely.get_type_id(geog)
@@ -192,7 +192,7 @@ def test_get_type_id() -> None:
             spherely.GeographyType.LINESTRING.value,
             spherely.GeographyType.MULTILINESTRING.value,
             spherely.GeographyType.POLYGON.value,
-            # spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
+            spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]
     )
     np.testing.assert_array_equal(actual, expected)
