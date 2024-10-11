@@ -3,17 +3,18 @@
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/stl_bind.h>
 #include <s2/s2latlng.h>
 #include <s2/s2loop.h>
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
+#include <s2/s2polyline.h>
 #include <s2geography.h>
 #include <s2geography/geography.h>
 
 #include <array>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -33,21 +34,34 @@ S2Point make_s2point(double lng, double lat) {
     return S2LatLng::FromDegrees(lat, lng).ToPoint();
 }
 
-S2Point make_s2point(const std::pair<double, double> &vertex) {
-    return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
+S2Point make_s2point(const std::pair<double, double> &point) {
+    return S2LatLng::FromDegrees(point.second, point.first).ToPoint();
+}
+
+S2Point make_s2point(const Geography *point_ptr) {
+    check_geog_type(*point_ptr, GeographyType::Point);
+    auto s2geog_obj = static_cast<const s2geog::PointGeography &>(point_ptr->geog());
+
+    if (s2geog_obj.Points().empty()) {
+        throw EmptyGeographyException("cannot create s2geometry point from empty POINT Geography");
+        // TODO: what do we want here? NaN or S2Point default constructor? It depends?
+        // return S2Point::NaN();
+    }
+
+    return s2geog_obj.Points()[0];
 }
 
 template <class V>
-std::vector<S2Point> make_s2points(const std::vector<V> &vertices) {
-    std::vector<S2Point> points(vertices.size());
+std::vector<S2Point> make_s2points(const std::vector<V> &points) {
+    std::vector<S2Point> s2points(points.size());
 
     auto func = [](const V &vertex) {
         return make_s2point(vertex);
     };
 
-    std::transform(vertices.begin(), vertices.end(), points.begin(), func);
+    std::transform(points.begin(), points.end(), s2points.begin(), func);
 
-    return std::move(points);
+    return std::move(s2points);
 }
 
 // create a S2Loop from coordinates or Point objects.
@@ -93,50 +107,6 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
 //
 // ---- Spherely C++ Geography creation functions
 //
-
-// std::unique_ptr<Geography> create_point2(double lng, double lat) {
-//     return make_geography<s2geog::PointGeography>(to_s2point2(std::make_pair(lat, lng)));
-// }
-
-// template <class V>
-// std::unique_ptr<Geography> create_multipoint2(const std::vector<V> &pts) {
-//     return make_geography2<s2geog::PointGeography>(to_s2points(pts));
-// }
-
-// template <class V>
-// std::unique_ptr<Geography> create_linestring2(const std::vector<V> &pts) {
-//     auto s2points = to_s2points(pts);
-//     auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
-
-//     return make_geography2<s2geog::PolylineGeography>(std::move(polyline_ptr));
-// }
-
-// std::unique_ptr<Geography> create_multilinestring2(const std::vector<LineString *> &lines) {
-//     std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
-
-//     auto func = [](const LineString *line_ptr) {
-//         S2Polyline *cloned_ptr(line_ptr->s2polyline().Clone());
-//         return std::make_unique<S2Polyline>(std::move(*cloned_ptr));
-//     };
-
-//     std::transform(lines.begin(), lines.end(), polylines.begin(), func);
-
-//     return make_geography2<s2geog::PolylineGeography>(std::move(polylines));
-// }
-
-// template <class V>
-// std::unique_ptr<Geography> create_multilinestring2(const std::vector<std::vector<V>> &lines) {
-//     std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
-
-//     auto func = [](const std::vector<V> &pts) {
-//         auto s2points = to_s2points(pts);
-//         return std::make_unique<S2Polyline>(s2points);
-//     };
-
-//     std::transform(lines.begin(), lines.end(), polylines.begin(), func);
-
-//     return make_geography2<s2geog::PolylineGeography>(std::move(polylines));
-// }
 
 // template <class V>
 // std::unique_ptr<Geography> create_polygon2(
@@ -186,28 +156,8 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
 // ---- Spherely Python Geography creation functions
 //
 
-// support array_like (list of lists) of longitude, latitude coordinates
-using VectorLngLat = std::vector<std::pair<double, double>>;
-PYBIND11_MAKE_OPAQUE(VectorLngLat)
-
 PyObjectGeography point(double longitude, double latitude) {
     return make_py_geography<s2geog::PointGeography>(make_s2point(longitude, latitude));
-}
-
-py::array_t<PyObjectGeography> points(const VectorLngLat &coords) {
-    auto npoints = static_cast<py::ssize_t>(coords.size());
-    auto points = py::array_t<PyObjectGeography>(npoints);
-
-    py::buffer_info buf = points.request();
-    py::object *data = static_cast<py::object *>(buf.ptr);
-
-    for (size_t i = 0; i < coords.size(); i++) {
-        auto lnglat = coords[i];
-        auto point_ptr = point(lnglat.first, lnglat.second);
-        data[i] = py::cast(std::move(point_ptr));
-    }
-
-    return points;
 }
 
 py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
@@ -231,13 +181,83 @@ py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
     return points;
 }
 
+template <class V>
+std::unique_ptr<Geography> multipoint(const std::vector<V> &pts) {
+    try {
+        return make_geography<s2geog::PointGeography>(make_s2points(pts));
+    } catch (const EmptyGeographyException &error) {
+        throw py::value_error("can't create MultiPoint with empty component");
+    }
+}
+
+template <class V>
+std::unique_ptr<Geography> linestring(const std::vector<V> &pts) {
+    auto s2points = make_s2points(pts);
+    auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
+
+    return make_geography<s2geog::PolylineGeography>(std::move(polyline_ptr));
+}
+
+template <class V>
+std::unique_ptr<Geography> multilinestring(const std::vector<std::vector<V>> &lines) {
+    std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
+
+    auto func = [](const std::vector<V> &pts) {
+        try {
+            auto s2points = make_s2points(pts);
+            return std::make_unique<S2Polyline>(s2points);
+        } catch (const EmptyGeographyException &error) {
+            throw py::value_error("can't create MultiLineString with empty component");
+        }
+    };
+
+    std::transform(lines.begin(), lines.end(), polylines.begin(), func);
+
+    return make_geography<s2geog::PolylineGeography>(std::move(polylines));
+}
+
+std::unique_ptr<Geography> multilinestring(const std::vector<Geography *> &lines) {
+    std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
+
+    auto func = [](const Geography *line_ptr) {
+        check_geog_type(*line_ptr, GeographyType::LineString);
+
+        auto s2geog_ptr = static_cast<const s2geog::PolylineGeography *>(&line_ptr->geog());
+        auto polylines_ptr = &s2geog_ptr->Polylines();
+
+        if (polylines_ptr->empty()) {
+            throw py::value_error("can't create MultiLineString with empty component");
+        }
+
+        S2Polyline *cloned_ptr((*polylines_ptr)[0]->Clone());
+        return std::make_unique<S2Polyline>(std::move(*cloned_ptr));
+    };
+
+    std::transform(lines.begin(), lines.end(), polylines.begin(), func);
+
+    return make_geography<s2geog::PolylineGeography>(std::move(polylines));
+}
+
 //
 // ---- Geography creation Python bindings
 //
 
 void init_creation(py::module &m) {
-    py::bind_vector<VectorLngLat>(m, "_VectorLngLat");
-    py::implicitly_convertible<py::list, VectorLngLat>();
+    m.def("point",
+          &point,
+          py::arg("longitude"),
+          py::arg("latitude"),
+          R"pbdoc(
+        Create a single point.
+
+        Parameters
+        ----------
+        longitude : float
+            longitude coordinate, in degrees.
+        latitude : float
+            latitude coordinate, in degrees.
+
+    )pbdoc");
 
     m.def("points",
           py::vectorize(&point),
@@ -256,7 +276,7 @@ void init_creation(py::module &m) {
     )pbdoc");
 
     m.def("points",
-          py::overload_cast<const VectorLngLat &>(&points),
+          &points,
           py::arg("coords"),
           R"pbdoc(
         Create an array of points.
@@ -268,16 +288,95 @@ void init_creation(py::module &m) {
 
     )pbdoc");
 
-    m.def("points",
-          py::overload_cast<const py::array_t<double> &>(&points),
-          py::arg("coords"),
+    m.def("multipoint",
+          &multipoint<std::pair<double, double>>,
+          py::arg("points"),
           R"pbdoc(
-        Create an array of points.
+        Create a MULTIPOINT feature.
 
         Parameters
         ----------
-        coords : array_like
-            A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
+        points : sequence
+            A sequence of (longitude, latitude) coordinates, in degrees.
+
+    )pbdoc");
+
+    m.def("multipoint",
+          &multipoint<Geography *>,
+          py::arg("points"),
+          R"pbdoc(
+        Create a MULTIPOINT feature.
+
+        Parameters
+        ----------
+        points : sequence
+            A sequence of POINT :class:`~spherely.Geography` objects.
+
+    )pbdoc");
+
+    m.def("linestring",
+          &linestring<std::pair<double, double>>,
+          py::arg("vertices"),
+          R"pbdoc(
+        Create a linestring.
+
+        Parameters
+        ----------
+        vertices : sequence
+            A sequence of (longitude, latitude) coordinates, in degrees.
+
+    )pbdoc");
+
+    m.def("linestring",
+          &linestring<Geography *>,
+          py::arg("vertices"),
+          R"pbdoc(
+        Create a linestring.
+
+        Parameters
+        ----------
+        vertices : sequence
+            A sequence of POINT :class:`~spherely.Geography` objects.
+
+    )pbdoc");
+
+    m.def("multilinestring",
+          &multilinestring<std::pair<double, double>>,
+          py::arg("lines"),
+          R"pbdoc(
+        Create a MULTILINESTRING feature.
+
+        Parameters
+        ----------
+        lines : sequence
+            A sequence of sequences of (longitude, latitude) coordinates, in degrees.
+
+    )pbdoc");
+
+    m.def("multilinestring",
+          &multilinestring<Geography *>,
+          py::arg("lines"),
+          R"pbdoc(
+        Create a MULTILINESTRING feature.
+
+        Parameters
+        ----------
+        lines : sequence
+            A sequence of sequences of POINT :class:`~spherely.Geography` objects.
+
+    )pbdoc");
+
+    m.def(
+        "multilinestring",
+        [](const std::vector<Geography *> lines) { return multilinestring(lines); },
+        py::arg("lines"),
+        R"pbdoc(
+        Create a MULTILINESTRING feature.
+
+        Parameters
+        ----------
+        lines : sequence
+            A sequence of LINESTRING :class:`~spherely.Geography` objects.
 
     )pbdoc");
 }

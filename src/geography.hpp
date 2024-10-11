@@ -1,17 +1,15 @@
 #ifndef SPHERELY_GEOGRAPHY_H_
 #define SPHERELY_GEOGRAPHY_H_
 
+#include <pybind11/pybind11.h>
 #include <s2geography/geography.h>
 
+#include <exception>
 #include <memory>
+#include <string>
 #include <type_traits>
 
-#include "s2/s2lax_polyline_shape.h"
-#include "s2/s2loop.h"
-#include "s2/s2point.h"
-#include "s2/s2polyline.h"
-#include "s2geography.h"
-
+namespace py = pybind11;
 namespace s2geog = s2geography;
 
 namespace spherely {
@@ -115,6 +113,54 @@ private:
 
     void extract_geog_properties();
 };
+
+/**
+ * Custom exception that may be thrown when an empty Geography is found.
+ */
+class EmptyGeographyException : public std::exception {
+private:
+    std::string message;
+
+public:
+    EmptyGeographyException(const char* msg) : message(msg) {}
+
+    const char* what() const throw() {
+        return message.c_str();
+    }
+};
+
+// TODO: cleaner way? Already implemented elsewhere?
+inline std::string format_geog_type(GeographyType geog_type) {
+    if (geog_type == GeographyType::Point) {
+        return "POINT";
+    } else if (geog_type == GeographyType::MultiPoint) {
+        return "MULTIPOINT";
+    } else if (geog_type == GeographyType::LineString) {
+        return "LINESTRING";
+    } else if (geog_type == GeographyType::MultiLineString) {
+        return "MULTILINESTRING";
+    } else if (geog_type == GeographyType::Polygon) {
+        return "POLYGON";
+    } else if (geog_type == GeographyType::MultiPolygon) {
+        return "MULTIPOLYGON";
+    } else if (geog_type == GeographyType::GeographyCollection) {
+        return "GEOMETRYCOLLECTION";
+    } else {
+        return "UNKNOWN";
+    }
+}
+
+/**
+ * Check the type of a Geography object and maybe raise an exception.
+ */
+inline void check_geog_type(const Geography& geog_obj, GeographyType geog_type) {
+    if (geog_obj.geog_type() != geog_type) {
+        auto expected = format_geog_type(geog_type);
+        auto actual = format_geog_type(geog_obj.geog_type());
+
+        py::type_error("invalid Geography type (expected " + expected + ", found " + actual + ")");
+    }
+}
 
 }  // namespace spherely
 

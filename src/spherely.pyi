@@ -1,12 +1,11 @@
 from typing import (
+    Annotated,
     Any,
     ClassVar,
     Generic,
     Iterable,
-    List,
     Literal,
-    Optional,
-    Tuple,
+    Sequence,
     TypeVar,
     overload,
 )
@@ -46,6 +45,15 @@ class GeographyType:
     def name(self) -> str: ...
     @property
     def value(self) -> int: ...
+
+# Annotated type aliases
+
+PointGeography = Annotated[Geography, GeographyType.POINT]
+LineStringGeography = Annotated[Geography, GeographyType.LINESTRING]
+PolygonGeography = Annotated[Geography, GeographyType.POLYGON]
+MultiPointGeography = Annotated[Geography, GeographyType.MULTIPOINT]
+MultiLineStringGeography = Annotated[Geography, GeographyType.MULTILINESTRING]
+GeographyCollection = Annotated[Geography, GeographyType.GEOGRAPHYCOLLECTION]
 
 # Numpy-like vectorized (universal) functions
 
@@ -108,10 +116,33 @@ get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
 # Geography creation
 
+def point(longitude: float, latitude: float) -> Geography: ...
 @overload
-def points(longitude: float, latitude: float) -> Geography: ...
+def points(
+    longitude: npt.ArrayLike, latitude: npt.ArrayLike
+) -> npt.NDArray[np.object_]: ...
 @overload
-def points(longitude: npt.ArrayLike, latitude: npt.ArrayLike) -> npt.NDArray[Any]: ...
+def points(longitude: float, latitude: float) -> PointGeography: ...  # type: ignore[misc]
+@overload
+def multipoint(points: Iterable[Sequence[float]]) -> MultiPointGeography: ...
+@overload
+def multipoint(points: Iterable[PointGeography]) -> MultiPointGeography: ...
+@overload
+def linestring(vertices: Iterable[Sequence[float]]) -> LineStringGeography: ...
+@overload
+def linestring(vertices: Iterable[PointGeography]) -> LineStringGeography: ...
+@overload
+def multilinestring(
+    vertices: Iterable[Iterable[Sequence[float]]],
+) -> MultiLineStringGeography: ...
+@overload
+def multilinestring(
+    vertices: Iterable[Iterable[PointGeography]],
+) -> MultiLineStringGeography: ...
+@overload
+def multilinestring(
+    vertices: Iterable[LineStringGeography],
+) -> MultiLineStringGeography: ...
 
 # Geography utils
 
@@ -130,9 +161,9 @@ disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
 # geography accessors
 
-centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, Geography]
+centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, PointGeography]
 boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
-convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, Geography]
+convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, PolygonGeography]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
 
 # temp (remove)

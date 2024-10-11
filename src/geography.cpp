@@ -6,21 +6,20 @@
 #include <s2/s2loop.h>
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
-#include <s2geography.h>
 #include <s2geography/geography.h>
+#include <s2geography/wkt-writer.h>
 
 #include <memory>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
 
-#include "creation.hpp"
 #include "pybind11.hpp"
-#include "pybind11/stl.h"
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
@@ -29,7 +28,7 @@ using namespace spherely;
 py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 
 /*
-** Helpers
+** Internal helpers
 */
 
 // TODO: May be worth moving this upstream as a `s2geog::Geography::clone()` virtual function
