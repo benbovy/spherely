@@ -243,11 +243,15 @@ std::unique_ptr<Geography> multilinestring(const std::vector<Geography *> &lines
 //
 
 void init_creation(py::module &m) {
+    py::options options;
+    options.disable_function_signatures();
+
     m.def("point",
           &point,
           py::arg("longitude"),
           py::arg("latitude"),
-          R"pbdoc(
+          R"pbdoc(point(longitude: float, latitude: float) -> Geography
+
         Create a single point.
 
         Parameters
@@ -291,8 +295,10 @@ void init_creation(py::module &m) {
     m.def("multipoint",
           &multipoint<std::pair<double, double>>,
           py::arg("points"),
-          R"pbdoc(
-        Create a MULTIPOINT feature.
+          R"pbdoc(multipoint(points: Sequence) -> Geography
+        Create a MULTIPOINT geography (overloaded function).
+
+        Create a MULTIPOINT geography from coordinates:
 
         Parameters
         ----------
@@ -305,7 +311,7 @@ void init_creation(py::module &m) {
           &multipoint<Geography *>,
           py::arg("points"),
           R"pbdoc(
-        Create a MULTIPOINT feature.
+        Create a MULTIPOINT geography from POINT geography objects:
 
         Parameters
         ----------
@@ -317,8 +323,10 @@ void init_creation(py::module &m) {
     m.def("linestring",
           &linestring<std::pair<double, double>>,
           py::arg("vertices"),
-          R"pbdoc(
-        Create a linestring.
+          R"pbdoc(linestring(vertices: Sequence) -> Geography
+        Create a LINESTRING geography (overloaded function).
+
+        Create a LINESTRING geography from coordinates:
 
         Parameters
         ----------
@@ -331,7 +339,7 @@ void init_creation(py::module &m) {
           &linestring<Geography *>,
           py::arg("vertices"),
           R"pbdoc(
-        Create a linestring.
+        Create a LINESTRING geography from POINT geography objects:
 
         Parameters
         ----------
@@ -343,8 +351,10 @@ void init_creation(py::module &m) {
     m.def("multilinestring",
           &multilinestring<std::pair<double, double>>,
           py::arg("lines"),
-          R"pbdoc(
-        Create a MULTILINESTRING feature.
+          R"pbdoc(multilinestring(lines: Sequence) -> Geography
+        Create a MULTILINESTRING geography (overloaded function).
+
+        Create a MULTILINESTRING geography from coordinates:
 
         Parameters
         ----------
@@ -357,7 +367,7 @@ void init_creation(py::module &m) {
           &multilinestring<Geography *>,
           py::arg("lines"),
           R"pbdoc(
-        Create a MULTILINESTRING feature.
+        Create a MULTILINESTRING geography from POINT geography objects:
 
         Parameters
         ----------
@@ -371,7 +381,7 @@ void init_creation(py::module &m) {
         [](const std::vector<Geography *> lines) { return multilinestring(lines); },
         py::arg("lines"),
         R"pbdoc(
-        Create a MULTILINESTRING feature.
+        Create a MULTILINESTRING geography from LINESTRING geography objects:
 
         Parameters
         ----------
