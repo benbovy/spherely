@@ -5,59 +5,59 @@ import spherely
 
 
 def test_point() -> None:
-    point = spherely.points(40.2, 5.2)
+    point = spherely.point(40.2, 5.2)
     assert point.dimensions == 0
     assert point.nshape == 1
     assert repr(point).startswith("POINT (40.2 5.2")
 
 
-# @pytest.mark.parametrize(
-#     "points",
-#     [
-#         [(50, 5), (51, 6)],
-#         [spherely.points(50, 5), spherely.points(51, 6)],
-#     ],
-# )
-# def test_multipoint(points) -> None:
-#     multipoint = spherely.MultiPoint(points)
-#     assert multipoint.dimensions == 0
-#     assert multipoint.nshape == 1
-#     assert repr(multipoint).startswith("MULTIPOINT ((5 50)")
+@pytest.mark.parametrize(
+    "points",
+    [
+        [(5, 50), (6, 51)],
+        [spherely.points(5, 50), spherely.points(6, 51)],
+    ],
+)
+def test_multipoint(points) -> None:
+    multipoint = spherely.multipoint(points)
+    assert multipoint.dimensions == 0
+    assert multipoint.nshape == 1
+    assert repr(multipoint).startswith("MULTIPOINT ((5 50)")
 
 
-# @pytest.mark.parametrize(
-#     "coords",
-#     [
-#         [(50, 5), (51, 6)],
-#         [spherely.points(50, 5), spherely.points(51, 6)],
-#     ],
-# )
-# def test_linestring(coords) -> None:
-#     line = spherely.LineString(coords)
-#     assert line.dimensions == 1
-#     assert line.nshape == 1
-#     assert repr(line).startswith("LINESTRING (5 50")
+@pytest.mark.parametrize(
+    "points",
+    [
+        [(5, 50), (6, 51)],
+        [spherely.point(5, 50), spherely.point(6, 51)],
+    ],
+)
+def test_linestring(points) -> None:
+    line = spherely.linestring(points)
+    assert line.dimensions == 1
+    assert line.nshape == 1
+    assert repr(line).startswith("LINESTRING (5 50")
 
 
-# @pytest.mark.parametrize(
-#     "lines",
-#     [
-#         [[(50, 5), (51, 6)], [(60, 15), (61, 16)]],
-#         [
-#             [spherely.points(50, 5), spherely.points(51, 6)],
-#             [spherely.points(60, 15), spherely.points(61, 16)],
-#         ],
-#         [
-#             spherely.LineString([(50, 5), (51, 6)]),
-#             spherely.LineString([(60, 15), (61, 16)]),
-#         ],
-#     ],
-# )
-# def test_multilinestring(lines) -> None:
-#     multiline = spherely.MultiLineString(lines)
-#     assert multiline.dimensions == 1
-#     assert multiline.nshape == 2
-#     assert repr(multiline).startswith("MULTILINESTRING ((5 50")
+@pytest.mark.parametrize(
+    "lines",
+    [
+        [[(5, 50), (6, 51)], [(15, 60), (16, 61)]],
+        [
+            [spherely.point(5, 50), spherely.point(6, 51)],
+            [spherely.point(15, 60), spherely.point(16, 61)],
+        ],
+        [
+            spherely.linestring([(5, 50), (6, 51)]),
+            spherely.linestring([(15, 60), (16, 61)]),
+        ],
+    ],
+)
+def test_multilinestring(lines) -> None:
+    multiline = spherely.multilinestring(lines)
+    assert multiline.dimensions == 1
+    assert multiline.nshape == 2
+    assert repr(multiline).startswith("MULTILINESTRING ((5 50")
 
 
 # @pytest.mark.parametrize(
@@ -158,7 +158,7 @@ def test_point() -> None:
 
 
 def test_is_geography() -> None:
-    arr = np.array([1, 2.33, spherely.points(30, 6)])
+    arr = np.array([1, 2.33, spherely.point(30, 6)])
 
     actual = spherely.is_geography(arr)
     expected = np.array([False, False, True])
@@ -166,7 +166,7 @@ def test_is_geography() -> None:
 
 
 def test_not_geography_raise() -> None:
-    arr = np.array([1, 2.33, spherely.points(30, 6)])
+    arr = np.array([1, 2.33, spherely.point(30, 6)])
 
     with pytest.raises(TypeError, match="not a Geography object"):
         spherely.get_dimensions(arr)
@@ -176,10 +176,10 @@ def test_get_type_id() -> None:
     # array
     geog = np.array(
         [
-            spherely.points(45, 50),
-            # spherely.MultiPoint([(50, 5), (51, 6)]),
-            # spherely.LineString([(50, 5), (51, 6)]),
-            # spherely.MultiLineString([[(50, 5), (51, 6)], [(60, 15), (61, 16)]]),
+            spherely.point(45, 50),
+            spherely.multipoint([(5, 50), (6, 51)]),
+            spherely.linestring([(5, 50), (6, 51)]),
+            spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
             # spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
             # spherely.GeographyCollection([spherely.points(40, 50)]),
         ]
@@ -188,9 +188,9 @@ def test_get_type_id() -> None:
     expected = np.array(
         [
             spherely.GeographyType.POINT.value,
-            # spherely.GeographyType.MULTIPOINT.value,
-            # spherely.GeographyType.LINESTRING.value,
-            # spherely.GeographyType.MULTILINESTRING.value,
+            spherely.GeographyType.MULTIPOINT.value,
+            spherely.GeographyType.LINESTRING.value,
+            spherely.GeographyType.MULTILINESTRING.value,
             # spherely.GeographyType.POLYGON.value,
             # spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]
@@ -198,36 +198,36 @@ def test_get_type_id() -> None:
     np.testing.assert_array_equal(actual, expected)
 
     # scalar
-    geog2 = spherely.points(45, 50)
+    geog2 = spherely.point(45, 50)
     assert spherely.get_type_id(geog2) == spherely.GeographyType.POINT.value
 
 
 def test_get_dimensions() -> None:
     # test n-d array
-    # expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
-    # geog = np.array(
-    #     [
-    #         [spherely.points(40, 5), spherely.points(30, 6)],
-    #         [spherely.LineString([(50, 5), (51, 6)]), spherely.points(20, 4)],
-    #     ]
-    # )
-    # actual = spherely.get_dimensions(geog)
-    # np.testing.assert_array_equal(actual, expected)
+    expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
+    geog = np.array(
+        [
+            [spherely.point(5, 40), spherely.point(6, 30)],
+            [spherely.linestring([(5, 50), (6, 51)]), spherely.point(4, 20)],
+        ]
+    )
+    actual = spherely.get_dimensions(geog)
+    np.testing.assert_array_equal(actual, expected)
 
     # test scalar
-    assert spherely.get_dimensions(spherely.points(40, 5)) == 0
+    assert spherely.get_dimensions(spherely.point(5, 40)) == 0
 
 
 def test_prepare() -> None:
     # test array
-    # geog = np.array([spherely.points(45, 50), spherely.LineString([(50, 5), (51, 6)])])
-    # np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
+    geog = np.array([spherely.point(50, 45), spherely.linestring([(5, 50), (6, 51)])])
+    np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
 
-    # spherely.prepare(geog)
-    # np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([True, True]))
+    spherely.prepare(geog)
+    np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([True, True]))
 
-    # spherely.destroy_prepared(geog)
-    # np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
+    spherely.destroy_prepared(geog)
+    np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
 
     # test scalar
     geog2 = spherely.points(45, 50)
