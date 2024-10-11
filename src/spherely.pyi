@@ -143,6 +143,16 @@ def multilinestring(
 def multilinestring(
     vertices: Iterable[LineStringGeography],
 ) -> MultiLineStringGeography: ...
+@overload
+def polygon(
+    shell: Iterable[Sequence[float]],
+    holes: Iterable[Iterable[Sequence[float]]] | None = None,
+) -> PolygonGeography: ...
+@overload
+def polygon(
+    shell: Iterable[PointGeography],
+    holes: Iterable[Iterable[PointGeography]] | None = None,
+) -> PolygonGeography: ...
 
 # Geography utils
 

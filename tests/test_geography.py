@@ -60,70 +60,70 @@ def test_multilinestring(lines) -> None:
     assert repr(multiline).startswith("MULTILINESTRING ((5 50")
 
 
-# @pytest.mark.parametrize(
-#     "coords",
-#     [
-#         [(0, 0), (0, 2), (2, 2), (2, 0)],
-#         [
-#             spherely.points(0, 0),
-#             spherely.points(0, 2),
-#             spherely.points(2, 2),
-#             spherely.points(2, 0),
-#         ],
-#     ],
-# )
-# def test_polygon(coords) -> None:
-#     poly = spherely.Polygon(coords)
-#     assert poly.dimensions == 2
-#     assert poly.nshape == 1
-#     assert repr(poly).startswith("POLYGON ((0 0")
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (2, 0), (2, 2), (0, 2)],
+        [
+            spherely.point(0, 0),
+            spherely.point(2, 0),
+            spherely.point(2, 2),
+            spherely.point(0, 2),
+        ],
+    ],
+)
+def test_polygon(coords) -> None:
+    poly = spherely.polygon(coords)
+    assert poly.dimensions == 2
+    assert poly.nshape == 1
+    assert repr(poly).startswith("POLYGON ((0 0")
 
 
-# @pytest.mark.parametrize(
-#     "coords",
-#     [
-#         [(0, 0), (0, 2), (2, 2), (2, 0)],
-#         [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)],
-#     ],
-# )
-# def test_polygon_closing(coords) -> None:
-#     # support both manual and automated closing
-#     ring = spherely.Polygon(coords)
-#     assert repr(ring).startswith("POLYGON ((0 0")
-#     assert repr(ring).endswith("0 0))")
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (2, 0), (2, 2), (0, 2)],
+        [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)],
+    ],
+)
+def test_polygon_closing(coords) -> None:
+    # support both manual and automated closing
+    ring = spherely.polygon(coords)
+    assert repr(ring).startswith("POLYGON ((0 0")
+    assert repr(ring).endswith("0 0))")
 
 
-# def test_polygon_error() -> None:
-#     with pytest.raises(ValueError, match="polygon is not valid.*duplicate vertex.*"):
-#         spherely.Polygon([(0, 0), (0, 2), (0, 2), (2, 0)])
+def test_polygon_error() -> None:
+    with pytest.raises(ValueError, match="polygon is not valid.*duplicate vertex.*"):
+        spherely.polygon([(0, 0), (0, 2), (0, 2), (2, 0)])
 
-#     with pytest.raises(ValueError, match="polygon is not valid.*at least 3 vertices.*"):
-#         spherely.Polygon([(0, 0), (0, 2)])
+    with pytest.raises(ValueError, match="polygon is not valid.*at least 3 vertices.*"):
+        spherely.polygon([(0, 0), (0, 2)])
 
-#     with pytest.raises(ValueError, match="polygon is not valid.*Edge.*crosses.*"):
-#         spherely.Polygon([(0, 0), (2, 0), (1, 2), (1, -2)])
+    with pytest.raises(ValueError, match="polygon is not valid.*Edge.*crosses.*"):
+        spherely.polygon([(0, 0), (2, 0), (1, 2), (1, -2)])
 
-#     with pytest.raises(ValueError, match="polygon is not valid.*crosses.*"):
-#         # shell/hole rings are crossing each other
-#         spherely.Polygon(
-#             shell=[(0, 0), (0, 4), (4, 4), (4, 0)],
-#             holes=[[(0, 1), (0, 5), (5, 5), (5, 1)]],
-#         )
+    with pytest.raises(ValueError, match="polygon is not valid.*crosses.*"):
+        # shell/hole rings are crossing each other
+        spherely.polygon(
+            shell=[(0, 0), (0, 4), (4, 4), (4, 0)],
+            holes=[[(0, 1), (0, 5), (5, 5), (5, 1)]],
+        )
 
 
-# def test_polygon_normalize() -> None:
-#     poly_ccw = spherely.Polygon([(0, 0), (0, 2), (2, 2), (2, 0)])
-#     poly_cw = spherely.Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+def test_polygon_normalize() -> None:
+    poly_ccw = spherely.polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+    poly_cw = spherely.polygon([(0, 0), (0, 2), (2, 2), (2, 0)])
 
-#     point = spherely.points(1, 1)
+    point = spherely.points(1, 1)
 
-#     # CW and CCW polygons should be both valid
-#     assert spherely.contains(poly_ccw, point)
-#     assert spherely.contains(poly_cw, point)
+    # CW and CCW polygons should be both valid
+    assert spherely.contains(poly_ccw, point)
+    assert spherely.contains(poly_cw, point)
 
-#     # CW polygon vertices reordered
-#     # TODO: better to test actual coordinate values when implemented
-#     assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+    # CW polygon vertices reordered
+    # TODO: better to test actual coordinate values when implemented
+    assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
 # def test_collection() -> None:
@@ -180,7 +180,7 @@ def test_get_type_id() -> None:
             spherely.multipoint([(5, 50), (6, 51)]),
             spherely.linestring([(5, 50), (6, 51)]),
             spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
-            # spherely.Polygon([(50, 5), (50, 6), (51, 6), (51, 5)]),
+            spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
             # spherely.GeographyCollection([spherely.points(40, 50)]),
         ]
     )
@@ -191,7 +191,7 @@ def test_get_type_id() -> None:
             spherely.GeographyType.MULTIPOINT.value,
             spherely.GeographyType.LINESTRING.value,
             spherely.GeographyType.MULTILINESTRING.value,
-            # spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.POLYGON.value,
             # spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]
     )
