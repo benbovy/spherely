@@ -126,6 +126,20 @@ def test_polygon_normalize() -> None:
     assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
+def test_polygon_normalize_holes() -> None:
+    poly_hole_ccw = spherely.polygon(
+        shell=[(0, 0), (2, 0), (2, 2), (0, 2)],
+        holes=[[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]],
+    )
+
+    # CCW polygon hole vertices reordered
+    # TODO: better to test actual coordinate values when implemented
+    assert (
+        repr(poly_hole_ccw)
+        == "POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0), (0.5 1.5, 1.5 1.5, 1.5 0.5, 0.5 0.5, 0.5 1.5))"
+    )
+
+
 def test_collection() -> None:
     objs = [
         spherely.point(0, 0),
@@ -144,7 +158,7 @@ def test_collection() -> None:
     assert repr(coll).count("LINESTRING") == 1
     assert repr(coll).count("POLYGON") == 1
 
-    # TODO: test objects are copied
+    # TODO: test objects are copied (if/when we can update them in place)
     # (for now only test that original objects are preserved)
     assert [o.nshape for o in objs] == [1, 1, 1]
 
