@@ -116,7 +116,9 @@ get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
 # Geography creation
 
-def point(longitude: float, latitude: float) -> Geography: ...
+def point(
+    longitude: float | None = None, latitude: float | None = None
+) -> Geography: ...
 @overload
 def points(
     longitude: npt.ArrayLike, latitude: npt.ArrayLike
@@ -127,10 +129,9 @@ def points(longitude: float, latitude: float) -> PointGeography: ...  # type: ig
 def multipoint(points: Iterable[Sequence[float]]) -> MultiPointGeography: ...
 @overload
 def multipoint(points: Iterable[PointGeography]) -> MultiPointGeography: ...
-@overload
-def linestring(vertices: Iterable[Sequence[float]]) -> LineStringGeography: ...
-@overload
-def linestring(vertices: Iterable[PointGeography]) -> LineStringGeography: ...
+def linestring(
+    vertices: Iterable[Sequence[float]] | Iterable[PointGeography] | None = None,
+) -> LineStringGeography: ...
 @overload
 def multilinestring(
     vertices: Iterable[Iterable[Sequence[float]]],

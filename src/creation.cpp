@@ -1,6 +1,6 @@
 #include "creation.hpp"
 
-#include <pybind11/detail/common.h>
+#include <pybind11/attr.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
@@ -12,6 +12,7 @@
 #include <s2geography/geography.h>
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -243,19 +244,31 @@ void init_creation(py::module &m) {
     py::options options;
     options.disable_function_signatures();
 
-    m.def("point",
-          &point,
-          py::arg("longitude"),
-          py::arg("latitude"),
-          R"pbdoc(point(longitude: float, latitude: float) -> Geography
-
+    m.def(
+        "point",
+        [](py::object longitude, py::object latitude) {
+            if (longitude.is_none() && latitude.is_none()) {
+                // empty point
+                return make_geography(std::make_unique<s2geog::PointGeography>());
+            } else if (longitude.is_none() || latitude.is_none()) {
+                throw py::type_error(
+                    "can only provide None (empty point) or float values for both longitude and "
+                    "latitude");
+            } else {
+                return make_geography<s2geog::PointGeography>(
+                    make_s2point(longitude.cast<double>(), latitude.cast<double>()));
+            }
+        },
+        py::arg("longitude") = py::none(),
+        py::arg("latitude") = py::none(),
+        R"pbdoc(point(longitude: float | None = None, latitude: float | None = None) -> Geography
         Create a POINT geography.
 
         Parameters
         ----------
-        longitude : float
+        longitude : float, optional
             longitude coordinate, in degrees.
-        latitude : float
+        latitude : float, optional
             latitude coordinate, in degrees.
 
     )pbdoc");
@@ -317,33 +330,22 @@ void init_creation(py::module &m) {
 
     )pbdoc");
 
-    m.def("linestring",
-          &linestring<std::pair<double, double>>,
-          py::arg("vertices"),
-          R"pbdoc(linestring(vertices: Sequence) -> Geography
-        Create a LINESTRING geography (overloaded function).
-
-        Create a LINESTRING geography from coordinates:
-
-        Parameters
-        ----------
-        vertices : sequence
-            A sequence of (longitude, latitude) coordinates, in degrees.
-
-    )pbdoc");
-
-    m.def("linestring",
-          &linestring<Geography *>,
-          py::arg("vertices"),
-          R"pbdoc(
-        Create a LINESTRING geography from POINT geographies:
+    m.def(
+         "linestring",
+         [](py::none) { return make_geography(std::make_unique<s2geog::PolylineGeography>()); },
+         py::arg("vertices") = py::none(),
+         R"pbdoc(linestring(vertices: Sequence | None = None) -> Geography
+        Create a LINESTRING geography.
 
         Parameters
         ----------
-        vertices : sequence
-            A sequence of POINT :class:`~spherely.Geography` objects.
+        vertices : sequence, optional
+            A sequence of (longitude, latitude) coordinates, in degrees or
+            POINT :class:`~spherely.Geography` objects.
 
-    )pbdoc");
+        )pbdoc")
+        .def("linestring", &linestring<std::pair<double, double>>, py::arg("vertices"))
+        .def("linestring", &linestring<Geography *>, py::arg("vertices"));
 
     m.def("multilinestring",
           &multilinestring<std::pair<double, double>>,

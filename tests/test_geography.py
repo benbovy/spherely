@@ -39,6 +39,17 @@ def test_linestring(points) -> None:
     assert repr(line).startswith("LINESTRING (5 50")
 
 
+def test_linestring_empty() -> None:
+    line = spherely.linestring()
+    assert repr(line).startswith("LINESTRING EMPTY")
+
+    line = spherely.linestring(None)
+    assert repr(line).startswith("LINESTRING EMPTY")
+
+    with pytest.raises(ValueError, match="with empty component"):
+        spherely.linestring([spherely.point(5, 50), spherely.point()])
+
+
 @pytest.mark.parametrize(
     "lines",
     [
