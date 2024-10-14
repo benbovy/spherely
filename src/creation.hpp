@@ -16,7 +16,7 @@ namespace spherely {
 /*
 ** Wrap one or more s2geometry objects into a spherely::Geography object.
 **
-** @tparam T The s2geography type
+** @tparam T The corresponding s2geography type (e.g., PointGeography for S2Point, etc)
 ** @tparam S The type of the s2geometry (vector of) object(s)
 ** @param s2_obj A single or a vector of s2geometry objects (e.g., S2Point, S2Polyline, etc.)
 ** @returns A new spherely::Geography object
