@@ -43,9 +43,10 @@ S2Point make_s2point(const Geography *point_ptr) {
     auto s2geog_obj = static_cast<const s2geog::PointGeography &>(point_ptr->geog());
 
     if (s2geog_obj.Points().empty()) {
+        // We raise an exception that is caught when trying to build a Geography from an empty point
+        // TODO: what do we want here if this is reused in other contexts?
+        // Return S2Point::NaN() or S2Point()?
         throw EmptyGeographyException("cannot create s2geometry point from empty POINT Geography");
-        // TODO: what do we want here? NaN or S2Point default constructor? It depends?
-        // return S2Point::NaN();
     }
 
     return s2geog_obj.Points()[0];
@@ -140,10 +141,13 @@ std::unique_ptr<Geography> multipoint(const std::vector<V> &pts) {
 
 template <class V>
 std::unique_ptr<Geography> linestring(const std::vector<V> &pts) {
-    auto s2points = make_s2points(pts);
-    auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
-
-    return make_geography<s2geog::PolylineGeography>(std::move(polyline_ptr));
+    try {
+        auto s2points = make_s2points(pts);
+        auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
+        return make_geography<s2geog::PolylineGeography>(std::move(polyline_ptr));
+    } catch (const EmptyGeographyException &error) {
+        throw py::value_error("can't create LineString with empty component");
+    }
 }
 
 template <class V>
