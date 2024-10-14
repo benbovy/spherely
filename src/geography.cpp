@@ -1,5 +1,6 @@
 #include "geography.hpp"
 
+#include <pybind11/attr.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
@@ -177,7 +178,7 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 void init_geography(py::module &m) {
     // Geography types
 
-    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", R"pbdoc(
+    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", py::arithmetic(), R"pbdoc(
         The enumeration of Geography types
     )pbdoc");
 
