@@ -63,6 +63,19 @@ def test_contains():
     assert spherely.contains(a2, b2)
 
 
+def test_contains_polygon():
+    # plain vs. hole polygon
+    poly_plain = spherely.polygon(shell=[(0, 0), (4, 0), (4, 4), (0, 4)])
+
+    poly_hole = spherely.polygon(
+        shell=[(0, 0), (4, 0), (4, 4), (0, 4)],
+        holes=[[(1, 1), (3, 1), (3, 3), (1, 3)]],
+    )
+
+    assert spherely.contains(poly_plain, spherely.point(2, 2))
+    assert not spherely.contains(poly_hole, spherely.point(2, 2))
+
+
 def test_within():
     # test array + scalar
     a = spherely.point(40, 8)
@@ -83,6 +96,19 @@ def test_within():
     assert spherely.within(a2, b2)
 
 
+def test_within_polygon():
+    # plain vs. hole polygon
+    poly_plain = spherely.polygon(shell=[(0, 0), (4, 0), (4, 4), (0, 4)])
+
+    poly_hole = spherely.polygon(
+        shell=[(0, 0), (4, 0), (4, 4), (0, 4)],
+        holes=[[(1, 1), (3, 1), (3, 3), (1, 3)]],
+    )
+
+    assert spherely.within(spherely.point(2, 2), poly_plain)
+    assert not spherely.within(spherely.point(2, 2), poly_hole)
+
+
 def test_disjoint():
     a = spherely.point(40, 9)
     b = np.array(
@@ -100,16 +126,3 @@ def test_disjoint():
     a2 = spherely.point(50, 9)
     b2 = spherely.linestring([(50, 8), (60, 8)])
     assert spherely.disjoint(a2, b2)
-
-
-def test_predicates_polygon():
-    # plain vs. hole polygon
-    poly_plain = spherely.polygon(shell=[(0, 0), (4, 0), (4, 4), (0, 4)])
-
-    poly_hole = spherely.polygon(
-        shell=[(0, 0), (4, 0), (4, 4), (0, 4)],
-        holes=[[(1, 1), (3, 1), (3, 3), (1, 3)]],
-    )
-
-    assert spherely.contains(poly_plain, spherely.point(2, 2))
-    assert not spherely.contains(poly_hole, spherely.point(2, 2))
