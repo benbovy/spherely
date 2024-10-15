@@ -6,6 +6,7 @@
 namespace py = pybind11;
 
 void init_geography(py::module&);
+void init_creation(py::module&);
 void init_predicates(py::module&);
 void init_accessors(py::module&);
 
@@ -19,6 +20,7 @@ PYBIND11_MODULE(spherely, m) {
     )pbdoc";
 
     init_geography(m);
+    init_creation(m);
     init_predicates(m);
     init_accessors(m);
 
