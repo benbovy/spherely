@@ -220,6 +220,9 @@ def test_polygon_empty() -> None:
     poly = spherely.polygon(None)
     assert repr(poly).startswith("POLYGON EMPTY")
 
+    poly = spherely.polygon([])
+    assert repr(poly).startswith("POLYGON EMPTY")
+
     with pytest.raises(ValueError, match="with empty component"):
         spherely.polygon(
             [spherely.point(5, 50), spherely.point(6, 50), spherely.point()]

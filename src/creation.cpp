@@ -198,6 +198,11 @@ std::unique_ptr<Geography> multilinestring(const std::vector<Geography *> &lines
 template <class V>
 std::unique_ptr<Geography> polygon(const std::vector<V> &shell,
                                    const std::optional<std::vector<std::vector<V>>> &holes) {
+    // fastpath empty polygon
+    if (shell.empty()) {
+        return make_geography<s2geog::PolygonGeography>(std::make_unique<S2Polygon>());
+    }
+
     std::vector<std::unique_ptr<S2Loop>> loops;
 
     try {
