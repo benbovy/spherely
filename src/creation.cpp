@@ -142,6 +142,10 @@ std::unique_ptr<Geography> multipoint(const std::vector<V> &pts) {
 
 template <class V>
 std::unique_ptr<Geography> linestring(const std::vector<V> &pts) {
+    if (pts.size() == 1) {
+        throw py::value_error("linestring is not valid: it must have at least 2 vertices");
+    }
+
     try {
         auto s2points = make_s2points(pts);
         auto polyline_ptr = std::make_unique<S2Polyline>(s2points);

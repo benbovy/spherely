@@ -78,8 +78,27 @@ def test_linestring_empty() -> None:
     line = spherely.linestring(None)
     assert repr(line).startswith("LINESTRING EMPTY")
 
+    line = spherely.linestring([])
+    assert repr(line).startswith("LINESTRING EMPTY")
+
     with pytest.raises(ValueError, match="with empty component"):
         spherely.linestring([spherely.point(5, 50), spherely.point()])
+
+
+def test_linestring_error() -> None:
+    with pytest.raises(ValueError, match="at least 2 vertices"):
+        spherely.linestring([(5, 50)])
+
+
+def test_linestring_invalid_geography() -> None:
+    point = spherely.point(5, 50)
+    line = spherely.linestring([(5, 50), (6, 61)])
+
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POINT, found LINESTRING\)",
+    ):
+        spherely.linestring([point, line])
 
 
 @pytest.mark.parametrize(
