@@ -188,7 +188,7 @@ def test_polygon_normalize() -> None:
     poly_ccw = spherely.polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
     poly_cw = spherely.polygon([(0, 0), (0, 2), (2, 2), (2, 0)])
 
-    point = spherely.points(1, 1)
+    point = spherely.point(1, 1)
 
     # CW and CCW polygons should be both valid
     assert spherely.contains(poly_ccw, point)
@@ -227,6 +227,34 @@ def test_polygon_empty() -> None:
         spherely.polygon(
             [spherely.point(5, 50), spherely.point(6, 50), spherely.point()]
         )
+
+
+def test_polygon_invalid_geography() -> None:
+    shell_points = [
+        spherely.point(0, 0),
+        spherely.point(2, 0),
+        spherely.point(2, 2),
+        spherely.point(0, 2),
+    ]
+    hole_points = [
+        spherely.point(0.5, 0.5),
+        spherely.point(1.5, 0.5),
+        spherely.point(1.5, 1.5),
+        spherely.point(0.5, 1.5),
+    ]
+    line = spherely.linestring([(3, 0), (3, 1)])
+
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POINT, found LINESTRING\)",
+    ):
+        spherely.polygon(shell_points + [line])
+
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POINT, found LINESTRING\)",
+    ):
+        spherely.polygon(shell=shell_points, holes=[hole_points + [line]])
 
 
 def test_collection() -> None:
