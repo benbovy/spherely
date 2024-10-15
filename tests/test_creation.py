@@ -307,9 +307,9 @@ def test_collection() -> None:
     assert [o.nshape for o in objs] == [1, 1, 1]
 
     # test nested collection
-    # coll2 = spherely.geography_collection(objs + [coll])
+    coll2 = spherely.geography_collection(objs + [coll])
 
-    # assert repr(coll2).count("POINT") == 2
-    # assert repr(coll2).count("LINESTRING") == 2
-    # assert repr(coll2).count("POLYGON") == 2
-    # assert repr(coll2).count("GEOMETRYCOLLECTION") == 2
+    assert repr(coll2).count("POINT") == 2
+    assert repr(coll2).count("LINESTRING") == 2
+    assert repr(coll2).count("POLYGON") == 2
+    assert repr(coll2).count("GEOMETRYCOLLECTION") == 2

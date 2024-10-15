@@ -34,6 +34,8 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 */
 
 // TODO: May be worth moving this upstream as a `s2geog::Geography::clone()` virtual function
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog);
+
 std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog,
                                                      GeographyType geog_type) {
     std::unique_ptr<s2geog::Geography> new_geog_ptr;
@@ -68,13 +70,26 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
         features_copy.reserve(features.size());
 
         for (const auto &feature_ptr : features) {
-            features_copy.push_back(clone_s2geography(*feature_ptr, geog_type));
+            features_copy.push_back(clone_s2geography(*feature_ptr));
         }
-
         new_geog_ptr = std::make_unique<s2geog::GeographyCollection>(std::move(features_copy));
     }
 
     return new_geog_ptr;
+}
+
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog) {
+    if (const auto *ptr = dynamic_cast<const s2geog::PointGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::Point);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::PolylineGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::LineString);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::PolygonGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::Polygon);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::GeographyCollection *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::GeographyCollection);
+    } else {
+        throw py::type_error("unknown geography type");
+    }
 }
 
 /*
