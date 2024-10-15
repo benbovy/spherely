@@ -114,47 +114,44 @@ class _VFunc_Nin2optradius_Nout1(
 get_dimensions: _VFunc_Nin1_Nout1[Literal["get_dimensions"], Geography, Any]
 get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
-# Geography creation
+# Geography creation (scalar)
 
 def point(
     longitude: float | None = None, latitude: float | None = None
 ) -> Geography: ...
+def multipoint(
+    points: Iterable[Sequence[float]] | Iterable[PointGeography],
+) -> MultiPointGeography: ...
+def linestring(
+    vertices: Iterable[Sequence[float]] | Iterable[PointGeography] | None = None,
+) -> LineStringGeography: ...
+def multilinestring(
+    vertices: (
+        Iterable[Iterable[Sequence[float]]]
+        | Iterable[Iterable[PointGeography]]
+        | Iterable[LineStringGeography]
+    ),
+) -> MultiLineStringGeography: ...
+@overload
+def polygon(
+    shell: Iterable[Sequence[float]] | None = None,
+    holes: Iterable[Iterable[Sequence[float]]] | None = None,
+) -> PolygonGeography: ...
+@overload
+def polygon(
+    shell: Iterable[PointGeography] | None = None,
+    holes: Iterable[Iterable[PointGeography]] | None = None,
+) -> PolygonGeography: ...
+def geography_collection(geographies: Iterable[Geography]) -> GeographyCollection: ...
+
+# Geography creation (vectorized)
+
 @overload
 def points(
     longitude: npt.ArrayLike, latitude: npt.ArrayLike
 ) -> npt.NDArray[np.object_]: ...
 @overload
 def points(longitude: float, latitude: float) -> PointGeography: ...  # type: ignore[misc]
-@overload
-def multipoint(points: Iterable[Sequence[float]]) -> MultiPointGeography: ...
-@overload
-def multipoint(points: Iterable[PointGeography]) -> MultiPointGeography: ...
-def linestring(
-    vertices: Iterable[Sequence[float]] | Iterable[PointGeography] | None = None,
-) -> LineStringGeography: ...
-@overload
-def multilinestring(
-    vertices: Iterable[Iterable[Sequence[float]]],
-) -> MultiLineStringGeography: ...
-@overload
-def multilinestring(
-    vertices: Iterable[Iterable[PointGeography]],
-) -> MultiLineStringGeography: ...
-@overload
-def multilinestring(
-    vertices: Iterable[LineStringGeography],
-) -> MultiLineStringGeography: ...
-@overload
-def polygon(
-    shell: Iterable[Sequence[float]],
-    holes: Iterable[Iterable[Sequence[float]]] | None = None,
-) -> PolygonGeography: ...
-@overload
-def polygon(
-    shell: Iterable[PointGeography],
-    holes: Iterable[Iterable[PointGeography]] | None = None,
-) -> PolygonGeography: ...
-def geography_collection(geographies: Iterable[Geography]) -> GeographyCollection: ...
 
 # Geography utils
 

@@ -199,7 +199,7 @@ std::unique_ptr<Geography> polygon(const std::vector<V> &shell,
     try {
         loops.push_back(make_s2loop(shell, false));
     } catch (const EmptyGeographyException &error) {
-        throw py::value_error("can't create Polygon with empty point(s)");
+        throw py::value_error("can't create Polygon with empty component");
     }
 
     if (holes.has_value()) {
@@ -244,6 +244,8 @@ void init_creation(py::module &m) {
     py::options options;
     options.disable_function_signatures();
 
+    // ----- scalar Geography creation functions
+
     m.def(
         "point",
         [](py::object longitude, py::object latitude) {
@@ -273,6 +275,103 @@ void init_creation(py::module &m) {
 
     )pbdoc");
 
+    m.def("multipoint",
+          &multipoint<std::pair<double, double>>,
+          py::arg("points"),
+          R"pbdoc(multipoint(points: Sequence) -> Geography
+        Create a MULTIPOINT geography.
+
+        Parameters
+        ----------
+        points : sequence
+            A sequence of (longitude, latitude) coordinates (in degrees) or
+            POINT :class:`~spherely.Geography` objects.
+
+    )pbdoc")
+        .def("multipoint", &multipoint<Geography *>, py::arg("points"));
+
+    m.def(
+         "linestring",
+         [](py::none) { return make_geography(std::make_unique<s2geog::PolylineGeography>()); },
+         py::arg("vertices") = py::none(),
+         R"pbdoc(linestring(vertices: Sequence | None = None) -> Geography
+        Create a LINESTRING geography.
+
+        Parameters
+        ----------
+        vertices : sequence, optional
+            A sequence of (longitude, latitude) coordinates (in degrees) or
+            POINT :class:`~spherely.Geography` objects.
+
+        )pbdoc")
+        .def("linestring", &linestring<std::pair<double, double>>, py::arg("vertices"))
+        .def("linestring", &linestring<Geography *>, py::arg("vertices"));
+
+    m.def("multilinestring",
+          &multilinestring<std::pair<double, double>>,
+          py::arg("lines"),
+          R"pbdoc(multilinestring(lines: Sequence) -> Geography
+        Create a MULTILINESTRING geography.
+
+        Parameters
+        ----------
+        lines : sequence
+            A sequence of sequences of (longitude, latitude) coordinates (in degrees) or
+            a sequence of sequences of POINT :class:`~spherely.Geography` objects or
+            a sequence of LINESTRING :class:`~spherely.Geography` objects.
+
+    )pbdoc")
+        .def("multilinestring", &multilinestring<Geography *>, py::arg("lines"))
+        .def(
+            "multilinestring",
+            [](const std::vector<Geography *> lines) { return multilinestring(lines); },
+            py::arg("lines"));
+
+    m.def(
+         "polygon",
+         [](py::none, py::none) {
+             // TODO: remove explicit creation of S2Polygon, see
+             // https://github.com/paleolimbot/s2geography/pull/31
+             auto empty_poly = std::make_unique<S2Polygon>();
+             return make_geography(
+                 std::make_unique<s2geog::PolygonGeography>(std::move(empty_poly)));
+         },
+         py::arg("shell") = py::none(),
+         py::arg("holes") = py::none(),
+         R"pbdoc(polygon(shell: Sequence | None = None, holes: Sequence | None = None) -> Geography
+        Create a POLYGON geography.
+
+        Parameters
+        ----------
+        shell : sequence, optional
+            A sequence of (longitude, latitude) coordinates (in degrees) or
+            POINT :class:`~spherely.Geography` objects  representing the vertices of the polygon.
+        holes : sequence, optional
+            A list of sequences of objects where each sequence satisfies the same
+            requirements as the ``shell`` argument.
+
+    )pbdoc")
+        .def("polygon",
+             &polygon<std::pair<double, double>>,
+             py::arg("shell"),
+             py::arg("holes") = py::none())
+        .def("polygon", &polygon<Geography *>, py::arg("shell"), py::arg("holes") = py::none());
+
+    m.def("geography_collection",
+          &geography_collection,
+          py::arg("geographies"),
+          R"pbdoc(geography_collection(geographies: Sequence) -> Geography
+        Create a GEOGRAPHYCOLLECTION geography from arbitrary geographies.
+
+        Parameters
+        ----------
+        geographies : sequence
+            A sequence of :class:`~spherely.Geography` objects.
+
+    )pbdoc");
+
+    // ----- vectorized Geography creation functions
+
     m.def("points",
           py::vectorize(&point),
           py::arg("longitude"),
@@ -299,144 +398,6 @@ void init_creation(py::module &m) {
         ----------
         coords : array_like
             A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
-
-    )pbdoc");
-
-    m.def("multipoint",
-          &multipoint<std::pair<double, double>>,
-          py::arg("points"),
-          R"pbdoc(multipoint(points: Sequence) -> Geography
-        Create a MULTIPOINT geography (overloaded function).
-
-        Create a MULTIPOINT geography from coordinates:
-
-        Parameters
-        ----------
-        points : sequence
-            A sequence of (longitude, latitude) coordinates, in degrees.
-
-    )pbdoc");
-
-    m.def("multipoint",
-          &multipoint<Geography *>,
-          py::arg("points"),
-          R"pbdoc(
-        Create a MULTIPOINT geography from POINT geographies:
-
-        Parameters
-        ----------
-        points : sequence
-            A sequence of POINT :class:`~spherely.Geography` objects.
-
-    )pbdoc");
-
-    m.def(
-         "linestring",
-         [](py::none) { return make_geography(std::make_unique<s2geog::PolylineGeography>()); },
-         py::arg("vertices") = py::none(),
-         R"pbdoc(linestring(vertices: Sequence | None = None) -> Geography
-        Create a LINESTRING geography.
-
-        Parameters
-        ----------
-        vertices : sequence, optional
-            A sequence of (longitude, latitude) coordinates, in degrees or
-            POINT :class:`~spherely.Geography` objects.
-
-        )pbdoc")
-        .def("linestring", &linestring<std::pair<double, double>>, py::arg("vertices"))
-        .def("linestring", &linestring<Geography *>, py::arg("vertices"));
-
-    m.def("multilinestring",
-          &multilinestring<std::pair<double, double>>,
-          py::arg("lines"),
-          R"pbdoc(multilinestring(lines: Sequence) -> Geography
-        Create a MULTILINESTRING geography (overloaded function).
-
-        Create a MULTILINESTRING geography from coordinates:
-
-        Parameters
-        ----------
-        lines : sequence
-            A sequence of sequences of (longitude, latitude) coordinates, in degrees.
-
-    )pbdoc");
-
-    m.def("multilinestring",
-          &multilinestring<Geography *>,
-          py::arg("lines"),
-          R"pbdoc(
-        Create a MULTILINESTRING geography from POINT geographies:
-
-        Parameters
-        ----------
-        lines : sequence
-            A sequence of sequences of POINT :class:`~spherely.Geography` objects.
-
-    )pbdoc");
-
-    m.def(
-        "multilinestring",
-        [](const std::vector<Geography *> lines) { return multilinestring(lines); },
-        py::arg("lines"),
-        R"pbdoc(
-        Create a MULTILINESTRING geography from LINESTRING geographies:
-
-        Parameters
-        ----------
-        lines : sequence
-            A sequence of LINESTRING :class:`~spherely.Geography` objects.
-
-    )pbdoc");
-
-    m.def("polygon",
-          &polygon<std::pair<double, double>>,
-          py::arg("shell"),
-          py::arg("holes") = py::none(),
-          R"pbdoc(polygon(shell: Sequence, holes: Sequence | None = None) -> Geography
-        Create a POLYGON geography (overloaded function).
-
-        Create a POLYGON geography from coordinates:
-
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of (longitude, latitude) coordinates in degrees representing
-            the vertices of the polygon.
-        holes : sequence, optional
-            A list of sequences of objects where each sequence satisfies the same
-            requirements as the ``shell`` argument.
-
-    )pbdoc");
-
-    m.def("polygon",
-          &polygon<Geography *>,
-          py::arg("shell"),
-          py::arg("holes") = py::none(),
-          R"pbdoc(
-        Create a POLYGON geography from POINT geographies:
-
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of POINT :class:`~spherely.Geography` objects representing
-            the vertices of the polygon.
-        holes : sequence, optional
-            A list of sequences of objects where each sequence satisfies the same
-            requirements as the ``shell`` argument.
-
-    )pbdoc");
-
-    m.def("geography_collection",
-          &geography_collection,
-          py::arg("geographies"),
-          R"pbdoc(geography_collection(geographies: Sequence) -> Geography
-        Create a GEOGRAPHYCOLLECTION geography from arbitrary geographies:
-
-        Parameters
-        ----------
-        geographies : sequence
-            A sequence of :class:`~spherely.Geography` objects.
 
     )pbdoc");
 }
