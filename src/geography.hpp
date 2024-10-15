@@ -159,7 +159,8 @@ inline void check_geog_type(const Geography& geog_obj, GeographyType geog_type) 
         auto expected = format_geog_type(geog_type);
         auto actual = format_geog_type(geog_obj.geog_type());
 
-        py::type_error("invalid Geography type (expected " + expected + ", found " + actual + ")");
+        throw py::type_error("invalid Geography type (expected " + expected + ", found " + actual +
+                             ")");
     }
 }
 

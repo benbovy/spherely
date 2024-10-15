@@ -14,7 +14,7 @@ def test_point() -> None:
     "points",
     [
         [(5, 50), (6, 51)],
-        [spherely.points(5, 50), spherely.points(6, 51)],
+        [spherely.point(5, 50), spherely.point(6, 51)],
     ],
 )
 def test_multipoint(points) -> None:
@@ -22,6 +22,39 @@ def test_multipoint(points) -> None:
     assert multipoint.dimensions == 0
     assert multipoint.nshape == 1
     assert repr(multipoint).startswith("MULTIPOINT ((5 50)")
+
+
+def test_multipoint_invalid_geography() -> None:
+    point = spherely.point(5, 50)
+    # all types other than points to test the error formatting
+    multipoint = spherely.multipoint([(5, 50), (6, 61)])
+    line = spherely.linestring([(5, 50), (6, 61)])
+    multiline = spherely.multilinestring([line, line])
+    polygon = spherely.polygon([(5, 50), (6, 61), (5, 61)])
+    collection = spherely.geography_collection([point, line])
+
+    with pytest.raises(
+        TypeError, match=r"invalid Geography type \(expected POINT, found MULTIPOINT\)"
+    ):
+        spherely.multipoint([point, multipoint])
+    with pytest.raises(
+        TypeError, match=r"invalid Geography type \(expected POINT, found LINESTRING\)"
+    ):
+        spherely.multipoint([point, line])
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POINT, found MULTILINESTRING\)",
+    ):
+        spherely.multipoint([point, multiline])
+    with pytest.raises(
+        TypeError, match=r"invalid Geography type \(expected POINT, found POLYGON\)"
+    ):
+        spherely.multipoint([point, polygon])
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POINT, found GEOMETRYCOLLECTION\)",
+    ):
+        spherely.multipoint([point, collection])
 
 
 @pytest.mark.parametrize(
@@ -68,6 +101,17 @@ def test_multilinestring(lines) -> None:
     assert multiline.dimensions == 1
     assert multiline.nshape == 2
     assert repr(multiline).startswith("MULTILINESTRING ((5 50")
+
+
+def test_multilinestring_invalid_geography() -> None:
+    line = spherely.linestring([(5, 50), (6, 61)])
+    polygon = spherely.polygon([(5, 50), (6, 61), (5, 61)])
+
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected LINESTRING, found POLYGON\)",
+    ):
+        spherely.multilinestring([line, polygon])
 
 
 @pytest.mark.parametrize(
