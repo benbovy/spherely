@@ -125,7 +125,7 @@ py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
 
     for (py::ssize_t i = 0; i < npoints; i++) {
         auto point_ptr = point(coords_data(i, 0), coords_data(i, 1));
-        data[i] = py::cast(std::move(point_ptr));
+        data[i] = std::move(point_ptr);
     }
 
     return points;
