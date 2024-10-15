@@ -10,6 +10,7 @@
 #include <s2geography/geography.h>
 #include <s2geography/wkt-writer.h>
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -117,18 +118,29 @@ void Geography::extract_geog_properties() {
             m_geog_type = GeographyType::MultiLineString;
         }
     } else if (const auto *ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
-        int nloops = ptr->Polygon()->num_loops();
-        if (nloops == 0) {
-            m_is_empty = 0;
+        const auto &s2poly_ptr = ptr->Polygon();
+        // find the outer shells (loop depth = 0, 2, 4, etc.)
+        std::vector<int> outer_shell_loop_ids;
+
+        outer_shell_loop_ids.reserve(static_cast<size_t>(s2poly_ptr->num_loops()));
+
+        for (int i = 0; i < s2poly_ptr->num_loops(); i++) {
+            if ((s2poly_ptr->loop(i)->depth() % 2) == 0) {
+                outer_shell_loop_ids.push_back(i);
+            }
         }
-        if (nloops <= 1) {
+
+        if (outer_shell_loop_ids.empty()) {
+            m_is_empty = true;
+        }
+        if (outer_shell_loop_ids.size() <= 1) {
             m_geog_type = GeographyType::Polygon;
         } else {
             m_geog_type = GeographyType::MultiPolygon;
         }
     } else if (const auto *ptr = downcast_geog<s2geog::GeographyCollection>(); ptr) {
         if (ptr->Features().empty()) {
-            m_is_empty = 0;
+            m_is_empty = true;
         }
         m_geog_type = GeographyType::GeographyCollection;
     } else {

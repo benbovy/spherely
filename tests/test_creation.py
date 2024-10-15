@@ -257,6 +257,33 @@ def test_polygon_invalid_geography() -> None:
         spherely.polygon(shell=shell_points, holes=[hole_points + [line]])
 
 
+def test_multipolygons() -> None:
+    poly1 = spherely.polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+    poly2 = spherely.polygon(
+        shell=[(4, 0), (6, 0), (6, 2), (4, 2)],
+        holes=[[(4.5, 0.5), (5.5, 0.5), (5.5, 1.5), (4.5, 1.5)]],
+    )
+    print(spherely.GeographyType(spherely.get_type_id(poly2)))
+
+    multipoly = spherely.multipolygon([poly1, poly2])
+    print(multipoly)
+
+    assert multipoly.dimensions == 2
+    assert multipoly.nshape == 1
+    assert repr(multipoly).startswith("MULTIPOLYGON (((0 0")
+
+
+def test_multipolygon_invalid_geography() -> None:
+    poly = spherely.polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+    line = spherely.linestring([(3, 0), (3, 1)])
+
+    with pytest.raises(
+        TypeError,
+        match=r"invalid Geography type \(expected POLYGON, found LINESTRING\)",
+    ):
+        spherely.multipolygon([poly, line])
+
+
 def test_collection() -> None:
     objs = [
         spherely.point(0, 0),

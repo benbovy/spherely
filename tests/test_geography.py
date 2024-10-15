@@ -28,6 +28,17 @@ def test_get_type_id() -> None:
             spherely.linestring([(5, 50), (6, 51)]),
             spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
             spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+            # with hole
+            spherely.polygon(
+                shell=[(5, 60), (6, 60), (6, 50), (5, 50)],
+                holes=[[(5.1, 59), (5.9, 59), (5.9, 51), (5.1, 51)]],
+            ),
+            spherely.multipolygon(
+                [
+                    spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                    spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+                ]
+            ),
             spherely.geography_collection([spherely.point(40, 50)]),
         ]
     )
@@ -39,6 +50,8 @@ def test_get_type_id() -> None:
             spherely.GeographyType.LINESTRING.value,
             spherely.GeographyType.MULTILINESTRING.value,
             spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.MULTIPOLYGON.value,
             spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
         ]
     )

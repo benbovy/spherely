@@ -53,6 +53,7 @@ LineStringGeography = Annotated[Geography, GeographyType.LINESTRING]
 PolygonGeography = Annotated[Geography, GeographyType.POLYGON]
 MultiPointGeography = Annotated[Geography, GeographyType.MULTIPOINT]
 MultiLineStringGeography = Annotated[Geography, GeographyType.MULTILINESTRING]
+MultiPolygonGeography = Annotated[Geography, GeographyType.MULTIPOLYGON]
 GeographyCollection = Annotated[Geography, GeographyType.GEOGRAPHYCOLLECTION]
 
 # Numpy-like vectorized (universal) functions
@@ -142,6 +143,7 @@ def polygon(
     shell: Iterable[PointGeography] | None = None,
     holes: Iterable[Iterable[PointGeography]] | None = None,
 ) -> PolygonGeography: ...
+def multipolygon(polygons: Iterable[PolygonGeography]) -> MultiPolygonGeography: ...
 def geography_collection(geographies: Iterable[Geography]) -> GeographyCollection: ...
 
 # Geography creation (vectorized)

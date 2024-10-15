@@ -102,6 +102,26 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices, bool check =
     return std::move(loop_ptr);
 }
 
+// create a S2Polygon.
+//
+std::unique_ptr<S2Polygon> make_s2polygon(std::vector<std::unique_ptr<S2Loop>> loops) {
+    auto polygon_ptr = std::make_unique<S2Polygon>();
+    polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
+    polygon_ptr->InitNested(std::move(loops));
+
+    // Note: this also checks each loop of the polygon
+    if (!polygon_ptr->IsValid()) {
+        std::stringstream err;
+        S2Error s2err;
+        err << "polygon is not valid: ";
+        polygon_ptr->FindValidationError(&s2err);
+        err << s2err.text();
+        throw py::value_error(err.str());
+    }
+
+    return polygon_ptr;
+}
+
 //
 // ---- Spherely Python Geography creation functions
 //
@@ -217,21 +237,23 @@ std::unique_ptr<Geography> polygon(const std::vector<V> &shell,
         }
     }
 
-    auto polygon_ptr = std::make_unique<S2Polygon>();
-    polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
-    polygon_ptr->InitNested(std::move(loops));
+    return make_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops)));
+}
 
-    // Note: this also checks each loop of the polygon
-    if (!polygon_ptr->IsValid()) {
-        std::stringstream err;
-        S2Error s2err;
-        err << "polygon is not valid: ";
-        polygon_ptr->FindValidationError(&s2err);
-        err << s2err.text();
-        throw py::value_error(err.str());
+std::unique_ptr<Geography> multipolygon(const std::vector<Geography *> &polygons) {
+    std::vector<std::unique_ptr<S2Loop>> loops;
+
+    for (const auto *poly_ptr : polygons) {
+        check_geog_type(*poly_ptr, GeographyType::Polygon);
+        auto s2geog_ptr = static_cast<const s2geog::PolygonGeography *>(&poly_ptr->geog());
+        const auto &s2poly_ptr = s2geog_ptr->Polygon();
+
+        for (int i = 0; i < s2poly_ptr->num_loops(); ++i) {
+            loops.push_back(std::unique_ptr<S2Loop>(s2poly_ptr->loop(i)->Clone()));
+        }
     }
 
-    return make_geography<s2geog::PolygonGeography>(std::move(polygon_ptr));
+    return make_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops)));
 }
 
 std::unique_ptr<Geography> geography_collection(const std::vector<Geography *> &features) {
@@ -365,6 +387,19 @@ void init_creation(py::module &m) {
              py::arg("shell"),
              py::arg("holes") = py::none())
         .def("polygon", &polygon<Geography *>, py::arg("shell"), py::arg("holes") = py::none());
+
+    m.def("multipolygon",
+          &multipolygon,
+          py::arg("polygons"),
+          R"pbdoc(multipolygon(polygons: Sequence) -> Geography
+        Create a MULTIPOLYGON geography.
+
+        Parameters
+        ----------
+        polygons : sequence
+            A sequence of POLYGON :class:`~spherely.Geography` objects.
+
+    )pbdoc");
 
     m.def("geography_collection",
           &geography_collection,
