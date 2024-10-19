@@ -70,10 +70,15 @@ def test_from_wkt_oriented():
 )
 def test_from_wkt_planar():
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
-    assert spherely.distance(result, spherely.Point(45, -30)) > 10000
+    assert spherely.distance(result, spherely.Point(45, -30.1)) > 10000
 
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)", planar=True)
-    assert spherely.distance(result, spherely.Point(45, -30)) < 100
+    assert spherely.distance(result, spherely.Point(45, -30.1)) < 100
+
+    result = spherely.from_wkt(
+        "LINESTRING (-64 45, 0 45)", planar=True, tessellate_tol_m=10
+    )
+    assert spherely.distance(result, spherely.Point(45, -30.1)) < 10
 
 
 @pytest.mark.skipif(
