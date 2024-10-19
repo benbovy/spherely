@@ -71,15 +71,25 @@ endif()
 
 # Build
 
-add_library(spherely MODULE
+set(CPP_SOURCES
   src/geography.cpp
   src/accessors-geog.cpp
   src/predicates.cpp
-  src/spherely.cpp
-  )
+  src/spherely.cpp)
 
-target_compile_definitions(spherely
-                           PRIVATE VERSION_INFO=${PROJECT_VERSION})
+if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")
+    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp)
+endif()
+
+add_library(spherely MODULE ${CPP_SOURCES})
+
+target_compile_definitions(
+  spherely
+  PRIVATE
+  VERSION_INFO=${PROJECT_VERSION}
+  S2GEOGRAPHY_VERSION=${s2geography_VERSION}
+  S2GEOGRAPHY_VERSION_MAJOR=${s2geography_VERSION_MAJOR}
+  S2GEOGRAPHY_VERSION_MINOR=${s2geography_VERSION_MINOR})
 
 target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras
@@ -87,10 +97,10 @@ target_link_libraries(spherely
   )
 
 pybind11_extension(spherely)
-if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
-    # Strip unnecessary sections of the binary on Linux/macOS
-    pybind11_strip(spherely)
-endif()
+# if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
+#     # Strip unnecessary sections of the binary on Linux/macOS
+#     pybind11_strip(spherely)
+# endif()
 
 set_target_properties(spherely PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 
