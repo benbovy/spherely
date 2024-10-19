@@ -9,27 +9,36 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
-PyObjectGeography from_wkt(py::str a, bool oriented, bool planar) {
+class FromWKT {
+public:
+    FromWKT(bool oriented, bool planar) {
 #if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
     (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
-    s2geog::geoarrow::ImportOptions options;
-    options.set_oriented(oriented);
-    if (planar) {
-        auto tol = S1Angle::Radians(100.0 / EARTH_RADIUS_METERS);
-        options.set_tessellate_tolerance(tol);
-    }
-    s2geog::WKTReader reader(options);
+        s2geog::geoarrow::ImportOptions options;
+        options.set_oriented(oriented);
+        if (planar) {
+            auto tol = S1Angle::Radians(100.0 / EARTH_RADIUS_METERS);
+            options.set_tessellate_tolerance(tol);
+        }
+        m_reader = std::make_shared<s2geog::WKTReader>(options);
 #else
-    if (planar || oriented) {
-        throw std::invalid_argument(
-            "planar and oriented options are only available with s2geography >= 0.2");
-    }
-    s2geog::WKTReader reader;
+        if (planar || oriented) {
+            throw std::invalid_argument(
+                "planar and oriented options are only available with s2geography >= 0.2");
+        }
+        m_reader = std::make_shared<s2geog::WKTReader>();
 #endif
-    std::unique_ptr<s2geog::Geography> s2geog = reader.read_feature(a);
-    auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog));
-    return PyObjectGeography::from_geog(std::move(geog_ptr));
-}
+    }
+
+    PyObjectGeography operator()(py::str a) const {
+        std::unique_ptr<s2geog::Geography> s2geog = m_reader->read_feature(a);
+        auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog));
+        return PyObjectGeography::from_geog(std::move(geog_ptr));
+    }
+
+private:
+    std::shared_ptr<s2geog::WKTReader> m_reader;
+};
 
 py::str to_wkt(PyObjectGeography a) {
     s2geog::WKTWriter writer;
@@ -38,12 +47,15 @@ py::str to_wkt(PyObjectGeography a) {
 }
 
 void init_io(py::module& m) {
-    m.def("from_wkt",
-          py::vectorize(&from_wkt),
-          py::arg("a"),
-          py::arg("oriented") = false,
-          py::arg("planar") = false,
-          R"pbdoc(
+    m.def(
+        "from_wkt",
+        [](py::array_t<py::str> a, bool oriented, bool planar) {
+            return py::vectorize(FromWKT(oriented, planar))(std::move(a));
+        },
+        py::arg("a"),
+        py::arg("oriented") = false,
+        py::arg("planar") = false,
+        R"pbdoc(
         Creates geographies from the Well-Known Text (WKT) representation.
 
         Parameters
