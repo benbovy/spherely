@@ -215,15 +215,10 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input, py::object ge
         malloc(sizeof(const s2geog::Geography*) * num_geographies));
 
     for (int i = 0; i < input.size(); i++) {
-        geographies[i] = &((*input.data(i)).as_geog_ptr()->geog());
+        writer.WriteGeography((*input.data(i)).as_geog_ptr()->geog());
     }
 
-    // for (int i = 0; i < input.size(); i++) {
-    //     auto geog_ptr = (*input.data(i)).as_geog_ptr();
-    //     s2geog_vec.push_back(std::make_unique<s2geog::Geography>(geog_ptr->geog()));
-    // }
-
-    writer.WriteGeography(geographies, num_geographies, array.array());
+    writer.Finish(array.array());
 
     return std::move(array);
 }
