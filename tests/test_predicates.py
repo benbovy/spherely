@@ -100,3 +100,72 @@ def test_disjoint():
     a2 = spherely.Point(50, 9)
     b2 = spherely.LineString([(50, 8), (60, 8)])
     assert spherely.disjoint(a2, b2)
+
+
+def test_touches():
+    a = spherely.Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+    b = np.array(
+        [
+            spherely.Polygon([(1.0, 1.0), (1.0, 2.0), (2.0, 2.0), (2.0, 1.0)]),
+            spherely.Polygon([(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5)]),
+        ]
+    )
+
+    actual = spherely.touches(a, b)
+    expected = np.array([True, False])
+    np.testing.assert_array_equal(actual, expected)
+
+    a_p = spherely.Point(1.0, 1.0)
+    b_p = spherely.Point(1.0, 1.0)
+    # Points do not have a boundary, so they cannot touch per definition
+    # This is consistent with PostGIS for example (cmp. https://postgis.net/docs/ST_Touches.html)
+    assert not spherely.touches(a_p, b_p)
+
+    b_line = spherely.LineString([(1.0, 1.0), (1.0, 2.0)])
+    assert spherely.touches(a_p, b_line)
+
+
+def test_covers():
+    a = spherely.Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+    b_p = np.array(
+        [
+            spherely.Point(2.0, 2.0),
+            spherely.Point(1.0, 1.0),
+            spherely.Point(0.5, 0.5),
+        ]
+    )
+
+    actual = spherely.covers(a, b_p)
+    expected = np.array([False, True, True])
+    np.testing.assert_array_equal(actual, expected)
+
+    b_poly_in = spherely.Polygon([(0.1, 0.1), (0.1, 0.9), (0.9, 0.9), (0.9, 0.1)])
+    b_poly_part_boundary = spherely.Polygon(
+        [(0.0, 0.0), (0.0, 0.75), (0.75, 0.75), (0.75, 0.0)]
+    )
+
+    assert spherely.covers(a, b_poly_in)
+    assert spherely.covers(a, b_poly_part_boundary)  # This fails, but should not
+
+
+def test_covered_by():
+    a = spherely.Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+    b_p = np.array(
+        [
+            spherely.Point(2.0, 2.0),
+            spherely.Point(1.0, 1.0),
+            spherely.Point(0.5, 0.5),
+        ]
+    )
+
+    actual = spherely.covered_by(b_p, a)
+    expected = np.array([False, True, True])
+    np.testing.assert_array_equal(actual, expected)
+
+    b_poly_in = spherely.Polygon([(0.1, 0.1), (0.1, 0.9), (0.9, 0.9), (0.9, 0.1)])
+    b_poly_part_boundary = spherely.Polygon(
+        [(0.0, 0.0), (0.0, 0.75), (0.75, 0.75), (0.75, 0.0)]
+    )
+
+    assert spherely.covered_by(b_poly_in, a)
+    assert spherely.covers(b_poly_part_boundary, a)  # This fails, but should not
