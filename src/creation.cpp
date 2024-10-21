@@ -260,7 +260,7 @@ std::unique_ptr<Geography> multipolygon(const std::vector<Geography *> &polygons
     return make_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops)));
 }
 
-std::unique_ptr<Geography> geography_collection(const std::vector<Geography *> &features) {
+std::unique_ptr<Geography> collection(const std::vector<Geography *> &features) {
     std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
     features_copy.reserve(features.size());
 
@@ -405,10 +405,10 @@ void init_creation(py::module &m) {
 
     )pbdoc");
 
-    m.def("geography_collection",
-          &geography_collection,
+    m.def("collection",
+          &collection,
           py::arg("geographies"),
-          R"pbdoc(geography_collection(geographies: Sequence) -> Geography
+          R"pbdoc(collection(geographies: Sequence) -> Geography
         Create a GEOMETRYCOLLECTION geography from arbitrary geographies.
 
         Parameters

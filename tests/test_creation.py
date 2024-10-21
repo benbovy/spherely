@@ -39,7 +39,7 @@ def test_multipoint_invalid_geography() -> None:
     line = spherely.linestring([(5, 50), (6, 61)])
     multiline = spherely.multilinestring([line, line])
     polygon = spherely.polygon([(5, 50), (6, 61), (5, 61)])
-    collection = spherely.geography_collection([point, line])
+    collection = spherely.collection([point, line])
 
     with pytest.raises(
         TypeError, match=r"invalid Geography type \(expected POINT, found MULTIPOINT\)"
@@ -352,7 +352,7 @@ def test_collection() -> None:
         spherely.polygon([(0, 0), (1, 0), (1, 1)]),
     ]
 
-    coll = spherely.geography_collection(objs)
+    coll = spherely.collection(objs)
 
     assert coll.dimensions == -1
     assert coll.nshape == 3
@@ -368,7 +368,7 @@ def test_collection() -> None:
     assert [o.nshape for o in objs] == [1, 1, 1]
 
     # test nested collection
-    coll2 = spherely.geography_collection(objs + [coll])
+    coll2 = spherely.collection(objs + [coll])
 
     assert repr(coll2).count("POINT") == 2
     assert repr(coll2).count("LINESTRING") == 2

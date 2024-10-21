@@ -39,7 +39,7 @@ def test_get_type_id() -> None:
                     spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
                 ]
             ),
-            spherely.geography_collection([spherely.point(40, 50)]),
+            spherely.collection([spherely.point(40, 50)]),
         ]
     )
     actual = spherely.get_type_id(geog)
