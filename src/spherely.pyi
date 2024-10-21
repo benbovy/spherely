@@ -135,12 +135,17 @@ def multilinestring(
 ) -> MultiLineStringGeography: ...
 @overload
 def polygon(
-    shell: Iterable[Sequence[float]] | None = None,
+    shell: None = None,
+    holes: None = None,
+) -> PolygonGeography: ...
+@overload
+def polygon(
+    shell: Iterable[Sequence[float]],
     holes: Iterable[Iterable[Sequence[float]]] | None = None,
 ) -> PolygonGeography: ...
 @overload
 def polygon(
-    shell: Iterable[PointGeography] | None = None,
+    shell: Iterable[PointGeography],
     holes: Iterable[Iterable[PointGeography]] | None = None,
 ) -> PolygonGeography: ...
 def multipolygon(polygons: Iterable[PolygonGeography]) -> MultiPolygonGeography: ...
@@ -172,12 +177,9 @@ disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
 # geography accessors
 
-centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, PointGeography]
+centroid: _VFunc_Nin1_Nout1[Literal["centroid"], PointGeography, PointGeography]
 boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
-convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, PolygonGeography]
+convex_hull: _VFunc_Nin1_Nout1[
+    Literal["convex_hull"], PolygonGeography, PolygonGeography
+]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
-
-# temp (remove)
-
-def create(arg0: Iterable[float], arg1: Iterable[float]) -> npt.NDArray[Any]: ...
-def nshape(arg0: npt.NDArray[Any]) -> npt.NDArray[np.int32]: ...
