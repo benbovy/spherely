@@ -51,7 +51,7 @@ inline std::unique_ptr<Geography> make_geography(std::unique_ptr<T> s2geog_ptr) 
 ** Example:
 **
 ** S2Point s2_obj(S2LatLng::FromDegrees(40.0, 5.0).ToPoint());
-** auto py_geog = make_geography<s2geography::PointGeography>(s2_obj);
+** auto py_geog = make_py_geography<s2geography::PointGeography>(s2_obj);
 **
 ** @tparam T The corresponding s2geography type (e.g., PointGeography for S2Point, etc)
 ** @tparam S The type of the s2geometry (vector of) object(s)
