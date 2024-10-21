@@ -207,6 +207,51 @@ def test_polygon_normalize() -> None:
     assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
+@pytest.mark.parametrize(
+    "shell,holes",
+    [
+        (
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]],
+        ),
+        (
+            [
+                spherely.point(0, 0),
+                spherely.point(2, 0),
+                spherely.point(2, 2),
+                spherely.point(0, 2),
+            ],
+            [
+                [
+                    spherely.point(0.5, 0.5),
+                    spherely.point(1.5, 0.5),
+                    spherely.point(1.5, 1.5),
+                    spherely.point(0.5, 1.5),
+                ]
+            ],
+        ),
+    ],
+)
+def test_polygon_holes(shell, holes) -> None:
+    poly = spherely.polygon(shell, holes=holes)
+    assert poly.dimensions == 2
+    assert poly.nshape == 1
+    assert repr(poly).startswith("POLYGON ((0 0")
+
+
+def test_polygon_mixed_types_not_supported() -> None:
+    shell = [
+        spherely.point(0, 0),
+        spherely.point(2, 0),
+        spherely.point(2, 2),
+        spherely.point(0, 2),
+    ]
+    holes = [[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]]
+
+    with pytest.raises(TypeError, match="incompatible function arguments"):
+        spherely.polygon(shell, holes=holes)  # type: ignore
+
+
 def test_polygon_normalize_holes() -> None:
     poly_hole_ccw = spherely.polygon(
         shell=[(0, 0), (2, 0), (2, 2), (0, 2)],
