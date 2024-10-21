@@ -134,21 +134,19 @@ void Geography::extract_geog_properties() {
         }
     } else if (const auto *ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
         const auto &s2poly_ptr = ptr->Polygon();
-        // find the outer shells (loop depth = 0, 2, 4, etc.)
-        std::vector<int> outer_shell_loop_ids;
-
-        outer_shell_loop_ids.reserve(static_cast<size_t>(s2poly_ptr->num_loops()));
+        // count the outer shells (loop depth = 0, 2, 4, etc.)
+        int n_outer_shell_loops = 0;
 
         for (int i = 0; i < s2poly_ptr->num_loops(); i++) {
             if ((s2poly_ptr->loop(i)->depth() % 2) == 0) {
-                outer_shell_loop_ids.push_back(i);
+                n_outer_shell_loops++;
             }
         }
 
-        if (outer_shell_loop_ids.empty()) {
+        if (n_outer_shell_loops == 0) {
             m_is_empty = true;
         }
-        if (outer_shell_loop_ids.size() <= 1) {
+        if (n_outer_shell_loops <= 1) {
             m_geog_type = GeographyType::Polygon;
         } else {
             m_geog_type = GeographyType::MultiPolygon;
