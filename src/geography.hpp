@@ -47,10 +47,15 @@ enum class GeographyType : std::int8_t {
 class Geography {
 public:
     Geography(const Geography&) = delete;
-    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
-        extract_geog_properties();
-    }
+    Geography(Geography&& geog)
+        : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)),
+          m_is_empty(geog.is_empty()),
+          m_geog_type(geog.geog_type()) {}
+
     Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {
+        // TODO: template constructors with s2geography Geography subclass constraints (e.g., using
+        // SFINAE or "if constexpr") may be more efficient than dynamic casting like done in
+        // extract_geog_properties.
         extract_geog_properties();
     }
 
