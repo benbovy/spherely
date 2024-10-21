@@ -316,10 +316,8 @@ def test_multipolygons() -> None:
         shell=[(4, 0), (6, 0), (6, 2), (4, 2)],
         holes=[[(4.5, 0.5), (5.5, 0.5), (5.5, 1.5), (4.5, 1.5)]],
     )
-    print(spherely.GeographyType(spherely.get_type_id(poly2)))
 
     multipoly = spherely.multipolygon([poly1, poly2])
-    print(multipoly)
 
     assert multipoly.dimensions == 2
     assert multipoly.nshape == 1
