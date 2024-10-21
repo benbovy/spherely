@@ -251,6 +251,9 @@ def test_polygon_mixed_types_not_supported() -> None:
     with pytest.raises(TypeError, match="incompatible function arguments"):
         spherely.polygon(shell, holes=holes)  # type: ignore
 
+    with pytest.raises(TypeError, match="incompatible function arguments"):
+        spherely.polygon(None, holes=holes)  # type: ignore
+
 
 def test_polygon_normalize_holes() -> None:
     poly_hole_ccw = spherely.polygon(
@@ -280,6 +283,13 @@ def test_polygon_empty() -> None:
         spherely.polygon(
             [spherely.point(5, 50), spherely.point(6, 50), spherely.point()]
         )
+
+
+def test_polygon_empty_shell_with_holes() -> None:
+    holes = [[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]]
+
+    with pytest.raises(ValueError, match="polygon shell is empty but found holes"):
+        spherely.polygon([], holes=holes)
 
 
 def test_polygon_invalid_geography() -> None:

@@ -1,6 +1,7 @@
 #include "creation.hpp"
 
 #include <pybind11/attr.h>
+#include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
@@ -220,6 +221,9 @@ std::unique_ptr<Geography> polygon(const std::vector<V> &shell,
                                    const std::optional<std::vector<std::vector<V>>> &holes) {
     // fastpath empty polygon
     if (shell.empty()) {
+        if (holes.has_value() && !holes.value().empty()) {
+            throw py::value_error("polygon shell is empty but found holes");
+        }
         return make_geography<s2geog::PolygonGeography>(std::make_unique<S2Polygon>());
     }
 
