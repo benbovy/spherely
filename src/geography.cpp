@@ -63,7 +63,7 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
         std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
         new_geog_ptr = std::make_unique<s2geog::PolygonGeography>(std::move(poly_ptr));
 
-    } else if (geog_type == GeographyType::GeographyCollection) {
+    } else if (geog_type == GeographyType::GeometryCollection) {
         const auto &features =
             reinterpret_cast<const s2geog::GeographyCollection &>(geog).Features();
         std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
@@ -86,7 +86,7 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
     } else if (const auto *ptr = dynamic_cast<const s2geog::PolygonGeography *>(&geog); ptr) {
         return clone_s2geography(geog, GeographyType::Polygon);
     } else if (const auto *ptr = dynamic_cast<const s2geog::GeographyCollection *>(&geog); ptr) {
-        return clone_s2geography(geog, GeographyType::GeographyCollection);
+        return clone_s2geography(geog, GeographyType::GeometryCollection);
     } else {
         throw py::type_error("unknown geography type");
     }
@@ -155,7 +155,7 @@ void Geography::extract_geog_properties() {
         if (ptr->Features().empty()) {
             m_is_empty = true;
         }
-        m_geog_type = GeographyType::GeographyCollection;
+        m_geog_type = GeographyType::GeometryCollection;
     } else {
         m_geog_type = GeographyType::None;
     }
@@ -214,7 +214,7 @@ void init_geography(py::module &m) {
     pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
     pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
-    pygeography_types.value("GEOGRAPHYCOLLECTION", GeographyType::GeographyCollection);
+    pygeography_types.value("GEOMETRYCOLLECTION", GeographyType::GeometryCollection);
 
     // Geography classes
 

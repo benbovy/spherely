@@ -28,7 +28,7 @@ enum class GeographyType : std::int8_t {
     MultiPoint,
     MultiLineString,
     MultiPolygon,
-    GeographyCollection
+    GeometryCollection
 };
 
 /*
@@ -144,7 +144,7 @@ inline std::string format_geog_type(GeographyType geog_type) {
         return "POLYGON";
     } else if (geog_type == GeographyType::MultiPolygon) {
         return "MULTIPOLYGON";
-    } else if (geog_type == GeographyType::GeographyCollection) {
+    } else if (geog_type == GeographyType::GeometryCollection) {
         return "GEOMETRYCOLLECTION";
     } else {
         return "UNKNOWN";

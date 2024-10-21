@@ -52,7 +52,7 @@ def test_get_type_id() -> None:
             spherely.GeographyType.POLYGON.value,
             spherely.GeographyType.POLYGON.value,
             spherely.GeographyType.MULTIPOLYGON.value,
-            spherely.GeographyType.GEOGRAPHYCOLLECTION.value,
+            spherely.GeographyType.GEOMETRYCOLLECTION.value,
         ]
     )
     np.testing.assert_array_equal(actual, expected)

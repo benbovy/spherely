@@ -409,7 +409,7 @@ void init_creation(py::module &m) {
           &geography_collection,
           py::arg("geographies"),
           R"pbdoc(geography_collection(geographies: Sequence) -> Geography
-        Create a GEOGRAPHYCOLLECTION geography from arbitrary geographies.
+        Create a GEOMETRYCOLLECTION geography from arbitrary geographies.
 
         Parameters
         ----------
