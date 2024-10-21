@@ -231,8 +231,10 @@ void init_geography(py::module &m) {
         Returns the inherent dimensionality of a geometry.
 
         The inherent dimension is 0 for points, 1 for linestrings and 2 for
-        polygons. For geometrycollections it is the max of the containing elements.
-        Empty collections and None values return -1.
+        polygons. For geometry collections it returns either the dimension of
+        all their features (uniform collections) or -1 (collections with
+        features of different dimensions). Empty collections and None values
+        return -1.
 
     )pbdoc");
 
