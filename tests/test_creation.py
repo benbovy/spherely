@@ -10,6 +10,14 @@ def test_point() -> None:
     assert repr(point).startswith("POINT (40.2 5.2")
 
 
+def test_point_empty() -> None:
+    point = spherely.point()
+    assert repr(point).startswith("POINT EMPTY")
+
+    point = spherely.point(None, None)
+    assert repr(point).startswith("POINT EMPTY")
+
+
 @pytest.mark.parametrize(
     "points",
     [
