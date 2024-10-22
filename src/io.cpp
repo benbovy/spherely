@@ -2,6 +2,7 @@
 #include <s2geography.h>
 
 #include "constants.hpp"
+#include "creation.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
 
@@ -31,9 +32,7 @@ public:
     }
 
     PyObjectGeography operator()(py::str a) const {
-        std::unique_ptr<s2geog::Geography> s2geog = m_reader->read_feature(a);
-        auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog));
-        return PyObjectGeography::from_geog(std::move(geog_ptr));
+        return make_py_geography(m_reader->read_feature(a));
     }
 
 private:
