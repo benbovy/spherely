@@ -1,6 +1,8 @@
 #include <s2geography.h>
+#include <s2geography/geography.h>
 
 #include "constants.hpp"
+#include "creation.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
 
@@ -11,24 +13,17 @@ using namespace spherely;
 PyObjectGeography centroid(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
     auto s2_point = s2geog::s2_centroid(a_ptr);
-    std::unique_ptr<Point> point =
-        make_geography<s2geog::PointGeography, spherely::Point>(s2_point);
-    return PyObjectGeography::from_geog(std::move(point));
+    return make_py_geography<s2geog::PointGeography>(s2_point);
 }
 
 PyObjectGeography boundary(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
-    auto s2_obj = s2geog::s2_boundary(a_ptr);
-    // TODO return specific subclass
-    auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2_obj));
-    return PyObjectGeography::from_geog(std::move(geog_ptr));
+    return make_py_geography(s2geog::s2_boundary(a_ptr));
 }
 
 PyObjectGeography convex_hull(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
-    auto s2_obj = s2geog::s2_convex_hull(a_ptr);
-    auto geog_ptr = std::make_unique<spherely::Polygon>(std::move(s2_obj));
-    return PyObjectGeography::from_geog(std::move(geog_ptr));
+    return make_py_geography(s2geog::s2_convex_hull(a_ptr));
 }
 
 double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
