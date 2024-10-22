@@ -117,4 +117,77 @@ void init_predicates(py::module& m) {
             Geography object(s)
 
     )pbdoc");
+
+    m.def("touches",
+          py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
+                                     const s2geog::ShapeIndexGeography& b_index,
+                                     const S2BooleanOperation::Options& options) {
+              S2BooleanOperation::Options closedOptions = options;
+              closedOptions.set_polygon_model(S2BooleanOperation::PolygonModel::CLOSED);
+              closedOptions.set_polyline_model(S2BooleanOperation::PolylineModel::CLOSED);
+
+              S2BooleanOperation::Options openOptions = options;
+              openOptions.set_polygon_model(S2BooleanOperation::PolygonModel::OPEN);
+              openOptions.set_polyline_model(S2BooleanOperation::PolylineModel::OPEN);
+
+              return s2geog::s2_intersects(a_index, b_index, closedOptions) &&
+                     !s2geog::s2_intersects(a_index, b_index, openOptions);
+          })),
+          py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(
+        Returns True if A and B intersect, but their interiors do not intersect.
+        A and B have at least one point in common, where the common point
+        lies in at least one boundary.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
+
+    m.def("covers",
+          py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
+                                     const s2geog::ShapeIndexGeography& b_index,
+                                     const S2BooleanOperation::Options& options) {
+              S2BooleanOperation::Options closedOptions = options;
+              closedOptions.set_polyline_model(S2BooleanOperation::PolylineModel::CLOSED);
+              closedOptions.set_polygon_model(S2BooleanOperation::PolygonModel::CLOSED);
+
+              return s2geog::s2_contains(a_index, b_index, closedOptions);
+          })),
+          py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(
+        Returns True if every point in B lies inside the interior or boundary of A.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
+
+    m.def("covered_by",
+          py::vectorize(Predicate([](const s2geog::ShapeIndexGeography& a_index,
+                                     const s2geog::ShapeIndexGeography& b_index,
+                                     const S2BooleanOperation::Options& options) {
+              S2BooleanOperation::Options closedOptions = options;
+              closedOptions.set_polyline_model(S2BooleanOperation::PolylineModel::CLOSED);
+              closedOptions.set_polygon_model(S2BooleanOperation::PolygonModel::CLOSED);
+
+              return s2geog::s2_contains(b_index, a_index, closedOptions);
+          })),
+          py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(
+        Returns True if every point in A lies inside the interior or boundary of B.
+
+        Parameters
+        ----------
+        a, b : :py:class:`Geography` or array_like
+            Geography object(s)
+
+    )pbdoc");
 }
