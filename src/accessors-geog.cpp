@@ -1,6 +1,7 @@
 #include <s2geography.h>
 #include <s2geography/geography.h>
 
+#include "constants.hpp"
 #include "creation.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
@@ -8,8 +9,6 @@
 namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
-
-const double EARTH_RADIUS_METERS = 6371.01 * 1000;
 
 PyObjectGeography centroid(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
