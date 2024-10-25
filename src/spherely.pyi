@@ -5,7 +5,9 @@ from typing import (
     Generic,
     Iterable,
     Literal,
+    Protocol,
     Sequence,
+    Tuple,
     TypeVar,
     overload,
 )
@@ -195,4 +197,19 @@ def from_wkt(
     oriented: bool = False,
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
+) -> npt.NDArray[Any]: ...
+
+class ArrowArrayExportable(Protocol):
+    def __arrow_c_array__(
+        self, requested_schema: object | None = None
+    ) -> Tuple[object, object]: ...
+
+def from_geoarrow(
+    input: ArrowArrayExportable,
+    /,
+    *,
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+    geometry_encoding: str | None = None,
 ) -> npt.NDArray[Any]: ...

@@ -1,7 +1,7 @@
-// include this before s2geography to avoid ArrowArray compile issues
 #include <s2geography.h>
 
 #include "arrow_abi.h"
+#include "constants.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
 
@@ -12,6 +12,7 @@ using namespace spherely;
 py::array_t<PyObjectGeography> from_geoarrow(py::object input,
                                              bool oriented,
                                              bool planar,
+                                             float tessellate_tolerance,
                                              py::object geometry_encoding) {
     py::tuple capsules = input.attr("__arrow_c_array__")();
     py::capsule schema_capsule = capsules[0];
@@ -26,8 +27,7 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
     s2geog::geoarrow::ImportOptions options;
     options.set_oriented(oriented);
     if (planar) {
-        // TODO replace with constant
-        auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
+        auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
     }
     if (geometry_encoding.is(py::none())) {
@@ -64,6 +64,7 @@ void init_geoarrow(py::module& m) {
           py::kw_only(),
           py::arg("oriented") = false,
           py::arg("planar") = false,
+          py::arg("tessellate_tolerance") = 100.0,
           py::arg("geometry_encoding") = py::none(),
           R"pbdoc(
         Create an array of geographies from an Arrow array object with a GeoArrow
@@ -90,12 +91,16 @@ void init_geoarrow(py::module& m) {
             By default (False), it will return the polygon with the smaller
             area.
         planar : bool, default False
-            If set to True, the edges linestrings and polygons are assumed to
-            be planar. In that case, additional points will be added to the line
-            while creating the geography objects, to ensure every point is
-            within 100m of the original line.
+            If set to True, the edges of linestrings and polygons are assumed
+            to be linear on the plane. In that case, additional points will
+            be added to the line while creating the geography objects, to
+            ensure every point is within 100m of the original line.
             By default (False), it is assumed that the edges are spherical
             (i.e. represent the shortest path on the sphere between two points).
+        tessellate_tolerance : float, default 100.0
+            The maximum distance in meters that a point must be moved to
+            satisfy the planar edge constraint. This is only used if `planar`
+            is set to True.
         geometry_encoding : str, default None
             By default, the encoding is inferred from the GeoArrow extension
             type of the input array.

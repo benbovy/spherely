@@ -19,7 +19,7 @@ def test_from_geoarrow_wkt():
     arr = ga.as_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
     result = spherely.from_geoarrow(arr)
-    expected = spherely.create([1, 2, 3], [1, 2, 3])
+    expected = spherely.points([1, 2, 3], [1, 2, 3])
     # object equality does not yet work
     # np.testing.assert_array_equal(result, expected)
     assert spherely.equals(result, expected).all()
@@ -36,7 +36,7 @@ def test_from_geoarrow_wkb():
     arr_wkb = ga.as_wkb(arr)
 
     result = spherely.from_geoarrow(arr_wkb)
-    expected = spherely.create([1, 2, 3], [1, 2, 3])
+    expected = spherely.points([1, 2, 3], [1, 2, 3])
     assert spherely.equals(result, expected).all()
 
     # without extension type
@@ -52,7 +52,7 @@ def test_from_geoarrow_native():
     arr_point = ga.as_geoarrow(arr)
 
     result = spherely.from_geoarrow(arr_point)
-    expected = spherely.create([1, 2, 3], [1, 2, 3])
+    expected = spherely.points([1, 2, 3], [1, 2, 3])
     assert spherely.equals(result, expected).all()
 
 
@@ -63,10 +63,6 @@ polygon_with_bad_hole_wkt = (
 )
 
 
-# @pytest.mark.skipif(
-#     Version(spherely.__s2geography_version__) < Version("0.2.0"),
-#     reason="Needs s2geography >= 0.2.0",
-# )
 def test_from_geoarrow_oriented():
     # by default re-orients the inner ring
     arr = ga.as_geoarrow([polygon_with_bad_hole_wkt])
@@ -82,13 +78,16 @@ def test_from_geoarrow_oriented():
         spherely.from_geoarrow(arr, oriented=True)
 
 
-def test_from_geoarrow_planar():
+def test_from_wkt_planar():
     arr = ga.as_geoarrow(["LINESTRING (-64 45, 0 45)"])
     result = spherely.from_geoarrow(arr)
-    assert spherely.distance(result[0], spherely.Point(45, -30)) > 10000
+    assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
 
     result = spherely.from_geoarrow(arr, planar=True)
-    assert spherely.distance(result[0], spherely.Point(45, -30)) < 100
+    assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
+
+    result = spherely.from_geoarrow(arr, planar=True, tessellate_tolerance=10)
+    assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
 
 
 def test_from_geoarrow_no_extension_type():
