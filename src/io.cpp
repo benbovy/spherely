@@ -12,13 +12,13 @@ using namespace spherely;
 
 class FromWKT {
 public:
-    FromWKT(bool oriented, bool planar, float tessellate_tol_m = 100.0) {
+    FromWKT(bool oriented, bool planar, float tessellate_tolerance = 100.0) {
 #if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
     (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
         s2geog::geoarrow::ImportOptions options;
         options.set_oriented(oriented);
         if (planar) {
-            auto tol = S1Angle::Radians(tessellate_tol_m / EARTH_RADIUS_METERS);
+            auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
             options.set_tessellate_tolerance(tol);
         }
         m_reader = std::make_shared<s2geog::WKTReader>(options);
@@ -48,13 +48,13 @@ py::str to_wkt(PyObjectGeography a) {
 void init_io(py::module& m) {
     m.def(
         "from_wkt",
-        [](py::array_t<py::str> a, bool oriented, bool planar, float tessellate_tol_m) {
-            return py::vectorize(FromWKT(oriented, planar, tessellate_tol_m))(std::move(a));
+        [](py::array_t<py::str> a, bool oriented, bool planar, float tessellate_tolerance) {
+            return py::vectorize(FromWKT(oriented, planar, tessellate_tolerance))(std::move(a));
         },
         py::arg("a"),
         py::arg("oriented") = false,
         py::arg("planar") = false,
-        py::arg("tessellate_tol_m") = 100.0,
+        py::arg("tessellate_tolerance") = 100.0,
         R"pbdoc(
         Creates geographies from the Well-Known Text (WKT) representation.
 
@@ -75,7 +75,7 @@ void init_io(py::module& m) {
             ensure every point is within 100m of the original line.
             By default (False), it is assumed that the edges are spherical
             (i.e. represent the shortest path on the sphere between two points).
-        tessellate_tol_m : float, default 100.0
+        tessellate_tolerance : float, default 100.0
             The maximum distance in meters that a point must be moved to
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.

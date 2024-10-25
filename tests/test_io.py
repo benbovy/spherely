@@ -76,7 +76,7 @@ def test_from_wkt_planar():
     assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
 
     result = spherely.from_wkt(
-        "LINESTRING (-64 45, 0 45)", planar=True, tessellate_tol_m=10
+        "LINESTRING (-64 45, 0 45)", planar=True, tessellate_tolerance=10
     )
     assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
 

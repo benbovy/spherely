@@ -194,5 +194,5 @@ def from_wkt(
     a: Iterable[str],
     oriented: bool = False,
     planar: bool = False,
-    tessellate_tol_m: float = 100.0,
+    tessellate_tolerance: float = 100.0,
 ) -> npt.NDArray[Any]: ...
