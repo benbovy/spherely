@@ -14,6 +14,11 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
                                              bool planar,
                                              float tessellate_tolerance,
                                              py::object geometry_encoding) {
+    if (!py::hasattr(input, "__arrow_c_array__")) {
+        throw std::invalid_argument(
+            "input should be an Arrow-compatible array object (i.e. has an '__arrow_c_array__' "
+            "method)");
+    }
     py::tuple capsules = input.attr("__arrow_c_array__")();
     py::capsule schema_capsule = capsules[0];
     py::capsule array_capsule = capsules[1];

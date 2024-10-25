@@ -1,5 +1,6 @@
 from packaging.version import Version
 
+import numpy as np
 import pyarrow as pa
 import geoarrow.pyarrow as ga
 
@@ -102,3 +103,8 @@ def test_from_geoarrow_invalid_encoding():
 
     with pytest.raises(ValueError, match="'geometry_encoding' should be one"):
         spherely.from_geoarrow(arr, geometry_encoding="point")
+
+
+def test_from_geoarrow_no_arrow_object():
+    with pytest.raises(ValueError, match="input should be an Arrow-compatible array"):
+        spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))
