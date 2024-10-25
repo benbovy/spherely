@@ -13,6 +13,8 @@ from typing import (
 import numpy as np
 import numpy.typing as npt
 
+__version__: str = ...
+__s2geography_version__: str = ...
 EARTH_RADIUS_METERS: float = ...
 
 class Geography:
@@ -183,3 +185,14 @@ convex_hull: _VFunc_Nin1_Nout1[
     Literal["convex_hull"], PolygonGeography, PolygonGeography
 ]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
+
+# io functions
+
+to_wkt: _VFunc_Nin1_Nout1[Literal["to_wkt"], str, object]
+
+def from_wkt(
+    a: Iterable[str],
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+) -> npt.NDArray[Any]: ...
