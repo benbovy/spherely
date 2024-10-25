@@ -196,15 +196,21 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input, py::object ge
     s2geog::geoarrow::Writer writer;
     std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
 
+    s2geog::geoarrow::ImportOptions options;
+    // TODO replace with constant
+    auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
+    options.set_tessellate_tolerance(tol);
+    options.set_projection(s2geog::geoarrow::mercator());
+
     if (geometry_encoding.is(py::none())) {
         // writer.Init(schema, options);
         throw std::invalid_argument("not yet implemented");
     } else if (geometry_encoding.equal(py::str("points"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kPoints, array.schema());
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kPoints, options, array.schema());
     } else if (geometry_encoding.equal(py::str("WKT"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, array.schema());
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options, array.schema());
     } else if (geometry_encoding.equal(py::str("WKB"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, array.schema());
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options, array.schema());
     } else {
         throw std::invalid_argument("'geometry_encoding' should be one of None, 'WKT' or 'WKB'");
     }
