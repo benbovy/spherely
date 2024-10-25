@@ -1,11 +1,11 @@
 from typing import (
+    Annotated,
     Any,
     ClassVar,
     Generic,
     Iterable,
-    List,
     Literal,
-    Tuple,
+    Sequence,
     TypeVar,
     overload,
 )
@@ -13,6 +13,8 @@ from typing import (
 import numpy as np
 import numpy.typing as npt
 
+__version__: str = ...
+__s2geography_version__: str = ...
 EARTH_RADIUS_METERS: float = ...
 
 class Geography:
@@ -28,6 +30,10 @@ class GeographyType:
     NONE: ClassVar[GeographyType] = ...
     POINT: ClassVar[GeographyType] = ...
     POLYGON: ClassVar[GeographyType] = ...
+    MULTIPOLYGON: ClassVar[GeographyType] = ...
+    MULTIPOINT: ClassVar[GeographyType] = ...
+    MULTILINESTRING: ClassVar[GeographyType] = ...
+    GEOMETRYCOLLECTION: ClassVar[GeographyType] = ...
     __entries: ClassVar[dict] = ...
     def __init__(self, value: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -42,20 +48,15 @@ class GeographyType:
     @property
     def value(self) -> int: ...
 
-class Point(Geography):
-    def __init__(self, lat: float, lon: float) -> None: ...
+# Annotated type aliases
 
-class LineString(Geography):
-    @overload
-    def __init__(self, coordinates: List[Tuple[float, float]]) -> None: ...
-    @overload
-    def __init__(self, coordinates: List[Point]) -> None: ...
-
-class Polygon(Geography):
-    @overload
-    def __init__(self, coordinates: List[Tuple[float, float]]) -> None: ...
-    @overload
-    def __init__(self, coordinates: List[Point]) -> None: ...
+PointGeography = Annotated[Geography, GeographyType.POINT]
+LineStringGeography = Annotated[Geography, GeographyType.LINESTRING]
+PolygonGeography = Annotated[Geography, GeographyType.POLYGON]
+MultiPointGeography = Annotated[Geography, GeographyType.MULTIPOINT]
+MultiLineStringGeography = Annotated[Geography, GeographyType.MULTILINESTRING]
+MultiPolygonGeography = Annotated[Geography, GeographyType.MULTIPOLYGON]
+GeometryCollection = Annotated[Geography, GeographyType.GEOMETRYCOLLECTION]
 
 # Numpy-like vectorized (universal) functions
 
@@ -116,6 +117,51 @@ class _VFunc_Nin2optradius_Nout1(
 get_dimensions: _VFunc_Nin1_Nout1[Literal["get_dimensions"], Geography, Any]
 get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
+# Geography creation (scalar)
+
+def point(
+    longitude: float | None = None, latitude: float | None = None
+) -> Geography: ...
+def multipoint(
+    points: Iterable[Sequence[float]] | Iterable[PointGeography],
+) -> MultiPointGeography: ...
+def linestring(
+    vertices: Iterable[Sequence[float]] | Iterable[PointGeography] | None = None,
+) -> LineStringGeography: ...
+def multilinestring(
+    vertices: (
+        Iterable[Iterable[Sequence[float]]]
+        | Iterable[Iterable[PointGeography]]
+        | Iterable[LineStringGeography]
+    ),
+) -> MultiLineStringGeography: ...
+@overload
+def polygon(
+    shell: None = None,
+    holes: None = None,
+) -> PolygonGeography: ...
+@overload
+def polygon(
+    shell: Iterable[Sequence[float]],
+    holes: Iterable[Iterable[Sequence[float]]] | None = None,
+) -> PolygonGeography: ...
+@overload
+def polygon(
+    shell: Iterable[PointGeography],
+    holes: Iterable[Iterable[PointGeography]] | None = None,
+) -> PolygonGeography: ...
+def multipolygon(polygons: Iterable[PolygonGeography]) -> MultiPolygonGeography: ...
+def collection(geographies: Iterable[Geography]) -> GeometryCollection: ...
+
+# Geography creation (vectorized)
+
+@overload
+def points(
+    longitude: npt.ArrayLike, latitude: npt.ArrayLike
+) -> npt.NDArray[np.object_]: ...
+@overload
+def points(longitude: float, latitude: float) -> PointGeography: ...  # type: ignore[misc]
+
 # Geography utils
 
 is_geography: _VFunc_Nin1_Nout1[Literal["is_geography"], bool, bool]
@@ -133,12 +179,20 @@ disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
 
 # geography accessors
 
-centroid: _VFunc_Nin1_Nout1[Literal["centroid"], Geography, Point]
+centroid: _VFunc_Nin1_Nout1[Literal["centroid"], PointGeography, PointGeography]
 boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
-convex_hull: _VFunc_Nin1_Nout1[Literal["convex_hull"], Geography, Polygon]
+convex_hull: _VFunc_Nin1_Nout1[
+    Literal["convex_hull"], PolygonGeography, PolygonGeography
+]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
 
-# temp (remove)
+# io functions
 
-def create(arg0: Iterable[float], arg1: Iterable[float]) -> npt.NDArray[Any]: ...
-def nshape(arg0: npt.NDArray[Any]) -> npt.NDArray[np.int32]: ...
+to_wkt: _VFunc_Nin1_Nout1[Literal["to_wkt"], str, object]
+
+def from_wkt(
+    a: Iterable[str],
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+) -> npt.NDArray[Any]: ...

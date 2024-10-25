@@ -72,8 +72,10 @@ endif()
 # Build
 
 set(CPP_SOURCES
-  src/geography.cpp
   src/accessors-geog.cpp
+  src/creation.cpp
+  src/geography.cpp
+  src/io.cpp
   src/predicates.cpp
   src/spherely.cpp)
 
