@@ -1,11 +1,6 @@
 from packaging.version import Version
 
 import numpy as np
-<<<<<<< HEAD
-=======
-import pyarrow as pa
-import geoarrow.pyarrow as ga
->>>>>>> e182953 (ENH: export to geoarrow output)
 
 import pytest
 
@@ -117,7 +112,7 @@ def test_from_geoarrow_no_arrow_object():
 
 
 def test_to_geoarrow():
-    arr = spherely.create([1, 2, 3], [1, 2, 3])
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
     res = spherely.to_geoarrow(
         arr, output_schema=ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
     )
@@ -131,14 +126,14 @@ def test_to_geoarrow():
 
 
 def test_to_geoarrow_wkt():
-    arr = spherely.create([1, 2, 3], [1, 2, 3])
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
     # TODO assert result
     print(result)
 
 
 def test_to_geoarrow_wkb():
-    arr = spherely.create([1, 2, 3], [1, 2, 3])
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
     # TODO assert result
     print(result)
