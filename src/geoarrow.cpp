@@ -111,6 +111,11 @@ public:
         return &schema_;
     }
 
+    void set_schema(ArrowSchema* schema_src) {
+        memcpy(&schema_, schema_src, sizeof(struct ArrowSchema));
+        schema_src->release = nullptr;
+    }
+
     py::tuple return_capsules(py::args args, const py::kwargs& kwargs) {
         if ((args.size() > 0) && (!args[0].is_none())) {
             throw std::invalid_argument(
@@ -190,35 +195,34 @@ protected:
     ArrowSchema schema_;
 };
 
-ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input, py::object geometry_encoding) {
+ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
+                             py::object output_schema,
+                             py::object geometry_encoding) {
     ArrowArrayHolder array = ArrowArrayHolder();
 
     s2geog::geoarrow::Writer writer;
     std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
 
-    s2geog::geoarrow::ImportOptions options;
+    s2geog::geoarrow::ExportOptions options;
     // TODO replace with constant
     auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
     options.set_tessellate_tolerance(tol);
     options.set_projection(s2geog::geoarrow::mercator());
 
-    if (geometry_encoding.is(py::none())) {
-        // writer.Init(schema, options);
-        throw std::invalid_argument("not yet implemented");
-    } else if (geometry_encoding.equal(py::str("points"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kPoints, options, array.schema());
+    if (!output_schema.is(py::none())) {
+        py::capsule schema_capsule = output_schema.attr("__arrow_c_schema__")();
+        ArrowSchema* schema = static_cast<ArrowSchema*>(schema_capsule);
+        writer.Init(schema, options);
+        array.set_schema(schema);
     } else if (geometry_encoding.equal(py::str("WKT"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options, array.schema());
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options);
     } else if (geometry_encoding.equal(py::str("WKB"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options, array.schema());
+        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options);
     } else {
-        throw std::invalid_argument("'geometry_encoding' should be one of None, 'WKT' or 'WKB'");
+        throw std::invalid_argument(
+            "'output_schema' should be specified or 'geometry_encoding' should be one of None, "
+            "'WKT' or 'WKB'");
     }
-
-    size_t num_geographies = static_cast<size_t>(input.size());
-
-    const s2geog::Geography** geographies = static_cast<const s2geog::Geography**>(
-        malloc(sizeof(const s2geog::Geography*) * num_geographies));
 
     for (int i = 0; i < input.size(); i++) {
         writer.WriteGeography((*input.data(i)).as_geog_ptr()->geog());
@@ -291,6 +295,7 @@ void init_geoarrow(py::module& m) {
           py::arg("input"),
           py::pos_only(),
           py::kw_only(),
+          py::arg("output_schema") = py::none(),
           py::arg("geometry_encoding") = py::none(),
           R"pbdoc(
         Convert an array of geographies to an Arrow array object with a GeoArrow

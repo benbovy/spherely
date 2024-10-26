@@ -118,7 +118,9 @@ def test_from_geoarrow_no_arrow_object():
 
 def test_to_geoarrow():
     arr = spherely.create([1, 2, 3], [1, 2, 3])
-    res = spherely.to_geoarrow(arr, geometry_encoding="points")
+    res = spherely.to_geoarrow(
+        arr, output_schema=ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
+    )
     assert isinstance(res, spherely.ArrowArrayHolder)
     assert hasattr(res, "__arrow_c_array__")
 
@@ -130,14 +132,14 @@ def test_to_geoarrow():
 
 def test_to_geoarrow_wkt():
     arr = spherely.create([1, 2, 3], [1, 2, 3])
-    result = pa.array(spherely.to_geoarrow(arr, geometry_encoding="WKT"))
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
     # TODO assert result
     print(result)
 
 
 def test_to_geoarrow_wkb():
     arr = spherely.create([1, 2, 3], [1, 2, 3])
-    result = pa.array(spherely.to_geoarrow(arr, geometry_encoding="WKB"))
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
     # TODO assert result
     print(result)
 
@@ -156,5 +158,5 @@ def test_wkt_roundtrip():
     ]
 
     arr = spherely.from_geoarrow(ga.as_wkt(wkt))
-    result = pa.array(spherely.to_geoarrow(arr, geometry_encoding="WKT"))
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
     np.testing.assert_array_equal(result, wkt)
