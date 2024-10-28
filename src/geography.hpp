@@ -1,9 +1,15 @@
 #ifndef SPHERELY_GEOGRAPHY_H_
 #define SPHERELY_GEOGRAPHY_H_
 
-#include "s2/s2point.h"
-#include "s2geography.h"
+#include <pybind11/pybind11.h>
+#include <s2geography/geography.h>
 
+#include <exception>
+#include <memory>
+#include <string>
+#include <type_traits>
+
+namespace py = pybind11;
 namespace s2geog = s2geography;
 
 namespace spherely {
@@ -14,44 +20,64 @@ using S2GeographyIndexPtr = std::unique_ptr<s2geog::ShapeIndexGeography>;
 /*
 ** The registered Geography types
 */
-enum class GeographyType : std::int8_t { None = -1, Point, LineString, Polygon };
+enum class GeographyType : std::int8_t {
+    None = -1,
+    Point,
+    LineString,
+    Polygon,
+    MultiPoint,
+    MultiLineString,
+    MultiPolygon,
+    GeometryCollection
+};
 
 /*
 ** Thin wrapper around s2geography::Geography.
 **
-** Implements move semantics (avoid implicit copies).
-** Allows getting the geography type.
-** Wraps a s2geography::ShapeIndexGeography to speed-up operations
-** (the index is built on demand).
+** This wrapper implements the following specific features (that might
+** eventually move into s2geography::Geography?):
+**
+** - Implement move semantics only.
+** - add ``clone()`` method for explicit copy
+** - Add ``geog_type()`` method for getting the geography type
+** - Eagerly infer the geography type as well as other properties
+** - Encapsulate a lazy ``s2geography::ShapeIndexGeography`` accessible via ``geog_index()``.
 **
 */
 class Geography {
 public:
     Geography(const Geography&) = delete;
-    Geography(Geography&& geog) : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)) {
-        // std::cout << "Geography move constructor called: " << this <<
-        // std::endl;
-    }
-    Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {}
+    Geography(Geography&& geog)
+        : m_s2geog_ptr(std::move(geog.m_s2geog_ptr)),
+          m_is_empty(geog.is_empty()),
+          m_geog_type(geog.geog_type()) {}
 
-    ~Geography() {
-        // std::cout << "Geography destructor called: " << this << std::endl;
+    Geography(S2GeographyPtr&& s2geog_ptr) : m_s2geog_ptr(std::move(s2geog_ptr)) {
+        // TODO: template constructors with s2geography Geography subclass constraints (e.g., using
+        // SFINAE or "if constexpr") may be more efficient than dynamic casting like done in
+        // extract_geog_properties.
+        extract_geog_properties();
     }
 
     Geography& operator=(const Geography&) = delete;
     Geography& operator=(Geography&& other) {
-        // std::cout << "Geography move assignment called: " << this <<
-        // std::endl;
         m_s2geog_ptr = std::move(other.m_s2geog_ptr);
+        m_is_empty = other.m_is_empty;
+        m_geog_type = other.m_geog_type;
         return *this;
     }
 
-    inline virtual GeographyType geog_type() const {
-        return GeographyType::None;
+    inline GeographyType geog_type() const noexcept {
+        return m_geog_type;
     }
 
-    inline const s2geog::Geography& geog() const {
+    inline const s2geog::Geography& geog() const noexcept {
         return *m_s2geog_ptr;
+    }
+
+    template <class T, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
+    inline const T* downcast_geog() const {
+        return dynamic_cast<const T*>(&geog());
     }
 
     inline const s2geog::ShapeIndexGeography& geog_index() {
@@ -61,69 +87,86 @@ public:
 
         return *m_s2geog_index_ptr;
     }
-    void reset_index() {
+    inline void reset_index() {
         m_s2geog_index_ptr.reset();
     }
-    bool has_index() {
+    inline bool has_index() const noexcept {
         return m_s2geog_index_ptr != nullptr;
     }
 
-    int dimension() const {
+    inline int dimension() const {
         return m_s2geog_ptr->dimension();
     }
-    int num_shapes() const {
+    inline int num_shapes() const {
         return m_s2geog_ptr->num_shapes();
     }
+    inline bool is_empty() const noexcept {
+        return m_is_empty;
+    }
+
+    Geography clone() const;
+    std::unique_ptr<s2geog::Geography> clone_geog() const;
 
 private:
     S2GeographyPtr m_s2geog_ptr;
     S2GeographyIndexPtr m_s2geog_index_ptr;
+    bool m_is_empty = false;
+    GeographyType m_geog_type;
+
+    // We don't want Geography to be default constructible, except internally via `clone()`
+    // where there is no need to infer geography properties as we already know them.
+    Geography() : m_is_empty(true) {}
+
+    void extract_geog_properties();
 };
 
-class Point : public Geography {
+/**
+ * Custom exception that may be thrown when an empty Geography is found.
+ */
+class EmptyGeographyException : public std::exception {
+private:
+    std::string message;
+
 public:
-    Point(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
+    EmptyGeographyException(const char* msg) : message(msg) {}
 
-    inline GeographyType geog_type() const override {
-        return GeographyType::Point;
-    }
-
-    inline const S2Point& s2point() const {
-        const auto& points = static_cast<const s2geog::PointGeography&>(geog()).Points();
-        // TODO: does not work for empty point geography
-        return points[0];
+    const char* what() const throw() {
+        return message.c_str();
     }
 };
 
-class LineString : public Geography {
-public:
-    LineString(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
-
-    inline GeographyType geog_type() const override {
-        return GeographyType::LineString;
+// TODO: cleaner way? Already implemented elsewhere?
+inline std::string format_geog_type(GeographyType geog_type) {
+    if (geog_type == GeographyType::Point) {
+        return "POINT";
+    } else if (geog_type == GeographyType::MultiPoint) {
+        return "MULTIPOINT";
+    } else if (geog_type == GeographyType::LineString) {
+        return "LINESTRING";
+    } else if (geog_type == GeographyType::MultiLineString) {
+        return "MULTILINESTRING";
+    } else if (geog_type == GeographyType::Polygon) {
+        return "POLYGON";
+    } else if (geog_type == GeographyType::MultiPolygon) {
+        return "MULTIPOLYGON";
+    } else if (geog_type == GeographyType::GeometryCollection) {
+        return "GEOMETRYCOLLECTION";
+    } else {
+        return "UNKNOWN";
     }
-};
+}
 
-class Polygon : public Geography {
-public:
-    Polygon(S2GeographyPtr&& geog_ptr) : Geography(std::move(geog_ptr)) {};
+/**
+ * Check the type of a Geography object and maybe raise an exception.
+ */
+inline void check_geog_type(const Geography& geog_obj, GeographyType geog_type) {
+    if (geog_obj.geog_type() != geog_type) {
+        auto expected = format_geog_type(geog_type);
+        auto actual = format_geog_type(geog_obj.geog_type());
 
-    inline GeographyType geog_type() const override {
-        return GeographyType::Polygon;
+        throw py::type_error("invalid Geography type (expected " + expected + ", found " + actual +
+                             ")");
     }
-};
-
-/*
-** Helper to create Geography object wrappers.
-**
-** @tparam T1 The S2Geography wrapper type
-** @tparam T2 This library wrapper type.
-** @tparam S The S2Geometry type
-*/
-template <class T1, class T2, class S>
-std::unique_ptr<T2> make_geography(S&& s2_obj) {
-    S2GeographyPtr s2geog_ptr = std::make_unique<T1>(std::forward<S>(s2_obj));
-    return std::make_unique<T2>(std::move(s2geog_ptr));
 }
 
 }  // namespace spherely
