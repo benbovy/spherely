@@ -8,6 +8,7 @@
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
 #include <s2geography/geography.h>
+#include <s2geography/predicates.h>
 #include <s2geography/wkt-writer.h>
 
 #include <cstddef>
@@ -247,6 +248,14 @@ void init_geography(py::module &m) {
     pygeography.def("__repr__", [](const Geography &geog) {
         s2geog::WKTWriter writer;
         return writer.write_feature(geog.geog());
+    });
+
+    pygeography.def("__eq__", [](const Geography &geog1, const Geography &geog2) {
+        s2geog::ShapeIndexGeography idx1{geog1.geog()};
+        s2geog::ShapeIndexGeography idx2{geog2.geog()};
+
+        S2BooleanOperation::Options options;
+        return s2geog::s2_equals(idx1, idx2, options);
     });
 
     // Geography properties
