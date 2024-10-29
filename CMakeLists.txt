@@ -73,6 +73,7 @@ endif()
 
 add_library(spherely MODULE
   src/accessors-geog.cpp
+  src/boolean-operations.cpp
   src/creation.cpp
   src/geography.cpp
   src/io.cpp
