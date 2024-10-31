@@ -245,7 +245,7 @@ void init_geography(py::module &m) {
     )pbdoc");
 
     pygeography.def("__repr__", [](const Geography &geog) {
-        s2geog::WKTWriter writer;
+        s2geog::WKTWriter writer(6);
         return writer.write_feature(geog.geog());
     });
 
