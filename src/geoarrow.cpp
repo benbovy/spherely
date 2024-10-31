@@ -197,17 +197,21 @@ protected:
 
 ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
                              py::object output_schema,
-                             py::object geometry_encoding) {
+                             py::object geometry_encoding,
+                             bool planar,
+                             float tessellate_tolerance) {
     ArrowArrayHolder array = ArrowArrayHolder();
 
     s2geog::geoarrow::Writer writer;
     std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
 
     s2geog::geoarrow::ExportOptions options;
-    // TODO replace with constant
-    auto tol = S1Angle::Radians(100.0 / (6371.01 * 1000));
-    options.set_tessellate_tolerance(tol);
-    options.set_projection(s2geog::geoarrow::mercator());
+    if (planar) {
+        auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
+        options.set_tessellate_tolerance(tol);
+        // TODO make this configurable
+        // options.set_projection(s2geog::geoarrow::mercator());
+    }
 
     if (!output_schema.is(py::none())) {
         py::capsule schema_capsule = output_schema.attr("__arrow_c_schema__")();
@@ -297,6 +301,8 @@ void init_geoarrow(py::module& m) {
           py::kw_only(),
           py::arg("output_schema") = py::none(),
           py::arg("geometry_encoding") = py::none(),
+          py::arg("planar") = false,
+          py::arg("tessellate_tolerance") = 100.0,
           R"pbdoc(
         Convert an array of geographies to an Arrow array object with a GeoArrow
         extension type.
@@ -311,5 +317,15 @@ void init_geoarrow(py::module& m) {
             By default, the encoding is inferred from the GeoArrow extension
             type of the input array.
             However, for serializing to WKT and WKB it is also possible to pass
+        planar : bool, default False
+            If set to True, the edges of linestrings and polygons in the output
+            are assumed to be linear on the plane. In that case, additional
+            points will be added to the line while converting to the output
+            encoding, to ensure every point is within 100m of the original
+            line on the sphere.
+        tessellate_tolerance : float, default 100.0
+            The maximum distance in meters that a point must be moved to
+            satisfy the planar edge constraint. This is only used if `planar`
+            is set to True.
     )pbdoc");
 }
