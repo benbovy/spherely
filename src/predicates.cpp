@@ -155,7 +155,8 @@ void init_predicates(py::module& m) {
           py::arg("b"),
           R"pbdoc(
         Returns True if A and B intersect, but their interiors do not intersect.
-        A and B have at least one point in common, where the common point
+        
+        A and B must have at least one point in common, where the common point
         lies in at least one boundary.
 
         Parameters
@@ -187,6 +188,12 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Notes
+        -----
+        If A and B are both polygons and share co-linear edges,
+        `covers` currently returns expected results only when those
+        shared edges are identical.
+ 
     )pbdoc");
 
     m.def("covered_by",
@@ -207,5 +214,8 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        See Also
+        --------
+        covers
     )pbdoc");
 }
