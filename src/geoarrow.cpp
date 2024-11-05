@@ -2,6 +2,7 @@
 
 #include "arrow_abi.h"
 #include "constants.hpp"
+#include "creation.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
 
@@ -36,7 +37,12 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
         options.set_tessellate_tolerance(tol);
     }
     if (geometry_encoding.is(py::none())) {
-        reader.Init(schema, options);
+        try {
+            reader.Init(schema, options);
+        } catch (const std::exception& ex) {
+            // re-raise RuntimeError as ValueError
+            throw py::value_error(ex.what());
+        }
     } else if (geometry_encoding.equal(py::str("WKT"))) {
         reader.Init(s2geog::geoarrow::Reader::InputType::kWKT, options);
     } else if (geometry_encoding.equal(py::str("WKB"))) {
@@ -44,7 +50,13 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
     } else {
         throw std::invalid_argument("'geometry_encoding' should be one of None, 'WKT' or 'WKB'");
     }
-    reader.ReadGeography(array, 0, array->length, &s2geog_vec);
+
+    try {
+        reader.ReadGeography(array, 0, array->length, &s2geog_vec);
+    } catch (const std::exception& ex) {
+        // re-raise RuntimeError as ValueError
+        throw py::value_error(ex.what());
+    }
 
     // Convert resulting vector to array of python objects
     auto result = py::array_t<PyObjectGeography>(array->length);

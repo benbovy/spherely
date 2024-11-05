@@ -76,7 +76,7 @@ def test_from_geoarrow_oriented():
     )
 
     # if we force to not orient, we get an error
-    with pytest.raises(RuntimeError, match="Inconsistent loop orientations detected"):
+    with pytest.raises(ValueError, match="Inconsistent loop orientations detected"):
         spherely.from_geoarrow(arr, oriented=True)
 
 
@@ -95,7 +95,7 @@ def test_from_wkt_planar():
 def test_from_geoarrow_no_extension_type():
     arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
-    with pytest.raises(RuntimeError, match="Expected extension type"):
+    with pytest.raises(ValueError, match="Expected extension type"):
         spherely.from_geoarrow(arr)
 
 
