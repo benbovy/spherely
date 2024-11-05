@@ -53,9 +53,7 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
 
     py::ssize_t i = 0;
     for (auto& s2geog_ptr : s2geog_vec) {
-        auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2geog_ptr));
-        // return PyObjectGeography::from_geog(std::move(geog_ptr));
-        rptr[i] = py::cast(std::move(geog_ptr));
+        rptr[i] = make_py_geography(std::move(s2geog_ptr));
         i++;
     }
     return result;
