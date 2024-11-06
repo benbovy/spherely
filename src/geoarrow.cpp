@@ -199,13 +199,15 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
                              py::object output_schema,
                              py::object geometry_encoding,
                              bool planar,
-                             float tessellate_tolerance) {
+                             float tessellate_tolerance,
+                             int precision) {
     ArrowArrayHolder array = ArrowArrayHolder();
 
     s2geog::geoarrow::Writer writer;
     std::vector<std::unique_ptr<s2geog::Geography>> s2geog_vec;
 
     s2geog::geoarrow::ExportOptions options;
+    options.set_precision(precision);
     if (planar) {
         auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
@@ -303,6 +305,7 @@ void init_geoarrow(py::module& m) {
           py::arg("geometry_encoding") = py::none(),
           py::arg("planar") = false,
           py::arg("tessellate_tolerance") = 100.0,
+          py::arg("precision") = 6,
           R"pbdoc(
         Convert an array of geographies to an Arrow array object with a GeoArrow
         extension type.
@@ -327,5 +330,8 @@ void init_geoarrow(py::module& m) {
             The maximum distance in meters that a point must be moved to
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
+        precision : int, default 6
+            The number of decimal places to include in the output. Only used
+            when writing as WKT.
     )pbdoc");
 }
