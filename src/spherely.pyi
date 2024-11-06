@@ -1,4 +1,6 @@
+import sys
 from typing import (
+    TYPE_CHECKING,
     Annotated,
     Any,
     ClassVar,
@@ -8,9 +10,21 @@ from typing import (
     Protocol,
     Sequence,
     Tuple,
+    TypedDict,
     TypeVar,
     overload,
 )
+
+try:
+    if sys.version_info >= (3, 11):
+        from typing import Unpack
+    else:
+        from typing_extensions import Unpack
+except ImportError:
+    if TYPE_CHECKING:
+        raise
+    else:
+        Unpack: Any = None
 
 import numpy as np
 import numpy.typing as npt
@@ -66,52 +80,43 @@ _NameType = TypeVar("_NameType", bound=str)
 _ScalarReturnType = TypeVar("_ScalarReturnType", bound=Any)
 _ArrayReturnDType = TypeVar("_ArrayReturnDType", bound=Any)
 
-class _VFunc_Nin1_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
-    @property
-    def __name__(self) -> _NameType: ...
-    @overload
-    def __call__(self, geography: Geography) -> _ScalarReturnType: ...
-    @overload
-    def __call__(self, geography: npt.ArrayLike) -> npt.NDArray[_ArrayReturnDType]: ...
+_Empty_Kwargs = TypedDict("_Empty_Kwargs", {})
+_KwargsType = TypeVar("_KwargsType", bound=TypedDict, default=_Empty_Kwargs)
 
-class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
-    @property
-    def __name__(self) -> _NameType: ...
-    @overload
-    def __call__(self, a: Geography, b: Geography) -> _ScalarReturnType: ...
-    @overload
-    def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
-    @overload
-    def __call__(
-        self, a: Geography, b: npt.ArrayLike
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
-    @overload
-    def __call__(
-        self, a: npt.ArrayLike, b: Geography
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
-
-class _VFunc_Nin2optradius_Nout1(
-    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
+class _VFunc_Nin1_Nout1(
+    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType, _KwargsType]
 ):
     @property
     def __name__(self) -> _NameType: ...
     @overload
     def __call__(
-        self, a: Geography, b: Geography, radius: float = ...
+        self, geography: Geography, **kwargs: Unpack[_KwargsType]
     ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike, radius: float = ...
+        self, geography: npt.ArrayLike, **kwargs: Unpack[_KwargsType]
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+
+class _VFunc_Nin2_Nout1(
+    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType, _KwargsType]
+):
+    @property
+    def __name__(self) -> _NameType: ...
+    @overload
+    def __call__(
+        self, a: Geography, b: Geography, **kwargs: Unpack[_KwargsType]
+    ) -> _ScalarReturnType: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, b: npt.ArrayLike, **kwargs: Unpack[_KwargsType]
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: Geography, b: npt.ArrayLike, radius: float = ...
+        self, a: Geography, b: npt.ArrayLike, **kwargs: Unpack[_KwargsType]
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: Geography, radius: float = ...
+        self, a: npt.ArrayLike, b: Geography, **kwargs: Unpack[_KwargsType]
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 # Geography properties
@@ -186,7 +191,11 @@ boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
 convex_hull: _VFunc_Nin1_Nout1[
     Literal["convex_hull"], PolygonGeography, PolygonGeography
 ]
-distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
+
+class DistanceKwargs(TypedDict):
+    radius: float
+
+distance: _VFunc_Nin2_Nout1[Literal["distance"], float, float, DistanceKwargs]
 
 # io functions
 
