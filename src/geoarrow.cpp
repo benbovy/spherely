@@ -197,7 +197,7 @@ protected:
 
 ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
                              py::object output_schema,
-                             py::object geometry_encoding,
+                             //  py::object geometry_encoding,
                              bool planar,
                              float tessellate_tolerance,
                              int precision) {
@@ -220,10 +220,10 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
         ArrowSchema* schema = static_cast<ArrowSchema*>(schema_capsule);
         writer.Init(schema, options);
         array.set_schema(schema);
-    } else if (geometry_encoding.equal(py::str("WKT"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options);
-    } else if (geometry_encoding.equal(py::str("WKB"))) {
-        writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options);
+        // } else if (geometry_encoding.equal(py::str("WKT"))) {
+        //     writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options);
+        // } else if (geometry_encoding.equal(py::str("WKB"))) {
+        //     writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options);
     } else {
         throw std::invalid_argument(
             "'output_schema' should be specified or 'geometry_encoding' should be one of None, "
@@ -302,7 +302,7 @@ void init_geoarrow(py::module& m) {
           py::pos_only(),
           py::kw_only(),
           py::arg("output_schema") = py::none(),
-          py::arg("geometry_encoding") = py::none(),
+          //   py::arg("geometry_encoding") = py::none(),
           py::arg("planar") = false,
           py::arg("tessellate_tolerance") = 100.0,
           py::arg("precision") = 6,
@@ -316,10 +316,16 @@ void init_geoarrow(py::module& m) {
         ----------
         input : array_like
             An array of geography objects.
-        geometry_encoding : str, default None
-            By default, the encoding is inferred from the GeoArrow extension
-            type of the input array.
-            However, for serializing to WKT and WKB it is also possible to pass
+        output_schema : Arrow schema, pyarrow.DataType, pyarrow.Field, default None
+            The geoarrow extension type to use for the output. This can indicate
+            one of the native geoarrow types (e.g. "point", "linestring", "polygon",
+            etc) or the serialized WKT or WKB options.
+            The type can be specified with any Arrow schema compatible object
+            (any object implementing the Arrow PyCapsule Protocol for schemas,
+            i.e. which has a ``__arrow_c_schema__`` method). For example, this
+            can be a ``pyarrow.DataType`` or ``pyarrow.Field``, and you can
+            use the ``geoarrow.pyarrow`` package to construct such geoarrow
+            extension types.
         planar : bool, default False
             If set to True, the edges of linestrings and polygons in the output
             are assumed to be linear on the plane. In that case, additional
@@ -333,5 +339,11 @@ void init_geoarrow(py::module& m) {
         precision : int, default 6
             The number of decimal places to include in the output. Only used
             when writing as WKT.
+
+        Examples
+        --------
+        >>> import spherely
+        >>> import geoarrow.pyarrow as ga
+        >>> spherely.to_geoarrow(arr, output_schema=ga.point())
     )pbdoc");
 }
