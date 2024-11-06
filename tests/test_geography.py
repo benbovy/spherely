@@ -98,3 +98,28 @@ def test_prepare() -> None:
 
     spherely.destroy_prepared(geog2)
     assert spherely.is_prepared(geog2) is False
+
+
+def test_equality() -> None:
+    p1 = spherely.point(1, 1)
+    p2 = spherely.point(1, 1)
+    p3 = spherely.point(2, 2)
+
+    assert p1 == p1
+    assert p1 == p2
+    assert not p1 == p3
+
+    line1 = spherely.linestring([(1, 1), (2, 2), (3, 3)])
+    line2 = spherely.linestring([(3, 3), (2, 2), (1, 1)])
+
+    assert line1 == line2
+
+    poly1 = spherely.polygon([(1, 1), (3, 1), (2, 3)])
+    poly2 = spherely.polygon([(2, 3), (1, 1), (3, 1)])
+    poly3 = spherely.polygon([(2, 3), (3, 1), (1, 1)])
+
+    assert p1 != poly1
+    assert line1 != poly1
+    assert poly1 == poly2
+    assert poly2 == poly3
+    assert poly1 == poly3

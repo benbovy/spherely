@@ -71,14 +71,19 @@ endif()
 
 # Build
 
-add_library(spherely MODULE
+set(CPP_SOURCES
   src/accessors-geog.cpp
   src/creation.cpp
   src/geography.cpp
   src/io.cpp
   src/predicates.cpp
-  src/spherely.cpp
-  )
+  src/spherely.cpp)
+
+if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")
+    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp)
+endif()
+
+add_library(spherely MODULE ${CPP_SOURCES})
 
 target_compile_definitions(
   spherely

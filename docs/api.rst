@@ -71,3 +71,4 @@ Input/Output
 
    from_wkt
    to_wkt
+   from_geoarrow

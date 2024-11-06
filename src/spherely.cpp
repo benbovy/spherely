@@ -10,6 +10,10 @@ void init_creation(py::module&);
 void init_predicates(py::module&);
 void init_accessors(py::module&);
 void init_io(py::module&);
+#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
+    (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
+void init_geoarrow(py::module&);
+#endif
 
 PYBIND11_MODULE(spherely, m) {
     m.doc() = R"pbdoc(
@@ -25,6 +29,10 @@ PYBIND11_MODULE(spherely, m) {
     init_predicates(m);
     init_accessors(m);
     init_io(m);
+#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
+    (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
+    init_geoarrow(m);
+#endif
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
