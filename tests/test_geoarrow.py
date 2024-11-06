@@ -128,15 +128,21 @@ def test_to_geoarrow():
 def test_to_geoarrow_wkt():
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
-    # TODO assert result
-    print(result)
+    expected = pa.array(["POINT (1 1)", "POINT (2 2)", "POINT (3 3)"])
+    assert result.storage.equals(expected)
 
 
 def test_to_geoarrow_wkb():
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
-    # TODO assert result
-    print(result)
+    expected = ga.as_wkb(
+        [
+            "POINT (0.9999999999999998 1)",
+            "POINT (2 1.9999999999999996)",
+            "POINT (3.0000000000000004 3.0000000000000004)",
+        ]
+    )
+    assert result.equals(expected)
 
 
 def test_wkt_roundtrip():
