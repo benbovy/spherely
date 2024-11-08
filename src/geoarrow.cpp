@@ -340,10 +340,23 @@ void init_geoarrow(py::module& m) {
             The number of decimal places to include in the output. Only used
             when writing as WKT.
 
+        Returns
+        -------
+        ArrowArrayHolder
+            A generic Arrow array object with geograhies encoded to GeoArrow.
+
         Examples
         --------
         >>> import spherely
         >>> import geoarrow.pyarrow as ga
-        >>> spherely.to_geoarrow(arr, output_schema=ga.point())
+        >>> arr = spherely.to_geoarrow(arr, output_schema=ga.point())
+
+        The returned object is a generic Arrow-compatible object that then
+        can be consumed by your Arrow library of choice. For example, using
+        ``pyarrow``:
+
+        >>> import pyarrow as pa
+        >>> arr_pa = pa.array(arr)
+
     )pbdoc");
 }
