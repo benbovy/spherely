@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 import numpy as np
 
@@ -123,3 +125,12 @@ def test_equality() -> None:
     assert poly1 == poly2
     assert poly2 == poly3
     assert poly1 == poly3
+
+
+def test_pickle_roundtrip() -> None:
+    geog = spherely.point(1.2, 1.2)
+
+    dumped = pickle.dumps(geog)
+    loaded = pickle.loads(dumped)
+
+    assert loaded == geog

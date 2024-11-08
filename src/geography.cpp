@@ -9,6 +9,7 @@
 #include <s2/s2polygon.h>
 #include <s2geography/geography.h>
 #include <s2geography/predicates.h>
+#include <s2geography/wkt-reader.h>
 #include <s2geography/wkt-writer.h>
 
 #include <cstddef>
@@ -257,6 +258,16 @@ void init_geography(py::module &m) {
         S2BooleanOperation::Options options;
         return s2geog::s2_equals(idx1, idx2, options);
     });
+
+    pygeography.def(py::pickle(
+        [](const Geography &geog) {
+            s2geog::WKTWriter writer(20);
+            return writer.write_feature(geog.geog());
+        },
+        [](const std::string &encoded) {
+            s2geog::WKTReader reader;
+            return reader.read_feature(encoded);
+        }));
 
     // Geography properties
 
