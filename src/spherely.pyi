@@ -178,6 +178,9 @@ equals: _VFunc_Nin2_Nout1[Literal["intersects"], bool, bool]
 contains: _VFunc_Nin2_Nout1[Literal["contains"], bool, bool]
 within: _VFunc_Nin2_Nout1[Literal["within"], bool, bool]
 disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
+touches: _VFunc_Nin2_Nout1[Literal["touches"], bool, bool]
+covers: _VFunc_Nin2_Nout1[Literal["covers"], bool, bool]
+covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
 # geography accessors
 
