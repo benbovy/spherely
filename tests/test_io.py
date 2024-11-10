@@ -7,6 +7,12 @@ from packaging.version import Version
 import spherely
 
 
+needs_s2geography_0_2 = pytest.mark.skipif(
+    Version(spherely.__s2geography_version__) < Version("0.2.0"),
+    reason="Needs s2geography >= 0.2.0",
+)
+
+
 def test_from_wkt():
     result = spherely.from_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
     expected = spherely.points([1, 2, 3], [1, 2, 3])
@@ -49,10 +55,7 @@ polygon_with_bad_hole_wkt = (
 )
 
 
-@pytest.mark.skipif(
-    Version(spherely.__s2geography_version__) < Version("0.2.0"),
-    reason="Needs s2geography >= 0.2.0",
-)
+@needs_s2geography_0_2
 def test_from_wkt_oriented():
     # by default re-orients the inner ring
     result = spherely.from_wkt(polygon_with_bad_hole_wkt)
@@ -66,10 +69,7 @@ def test_from_wkt_oriented():
         spherely.from_wkt(polygon_with_bad_hole_wkt, oriented=True)
 
 
-@pytest.mark.skipif(
-    Version(spherely.__s2geography_version__) < Version("0.2.0"),
-    reason="Needs s2geography >= 0.2.0",
-)
+@needs_s2geography_0_2
 def test_from_wkt_planar():
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
     assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
@@ -122,6 +122,7 @@ INVALID_WKB = bytes.fromhex(
 )  # noqa: E501
 
 
+@needs_s2geography_0_2
 def test_from_wkb_point_empty():
     result = spherely.from_wkb([POINT11_WKB, POINT_NAN_WKB, MULTIPOINT_NAN_WKB])
     # empty MultiPoint is converted to empty Point
@@ -132,6 +133,7 @@ def test_from_wkb_point_empty():
     assert str(result) == "GEOMETRYCOLLECTION (POINT EMPTY)"
 
 
+@needs_s2geography_0_2
 def test_from_wkb_invalid():
     with pytest.raises(RuntimeError, match="Expected endian byte"):
         spherely.from_wkb(b"")
@@ -145,11 +147,13 @@ def test_from_wkb_invalid():
     assert str(result) == "POLYGON ((108.7761 -10.2852, 108.7761 -10.2852))"
 
 
+@needs_s2geography_0_2
 def test_from_wkb_invalid_type():
     with pytest.raises(TypeError, match="expected bytes, str found"):
         spherely.from_wkb("POINT (1 1)")
 
 
+@needs_s2geography_0_2
 @pytest.mark.parametrize(
     "geog",
     [
@@ -186,3 +190,34 @@ def test_wkb_roundtrip(geog):
     # TODO properly test this once `equals` supports snapping/precision
     # assert spherely.equals(result, geog)
     assert str(result) == str(geog)
+
+
+@needs_s2geography_0_2
+def test_from_wkt_oriented():
+    # WKB for POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0)) -> non-CCW box
+    wkb = bytes.fromhex(
+        "010300000001000000050000000000000000000000000000000000000000000000000000000000000000002440000000000000244000000000000024400000000000002440000000000000000000000000000000000000000000000000"
+    )  # noqa: E501
+
+    result = spherely.from_wkb(wkb)
+    # by default re-oriented to take the smaller polygon
+    assert str(result) == "POLYGON ((10 0, 10 10, 0 10, 0 0, 10 0))"
+    assert spherely.within(spherely.point(5, 5), result)
+
+    result = spherely.from_wkb(wkb, oriented=True)
+    assert str(result) == "POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"
+    assert not spherely.within(spherely.point(5, 5), result)
+
+
+@needs_s2geography_0_2
+def test_from_wkt_planar():
+    wkb = spherely.to_wkb(spherely.from_wkt("LINESTRING (-64 45, 0 45)"))
+
+    result = spherely.from_wkb(wkb)
+    assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
+
+    result = spherely.from_wkb(wkb, planar=True)
+    assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
+
+    result = spherely.from_wkb(wkb, planar=True, tessellate_tolerance=10)
+    assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
