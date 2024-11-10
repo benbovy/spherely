@@ -193,7 +193,7 @@ def test_wkb_roundtrip(geog):
 
 
 @needs_s2geography_0_2
-def test_from_wkt_oriented():
+def test_from_wkb_oriented():
     # WKB for POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0)) -> non-CCW box
     wkb = bytes.fromhex(
         "010300000001000000050000000000000000000000000000000000000000000000000000000000000000002440000000000000244000000000000024400000000000002440000000000000000000000000000000000000000000000000"
@@ -210,7 +210,7 @@ def test_from_wkt_oriented():
 
 
 @needs_s2geography_0_2
-def test_from_wkt_planar():
+def test_from_wkb_planar():
     wkb = spherely.to_wkb(spherely.from_wkt("LINESTRING (-64 45, 0 45)"))
 
     result = spherely.from_wkb(wkb)
