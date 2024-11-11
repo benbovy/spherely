@@ -13,6 +13,7 @@ void init_io(py::module&);
 #if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
     (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
 void init_geoarrow(py::module&);
+void init_projections(py::module&);
 #endif
 
 PYBIND11_MODULE(spherely, m) {
@@ -31,6 +32,7 @@ PYBIND11_MODULE(spherely, m) {
     init_io(m);
 #if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
     (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
+    init_projections(m);
     init_geoarrow(m);
 #endif
 
