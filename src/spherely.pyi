@@ -114,6 +114,18 @@ class _VFunc_Nin2optradius_Nout1(
         self, a: npt.ArrayLike, b: Geography, radius: float = ...
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
+class _VFunc_Nin1optradius_Nout1(
+    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
+):
+    @property
+    def __name__(self) -> _NameType: ...
+    @overload
+    def __call__(self, a: Geography, radius: float = ...) -> _ScalarReturnType: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, radius: float = ...
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+
 # Geography properties
 
 get_dimensions: _VFunc_Nin1_Nout1[Literal["get_dimensions"], Geography, Any]
@@ -190,6 +202,7 @@ convex_hull: _VFunc_Nin1_Nout1[
     Literal["convex_hull"], PolygonGeography, PolygonGeography
 ]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
+area: _VFunc_Nin1optradius_Nout1[Literal["area"], float, float]
 
 # io functions
 
