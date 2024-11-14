@@ -99,3 +99,12 @@ def test_to_wkt():
     result = spherely.to_wkt(arr)
     expected = np.array(["POINT (1.1 1.1)", "POINT (2 2)", "POINT (3 3)"], dtype=object)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_to_wkt_precision():
+    arr = spherely.points([0.12345], [0.56789])
+    result = spherely.to_wkt(arr)
+    assert result[0] == "POINT (0.12345 0.56789)"
+
+    result = spherely.to_wkt(arr, precision=2)
+    assert result[0] == "POINT (0.12 0.57)"

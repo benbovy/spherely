@@ -13,3 +13,4 @@ dependencies:
   - ninja
   - pytest
   - pip
+  - geoarrow-pyarrow

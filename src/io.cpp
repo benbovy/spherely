@@ -39,11 +39,20 @@ private:
     std::shared_ptr<s2geog::WKTReader> m_reader;
 };
 
-py::str to_wkt(PyObjectGeography a) {
-    s2geog::WKTWriter writer;
-    auto res = writer.write_feature(a.as_geog_ptr()->geog());
-    return py::str(res);
-}
+class ToWKT {
+public:
+    ToWKT(int precision = 6) {
+        m_writer = std::make_shared<s2geog::WKTWriter>(precision);
+    }
+
+    py::str operator()(PyObjectGeography a) const {
+        auto res = m_writer->write_feature(a.as_geog_ptr()->geog());
+        return py::str(res);
+    }
+
+private:
+    std::shared_ptr<s2geog::WKTWriter> m_writer;
+};
 
 void init_io(py::module& m) {
     m.def(
@@ -82,16 +91,22 @@ void init_io(py::module& m) {
 
     )pbdoc");
 
-    m.def("to_wkt",
-          py::vectorize(&to_wkt),
-          py::arg("a"),
-          R"pbdoc(
+    m.def(
+        "to_wkt",
+        [](py::array_t<PyObjectGeography> a, int precision) {
+            return py::vectorize(ToWKT(precision))(std::move(a));
+        },
+        py::arg("a"),
+        py::arg("precision") = 6,
+        R"pbdoc(
         Returns the WKT representation of each geography.
 
         Parameters
         ----------
         a : :py:class:`Geography` or array_like
             Geography object(s)
+        precision : int, default 6
+            The number of decimal places to include in the output.
 
     )pbdoc");
 }

@@ -5,7 +5,9 @@ from typing import (
     Generic,
     Iterable,
     Literal,
+    Protocol,
     Sequence,
+    Tuple,
     TypeVar,
     overload,
 )
@@ -176,6 +178,9 @@ equals: _VFunc_Nin2_Nout1[Literal["intersects"], bool, bool]
 contains: _VFunc_Nin2_Nout1[Literal["contains"], bool, bool]
 within: _VFunc_Nin2_Nout1[Literal["within"], bool, bool]
 disjoint: _VFunc_Nin2_Nout1[Literal["disjoint"], bool, bool]
+touches: _VFunc_Nin2_Nout1[Literal["touches"], bool, bool]
+covers: _VFunc_Nin2_Nout1[Literal["covers"], bool, bool]
+covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
 # geography accessors
 
@@ -195,4 +200,19 @@ def from_wkt(
     oriented: bool = False,
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
+) -> npt.NDArray[Any]: ...
+
+class ArrowArrayExportable(Protocol):
+    def __arrow_c_array__(
+        self, requested_schema: object | None = None
+    ) -> Tuple[object, object]: ...
+
+def from_geoarrow(
+    input: ArrowArrayExportable,
+    /,
+    *,
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+    geometry_encoding: str | None = None,
 ) -> npt.NDArray[Any]: ...
