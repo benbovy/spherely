@@ -83,14 +83,7 @@ public:
     }
 
     py::bytes operator()(PyObjectGeography a) const {
-        auto res = m_writer->WriteFeature(a.as_geog_ptr()->geog());
-        // manually convert basic_string to python bytes object
-        auto res_py = PyBytes_FromStringAndSize(reinterpret_cast<const char*>(res.data()),
-                                                static_cast<ssize_t>(res.size()));
-        if (!res_py) {
-            throw py::error_already_set();
-        }
-        return py::reinterpret_steal<py::bytes>(res_py);
+        return m_writer->WriteFeature(a.as_geog_ptr()->geog());
     }
 
 private:
