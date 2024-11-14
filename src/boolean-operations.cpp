@@ -32,17 +32,6 @@ private:
     s2geog::GlobalOptions m_options;
 };
 
-// PyObjectGeography intersection(PyObjectGeography a, PyObjectGeography b) {
-//     const auto& a_index = a.as_geog_ptr()->geog_index();
-//     const auto& b_index = b.as_geog_ptr()->geog_index();
-
-//     std::unique_ptr<s2geog::Geography> geog_out = s2geog::s2_boolean_operation(
-//       a_index, b_index, S2BooleanOperation::OpType::INTERSECTION,
-//       s2geog::GlobalOptions());
-
-//     return make_py_geography(std::move(geog_out));
-// }
-
 void init_boolean_operations(py::module& m) {
     m.def("union",
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::UNION)),
@@ -91,7 +80,7 @@ void init_boolean_operations(py::module& m) {
           py::arg("a"),
           py::arg("b"),
           R"pbdoc(
-        Computes the difference of both geographies.
+        Computes the symmetric difference of both geographies.
 
         Parameters
         ----------
