@@ -47,6 +47,7 @@ Input/Output
    from_wkt
    to_wkt
    from_geoarrow
+   to_geoarrow
 
 .. _api_measurement:
 
