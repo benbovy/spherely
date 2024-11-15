@@ -197,7 +197,6 @@ protected:
 
 ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
                              py::object output_schema,
-                             //  py::object geometry_encoding,
                              bool planar,
                              float tessellate_tolerance,
                              int precision) {
@@ -216,18 +215,31 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
     }
 
     if (!output_schema.is(py::none())) {
+        if (!py::hasattr(output_schema, "__arrow_c_schema__")) {
+            throw std::invalid_argument(
+                "'output_schema' should be an Arrow-compatible schema object "
+                "(i.e. has an '__arrow_c_schema__' method)");
+        }
         py::capsule schema_capsule = output_schema.attr("__arrow_c_schema__")();
         ArrowSchema* schema = static_cast<ArrowSchema*>(schema_capsule);
-        writer.Init(schema, options);
+        try {
+            writer.Init(schema, options);
+        } catch (const std::exception& ex) {
+            // re-raise RuntimeError as ValueError
+            if (strlen(ex.what()) > 0) {
+                throw py::value_error(ex.what());
+            } else {
+                throw py::value_error("Error initializing writer. Did you pass a valid schema?");
+            }
+        }
         array.set_schema(schema);
+        // TODO add support for specifying a geometry encoding
         // } else if (geometry_encoding.equal(py::str("WKT"))) {
         //     writer.Init(s2geog::geoarrow::Writer::OutputType::kWKT, options);
         // } else if (geometry_encoding.equal(py::str("WKB"))) {
         //     writer.Init(s2geog::geoarrow::Writer::OutputType::kWKB, options);
     } else {
-        throw std::invalid_argument(
-            "'output_schema' should be specified or 'geometry_encoding' should be one of None, "
-            "'WKT' or 'WKB'");
+        throw std::invalid_argument("'output_schema' should be specified");
     }
 
     for (int i = 0; i < input.size(); i++) {
@@ -302,7 +314,6 @@ void init_geoarrow(py::module& m) {
           py::pos_only(),
           py::kw_only(),
           py::arg("output_schema") = py::none(),
-          //   py::arg("geometry_encoding") = py::none(),
           py::arg("planar") = false,
           py::arg("tessellate_tolerance") = 100.0,
           py::arg("precision") = 6,

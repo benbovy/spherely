@@ -161,3 +161,21 @@ def test_wkt_roundtrip():
     arr = spherely.from_geoarrow(ga.as_wkt(wkt))
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
     np.testing.assert_array_equal(result, wkt)
+
+
+def test_to_geoarrow_no_output_encoding():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+
+    with pytest.raises(ValueError, match="'output_schema' should be specified"):
+        spherely.to_geoarrow(arr)
+
+
+def test_to_geoarrow_invalid_output_schema():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    with pytest.raises(
+        ValueError, match="'output_schema' should be an Arrow-compatible schema"
+    ):
+        spherely.to_geoarrow(arr, output_schema="WKT")
+
+    with pytest.raises(ValueError, match="Did you pass a valid schema"):
+        spherely.to_geoarrow(arr, output_schema=pa.schema([("test", pa.int64())]))
