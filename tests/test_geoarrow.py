@@ -197,9 +197,10 @@ def test_to_geoarrow_projected():
     expected = np.array([1, 1, 2, 2, 3, 3], dtype="float64")
     np.testing.assert_allclose(coords, expected)
 
-    # import pyproj
-    # trans = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
-    # trans.transform([1, 2, 3], [1, 2, 3])
+    # Output to pseudo mercator - generation of expected result
+    #   import pyproj
+    #   trans = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
+    #   trans.transform([1, 2, 3], [1, 2, 3])
     result = pa.array(
         spherely.to_geoarrow(
             arr,
@@ -221,6 +222,7 @@ def test_to_geoarrow_projected():
     )
     np.testing.assert_allclose(coords, expected)
 
+    # Output to orthographic
     result = pa.array(
         spherely.to_geoarrow(
             arr,
