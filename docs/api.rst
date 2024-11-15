@@ -31,22 +31,33 @@ Geography creation
    multipoint
    multilinestring
    polygon
-   geography_collection
+   collection
    is_prepared
    prepare
    destroy_prepared
 
-.. _api_accessors:
+.. _api_io:
 
-Geography accessors
--------------------
+Input/Output
+------------
 
 .. autosummary::
    :toctree: _api_generated/
 
-   centroid
-   boundary
-   convex_hull
+   from_wkt
+   to_wkt
+   from_geoarrow
+
+.. _api_measurement:
+
+Measurement
+-----------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   area
+   distance
 
 .. _api_predicates:
 
@@ -58,17 +69,21 @@ Predicates
 
    equals
    intersects
+   touches
    contains
    within
    disjoint
+   covers
+   covered_by
 
+.. _api_constructive_ops:
 
-Input/Output
-------------
+Constructive operations
+-----------------------
 
 .. autosummary::
    :toctree: _api_generated/
 
-   from_wkt
-   to_wkt
-   from_geoarrow
+   centroid
+   boundary
+   convex_hull

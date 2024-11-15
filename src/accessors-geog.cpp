@@ -32,6 +32,10 @@ double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_
     return s2geog::s2_distance(a_index, b_index) * radius;
 }
 
+double area(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_area(a.as_geog_ptr()->geog()) * radius * radius;
+}
+
 void init_accessors(py::module& m) {
     m.attr("EARTH_RADIUS_METERS") = py::float_(EARTH_RADIUS_METERS);
 
@@ -87,6 +91,22 @@ void init_accessors(py::module& m) {
         a : :py:class:`Geography` or array_like
             Geography object
         b : :py:class:`Geography` or array_like
+            Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
+
+    )pbdoc");
+
+    m.def("area",
+          py::vectorize(&area),
+          py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculate the area of the geography.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
             Geography object
         radius : float, optional
             Radius of Earth in meters, default 6,371,010

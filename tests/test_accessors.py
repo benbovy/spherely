@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -124,3 +126,36 @@ def test_distance_with_custom_radius() -> None:
     )
     assert isinstance(actual, float)
     assert actual == pytest.approx(np.pi / 2)
+
+
+def test_area():
+    # scalar
+    geog = spherely.polygon([(0, 0), (90, 0), (0, 90), (0, 0)])
+    result = spherely.area(geog, radius=1)
+    assert isinstance(result, float)
+    expected = 4 * math.pi / 8
+    assert result == pytest.approx(expected, 1e-9)
+
+    result = spherely.area(geog)
+    assert result == pytest.approx(expected * spherely.EARTH_RADIUS_METERS**2, 1e-9)
+
+    # array
+    actual = spherely.area([geog], radius=1)
+    assert isinstance(actual, np.ndarray)
+    actual = actual[0]
+    assert isinstance(actual, float)
+    assert actual == pytest.approx(4 * math.pi / 8, 1e-9)
+
+
+@pytest.mark.parametrize(
+    "geog",
+    [
+        "POINT (-64 45)",
+        "POINT EMPTY",
+        "LINESTRING (0 0, 1 1)",
+        "LINESTRING EMPTY",
+        "POLYGON EMPTY",
+    ],
+)
+def test_area_empty(geog):
+    assert spherely.area(spherely.from_wkt(geog)) == 0
