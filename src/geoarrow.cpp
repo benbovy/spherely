@@ -292,7 +292,8 @@ void init_geoarrow(py::module& m) {
             If set to True, the edges of linestrings and polygons are assumed
             to be linear on the plane. In that case, additional points will
             be added to the line while creating the geography objects, to
-            ensure every point is within 100m of the original line.
+            ensure every point is within the `tessellate_tolerance` distance
+            (100m by default) of the original line.
             By default (False), it is assumed that the edges are spherical
             (i.e. represent the shortest path on the sphere between two points).
         tessellate_tolerance : float, default 100.0
@@ -341,8 +342,8 @@ void init_geoarrow(py::module& m) {
             If set to True, the edges of linestrings and polygons in the output
             are assumed to be linear on the plane. In that case, additional
             points will be added to the line while converting to the output
-            encoding, to ensure every point is within the ``tessellate_tolerance``
-            distance of the original line on the sphere.
+            encoding, to ensure every point is within the `tessellate_tolerance`
+            distance (100m by default) of the original line on the sphere.
         tessellate_tolerance : float, default 100.0
             The maximum distance in meters that a point must be moved to
             satisfy the planar edge constraint. This is only used if `planar`
