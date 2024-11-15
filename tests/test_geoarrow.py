@@ -109,3 +109,76 @@ def test_from_geoarrow_invalid_encoding():
 def test_from_geoarrow_no_arrow_object():
     with pytest.raises(ValueError, match="input should be an Arrow-compatible array"):
         spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))
+
+
+def test_to_geoarrow():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    res = spherely.to_geoarrow(
+        arr, output_schema=ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
+    )
+    assert isinstance(res, spherely.ArrowArrayHolder)
+    assert hasattr(res, "__arrow_c_array__")
+
+    arr_pa = pa.array(res)
+    coords = np.asarray(arr_pa.storage.values)
+    expected = np.array([1, 1, 2, 2, 3, 3], dtype="float64")
+    np.testing.assert_allclose(coords, expected)
+
+
+def test_to_geoarrow_wkt():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
+    expected = pa.array(["POINT (1 1)", "POINT (2 2)", "POINT (3 3)"])
+    assert result.storage.equals(expected)
+
+
+def test_to_geoarrow_wkb():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
+    # the conversion from lon/lat values to S2 points and back gives some floating
+    # point differences, and output to WKB does not do any rounding,
+    # therefore checking exact values here
+    expected = ga.as_wkb(
+        [
+            "POINT (0.9999999999999998 1)",
+            "POINT (2 1.9999999999999996)",
+            "POINT (3.0000000000000004 3.0000000000000004)",
+        ]
+    )
+    assert result.equals(expected)
+
+
+def test_wkt_roundtrip():
+    wkt = [
+        "POINT (30 10)",
+        "LINESTRING (30 10, 10 30, 40 40)",
+        "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
+        "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))",
+        "MULTIPOINT ((10 40), (40 30), (20 20), (30 10))",
+        "MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))",
+        "MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)), ((15 5, 40 10, 10 20, 5 10, 15 5)))",
+        "MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)), ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35), (30 20, 20 15, 20 25, 30 20)))",
+        "GEOMETRYCOLLECTION (POINT (40 10), LINESTRING (10 10, 20 20, 10 40), POLYGON ((40 40, 20 45, 45 30, 40 40)))",
+    ]
+
+    arr = spherely.from_geoarrow(ga.as_wkt(wkt))
+    result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
+    np.testing.assert_array_equal(result, wkt)
+
+
+def test_to_geoarrow_no_output_encoding():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+
+    with pytest.raises(ValueError, match="'output_schema' should be specified"):
+        spherely.to_geoarrow(arr)
+
+
+def test_to_geoarrow_invalid_output_schema():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    with pytest.raises(
+        ValueError, match="'output_schema' should be an Arrow-compatible schema"
+    ):
+        spherely.to_geoarrow(arr, output_schema="WKT")
+
+    with pytest.raises(ValueError, match="Did you pass a valid schema"):
+        spherely.to_geoarrow(arr, output_schema=pa.schema([("test", pa.int64())]))
