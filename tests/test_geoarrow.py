@@ -135,6 +135,9 @@ def test_to_geoarrow_wkt():
 def test_to_geoarrow_wkb():
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
+    # the conversion from lon/lat values to S2 points and back gives some floating
+    # point differences, and output to WKB does not do any rounding,
+    # therefore checking exact values here
     expected = ga.as_wkb(
         [
             "POINT (0.9999999999999998 1)",
