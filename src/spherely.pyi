@@ -207,7 +207,7 @@ area: _VFunc_Nin1optradius_Nout1[Literal["area"], float, float]
 # io functions
 
 to_wkt: _VFunc_Nin1_Nout1[Literal["to_wkt"], str, object]
-to_wkb: _VFunc_Nin1_Nout1[Literal["to_wkt"], bytes, object]
+to_wkb: _VFunc_Nin1_Nout1[Literal["to_wkb"], bytes, object]
 
 def from_wkt(
     a: Iterable[str],
