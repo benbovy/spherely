@@ -46,7 +46,7 @@ Input/Output
 
    from_wkt
    to_wkt
-   fron_wkb
+   from_wkb
    to_wkb
    from_geoarrow
    to_geoarrow
