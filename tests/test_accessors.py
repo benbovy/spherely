@@ -163,12 +163,12 @@ def test_area_empty(geog):
 
 def test_length():
     geog = spherely.linestring([(0, 0), (1, 0)])
-    result = spherely.length(geog)
+    result = spherely.length(geog, radius=1)
     assert isinstance(result, float)
     expected = 1.0 * np.pi / 180.0
     assert result == pytest.approx(expected, 1e-9)
 
-    actual = spherely.length([geog])
+    actual = spherely.length([geog], radius=1)
     assert isinstance(actual, np.ndarray)
     actual = actual[0]
     assert isinstance(actual, float)
@@ -188,15 +188,14 @@ def test_length_invalid(geog):
     assert spherely.length(spherely.from_wkt(geog)) == 0.0
 
 
-@pytest.mark.xfail()
 def test_perimeter():
     geog = spherely.polygon([(0, 0), (0, 90), (90, 90), (90, 0), (0, 0)])
-    result = spherely.perimeter(geog)
+    result = spherely.perimeter(geog, radius=1)
     assert isinstance(result, float)
-    expected = 4 * 90 * np.pi / 180.0
+    expected = 3 * 90 * np.pi / 180.0
     assert result == pytest.approx(expected, 1e-9)
 
-    actual = spherely.perimeter([geog])
+    actual = spherely.perimeter([geog], radius=1)
     assert isinstance(actual, np.ndarray)
     actual = actual[0]
     assert isinstance(actual, float)

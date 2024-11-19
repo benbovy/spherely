@@ -36,12 +36,12 @@ double area(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
     return s2geog::s2_area(a.as_geog_ptr()->geog()) * radius * radius;
 }
 
-double length(PyObjectGeography a) {
-    return s2geog::s2_length(a.as_geog_ptr()->geog());
+double length(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_length(a.as_geog_ptr()->geog()) * radius;
 }
 
-double perimeter(PyObjectGeography a) {
-    return s2geog::s2_perimeter(a.as_geog_ptr()->geog());
+double perimeter(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_perimeter(a.as_geog_ptr()->geog()) * radius;
 }
 
 void init_accessors(py::module& m) {
@@ -124,24 +124,31 @@ void init_accessors(py::module& m) {
     m.def("length",
           py::vectorize(&length),
           py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
           R"pbdoc(
-        Calculates the length of a one-dimensional geography.
+        Calculates the length of a line geography, returning zero for other types.
 
         Parameters
         ----------
         a : :py:class:`Geography` or array_like
             Geography object
-    )pbdoc");
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
+
+   )pbdoc");
 
     m.def("perimeter",
           py::vectorize(&perimeter),
           py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
           R"pbdoc(
-        Calculates the perimeter of a two-dimensional geography.
+        Calculates the perimeter of a polygon geography, returning zero for other types.
 
         Parameters
         ----------
         a : :py:class:`Geography` or array_like
             Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
     )pbdoc");
 }
