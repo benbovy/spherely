@@ -182,3 +182,57 @@ def test_to_geoarrow_invalid_output_schema():
 
     with pytest.raises(ValueError, match="Did you pass a valid schema"):
         spherely.to_geoarrow(arr, output_schema=pa.schema([("test", pa.int64())]))
+
+
+def test_to_geoarrow_projected():
+    arr = spherely.points([1, 2, 3], [1, 2, 3])
+    point_schema = ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
+    result = pa.array(
+        spherely.to_geoarrow(
+            arr, output_schema=point_schema, projection=spherely.Projection.lnglat()
+        )
+    )
+
+    coords = np.asarray(result.storage.values)
+    expected = np.array([1, 1, 2, 2, 3, 3], dtype="float64")
+    np.testing.assert_allclose(coords, expected)
+
+    # Output to pseudo mercator - generation of expected result
+    #   import pyproj
+    #   trans = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
+    #   trans.transform([1, 2, 3], [1, 2, 3])
+    result = pa.array(
+        spherely.to_geoarrow(
+            arr,
+            output_schema=point_schema,
+            projection=spherely.Projection.pseudo_mercator(),
+        )
+    )
+    coords = np.asarray(result.storage.values)
+    expected = np.array(
+        [
+            111319.49079327357,
+            111325.1428663851,
+            222638.98158654713,
+            222684.20850554405,
+            333958.4723798207,
+            334111.1714019596,
+        ],
+        dtype="float64",
+    )
+    np.testing.assert_allclose(coords, expected)
+
+    # Output to orthographic
+    result = pa.array(
+        spherely.to_geoarrow(
+            arr,
+            output_schema=point_schema,
+            projection=spherely.Projection.orthographic(0.0, 0.0),
+        )
+    )
+    coords = np.asarray(result.storage.values)
+    expected = np.array(
+        [0.01744975, 0.01745241, 0.03487824, 0.0348995, 0.05226423, 0.05233596],
+        dtype="float64",
+    )
+    np.testing.assert_allclose(coords, expected, rtol=1e-06)

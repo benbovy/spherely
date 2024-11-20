@@ -4,6 +4,7 @@
 #include "constants.hpp"
 #include "creation.hpp"
 #include "geography.hpp"
+#include "projections.hpp"
 #include "pybind11.hpp"
 
 namespace py = pybind11;
@@ -197,6 +198,7 @@ protected:
 
 ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
                              py::object output_schema,
+                             Projection projection,
                              bool planar,
                              float tessellate_tolerance,
                              int precision) {
@@ -207,11 +209,10 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
 
     s2geog::geoarrow::ExportOptions options;
     options.set_precision(precision);
+    options.set_projection(projection.s2_projection());
     if (planar) {
         auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
-        // TODO make this configurable
-        // options.set_projection(s2geog::geoarrow::mercator());
     }
 
     if (!output_schema.is(py::none())) {
@@ -315,6 +316,7 @@ void init_geoarrow(py::module& m) {
           py::pos_only(),
           py::kw_only(),
           py::arg("output_schema") = py::none(),
+          py::arg("projection") = Projection::lnglat(),
           py::arg("planar") = false,
           py::arg("tessellate_tolerance") = 100.0,
           py::arg("precision") = 6,
@@ -338,6 +340,10 @@ void init_geoarrow(py::module& m) {
             can be a ``pyarrow.DataType`` or ``pyarrow.Field``, and you can
             use the ``geoarrow.pyarrow`` package to construct such geoarrow
             extension types.
+        projection : spherely.Projection, default Projection.lnglat()
+            The projection to use when converting the geographies to the output
+            encoding. By default, uses longitude/latitude coordinates ("plate
+            carree" projection).
         planar : bool, default False
             If set to True, the edges of linestrings and polygons in the output
             are assumed to be linear on the plane. In that case, additional

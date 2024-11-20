@@ -80,7 +80,7 @@ set(CPP_SOURCES
   src/spherely.cpp)
 
 if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")
-    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp)
+    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp src/projections.cpp)
 endif()
 
 add_library(spherely MODULE ${CPP_SOURCES})
