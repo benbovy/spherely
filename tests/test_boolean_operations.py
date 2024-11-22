@@ -1,3 +1,5 @@
+from packaging.version import Version
+
 import pytest
 
 import spherely
@@ -76,8 +78,9 @@ def test_intersection_lines():
 def test_intersection_polygons():
     result = spherely.intersection(poly1, poly2)
     # TODO precision could be higher with snap level
+    precision = 2 if Version(spherely.__s2geography_version__) < Version("0.2.0") else 1
     assert (
-        spherely.to_wkt(result, precision=1)
+        spherely.to_wkt(result, precision=precision)
         == "POLYGON ((5 5, 10 5, 10 10, 5 10, 5 5))"
     )
 
