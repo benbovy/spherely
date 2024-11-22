@@ -140,6 +140,18 @@ struct vectorize_arg<py::str> {
     using type = conditional_t<vectorize, array_t<remove_cv_t<call_type>, array::forcecast>, T>;
 };
 
+template <>
+struct vectorize_arg<py::bytes> {
+    using T = py::bytes;
+    // The wrapped function gets called with this type:
+    using call_type = T;
+    // Is this a vectorized argument?
+    static constexpr bool vectorize = true;
+    // Accept this type: an array for vectorized types, otherwise the type
+    // as-is:
+    using type = conditional_t<vectorize, array_t<remove_cv_t<call_type>, array::forcecast>, T>;
+};
+
 // Register PyObjectGeography and str as a valid numpy dtype (numpy.object alias)
 // from: https://github.com/pybind/pybind11/pull/1152
 template <>
@@ -156,6 +168,18 @@ struct npy_format_descriptor<spherely::PyObjectGeography> {
 
 template <>
 struct npy_format_descriptor<py::str> {
+    static constexpr auto name = _("object");
+    enum { value = npy_api::NPY_OBJECT_ };
+    static pybind11::dtype dtype() {
+        if (auto ptr = npy_api::get().PyArray_DescrFromType_(value)) {
+            return reinterpret_borrow<pybind11::dtype>(ptr);
+        }
+        pybind11_fail("Unsupported buffer format!");
+    }
+};
+
+template <>
+struct npy_format_descriptor<py::bytes> {
     static constexpr auto name = _("object");
     enum { value = npy_api::NPY_OBJECT_ };
     static pybind11::dtype dtype() {
@@ -187,6 +211,11 @@ object cast(T &&value) {
 }
 
 template <typename T, typename detail::enable_if_t<std::is_same<T, py::str>::value, int> = 0>
+object cast(T &&value) {
+    return value;
+}
+
+template <typename T, typename detail::enable_if_t<std::is_same<T, py::bytes>::value, int> = 0>
 object cast(T &&value) {
     return value;
 }
