@@ -46,6 +46,8 @@ Input/Output
 
    from_wkt
    to_wkt
+   from_wkb
+   to_wkb
    from_geoarrow
    to_geoarrow
    Projection
