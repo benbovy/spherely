@@ -182,6 +182,7 @@ is_geography: _VFunc_Nin1_Nout1[Literal["is_geography"], bool, bool]
 is_prepared: _VFunc_Nin1_Nout1[Literal["is_prepared"], bool, bool]
 prepare: _VFunc_Nin1_Nout1[Literal["prepare"], Geography, Any]
 destroy_prepared: _VFunc_Nin1_Nout1[Literal["destroy_prepared"], Geography, Any]
+is_empty: _VFunc_Nin1_Nout1[Literal["is_empty"], bool, bool]
 
 # predicates
 

@@ -84,6 +84,24 @@ def test_convex_hull(geog, expected) -> None:
     assert spherely.equals(actual, expected)
 
 
+def test_is_empty():
+    arr = spherely.from_wkt(
+        [
+            "POINT (0 0)",
+            "POINT EMPTY",
+            "LINESTRING (0 0, 1 1)",
+            "LINESTRING EMPTY",
+            "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))",
+            "POLYGON EMPTY",
+            "GEOMETRYCOLLECTION EMPTY",
+            "GEOMETRYCOLLECTION (POINT EMPTY)",
+        ]
+    )
+    result = spherely.is_empty(arr)
+    expected = np.array([False, True, False, True, False, True, True, True])
+    np.testing.assert_array_equal(result, expected)
+
+
 @pytest.mark.parametrize(
     "geog_a, geog_b, expected",
     [
