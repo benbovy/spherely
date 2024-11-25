@@ -2,12 +2,19 @@ import itertools
 import string
 from pathlib import Path
 
-STUB_FILE_PATH = Path(__file__).parent / "src" / "spherely.pyi"
+VFUNC_TYPE_SPECS = {
+    "_VFunc_Nin1_Nout1": {"n_in": 1},
+    "_VFunc_Nin2_Nout1": {"n_in": 2},
+    "_VFunc_Nin2optradius_Nout1": {"n_in": 2, "radius": "float"},
+    "_VFunc_Nin1optradius_Nout1": {"n_in": 1, "radius": "float"},
+}
+
+STUB_FILE_PATH = Path(__file__).parent / "spherely.pyi"
 BEGIN_MARKER = "# /// Begin types"
 END_MARKER = "# /// End types"
 
 
-def update_stub_file(path=STUB_FILE_PATH, **type_specs):
+def update_stub_file(path, **type_specs):
     stub_text = path.read_text(encoding="utf-8")
     try:
         start_idx = stub_text.index(BEGIN_MARKER)
@@ -71,8 +78,4 @@ def _vfunctype_factory(class_name, n_in, **optargs):
 
 
 if __name__ == "__main__":
-    update_stub_file(
-        _VFunc_Nin1_Nout1={"n_in": 1},
-        _VFunc_Nin2_Nout1={"n_in": 2},
-        # _VFunc_Nin2radius_Nout1={"n_in": 2, "radius": "float"},
-    )
+    update_stub_file(path=STUB_FILE_PATH, **VFUNC_TYPE_SPECS)
