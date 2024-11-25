@@ -49,12 +49,9 @@ jobs:
         include:
         - os: ubuntu-latest
           arch: x86_64
-        # - os: windows-2019
-        #   arch: x86
-        #   msvc_arch: x86
-        # - os: windows-2019
-        #   arch: AMD64
-        #   msvc_arch: x64
+        - os: windows-2019
+          arch: AMD64
+          msvc_arch: x64
         - os: macos-13
           arch: x86_64
           cmake_osx_architectures: x86_64
@@ -82,6 +79,30 @@ jobs:
           ls -all .
         shell: bash
 
+      # for some reason mingw is selected by cmake within cibuildwheel before_all
+      - name: Prepare compiler environment for Windows
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache vcpkg install directory (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: "c:\\vcpkg\\installed"
+          key: vcpkg-${{ runner.os }}
+
+      - name: Install abseil openssl and s2geometry (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          vcpkg install s2geometry:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
+          vcpkg list
+          ls /c/vcpkg/installed
+          ls /c/vcpkg/installed/x64-windows
+          ls /c/vcpkg/installed/x64-windows/bin
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
         env:
@@ -107,16 +128,18 @@ jobs:
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
             DEPENDENCIES_DIR='${{ runner.temp }}\3rd-party'
+            CMAKE_PREFIX_PATH='c:\vcpkg\installed\x64-windows;${{ runner.temp }}\3rd-party\dist'
             ABSL_VERSION=${{ env.ABSL_VERSION }}
             S2GEOMETRY_VERSION=${{ env.S2GEOMETRY_VERSION }}
             S2GEOGRAPHY_VERSION=${{ env.S2GEOGRAPHY_VERSION }}
             CXX_STANDARD=${{ env.CXX_STANDARD }}
+            PROJECT_DIR='${{ runner.workspace }}\spherely'
           CIBW_BEFORE_ALL: ./ci/install_3rdparty.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_3rdparty.cmd
-          # CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: 'LD_LIBRARY_PATH=/host${{ runner.temp }}/3rd-party/dist/lib64 auditwheel repair -w {dest_dir} {wheel}'
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: 'DYLD_LIBRARY_PATH=${{ runner.temp }}/3rd-party/dist/lib delocate-wheel --require-archs=${{ matrix.arch }} -w {dest_dir} -v {wheel}'
-          # CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: 'delvewheel repair --add-path ${{ runner.temp }}\3rd-party\dist\bin --add-path c:\vcpkg\installed\x64-windows\bin -w {dest_dir} {wheel}'
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest {project}/tests
 

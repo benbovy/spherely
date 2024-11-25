@@ -1,23 +1,28 @@
 #include "geography.hpp"
 
+#include <pybind11/attr.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <s2/s2latlng.h>
 #include <s2/s2loop.h>
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
-#include <s2geography.h>
+#include <s2geography/geography.h>
+#include <s2geography/predicates.h>
+#include <s2geography/wkt-writer.h>
 
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "pybind11.hpp"
-#include "pybind11/stl.h"
 
 namespace py = pybind11;
 namespace s2geog = s2geography;
@@ -26,128 +31,135 @@ using namespace spherely;
 py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 
 /*
-** Geography factories
+** Internal helpers
 */
 
-// Used in Geography constructors to get a point either from a tuple of
-// coordinates or an existing Point object.
-//
-// TODO: using std::variant may be nicer:
-// using Vertex = std::variant<std::pair<double, double>, Point>;
-//
-// It is not fully supported with Pybind11 (Point is non-default constructible)
-// https://github.com/pybind/pybind11/issues/4108
-//
-S2Point to_s2point(const std::pair<double, double> &vertex) {
-    return S2LatLng::FromDegrees(vertex.first, vertex.second).ToPoint();
-}
+// TODO: May be worth moving this upstream as a `s2geog::Geography::clone()` virtual function
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog);
 
-S2Point to_s2point(const Point *vertex) {
-    return vertex->s2point();
-}
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog,
+                                                     GeographyType geog_type) {
+    std::unique_ptr<s2geog::Geography> new_geog_ptr;
 
-class PointFactory {
-public:
-    static std::unique_ptr<Point> FromLatLonDegrees(double lat_degrees, double lon_degrees) {
-        auto latlng = S2LatLng::FromDegrees(lat_degrees, lon_degrees);
+    if (geog_type == GeographyType::Point || geog_type == GeographyType::MultiPoint) {
+        const auto &points = reinterpret_cast<const s2geog::PointGeography &>(geog).Points();
+        new_geog_ptr = std::make_unique<s2geog::PointGeography>(points);
 
-        return make_geography<s2geog::PointGeography, Point>(S2Point(latlng));
+    } else if (geog_type == GeographyType::LineString ||
+               geog_type == GeographyType::MultiLineString) {
+        const auto &polylines =
+            reinterpret_cast<const s2geog::PolylineGeography &>(geog).Polylines();
+        std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
+
+        auto copy_polyline = [](const std::unique_ptr<S2Polyline> &polyline) {
+            return std::unique_ptr<S2Polyline>(polyline->Clone());
+        };
+
+        std::transform(polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
+
+        new_geog_ptr = std::make_unique<s2geog::PolylineGeography>(std::move(polylines_copy));
+
+    } else if (geog_type == GeographyType::Polygon || geog_type == GeographyType::MultiPolygon) {
+        const auto &poly = reinterpret_cast<const s2geog::PolygonGeography &>(geog).Polygon();
+        std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
+        new_geog_ptr = std::make_unique<s2geog::PolygonGeography>(std::move(poly_ptr));
+
+    } else if (geog_type == GeographyType::GeometryCollection) {
+        const auto &features =
+            reinterpret_cast<const s2geog::GeographyCollection &>(geog).Features();
+        std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+        features_copy.reserve(features.size());
+
+        for (const auto &feature_ptr : features) {
+            features_copy.push_back(clone_s2geography(*feature_ptr));
+        }
+        new_geog_ptr = std::make_unique<s2geog::GeographyCollection>(std::move(features_copy));
     }
 
-    // TODO: from LatLonRadians
-};
-
-template <class V>
-static std::unique_ptr<LineString> create_linestring(const std::vector<V> &coords) {
-    std::vector<S2Point> pts(coords.size());
-
-    std::transform(coords.begin(), coords.end(), pts.begin(), [](const V &vertex) {
-        return to_s2point(vertex);
-    });
-
-    auto polyline_ptr = std::make_unique<S2Polyline>(pts);
-
-    return make_geography<s2geog::PolylineGeography, LineString>(std::move(polyline_ptr));
+    return new_geog_ptr;
 }
 
-template <class V>
-static std::unique_ptr<spherely::Polygon> create_polygon(const std::vector<V> &shell) {
-    std::vector<S2Point> shell_pts(shell.size());
-
-    std::transform(shell.begin(), shell.end(), shell_pts.begin(), [](const V &vertex) {
-        return to_s2point(vertex);
-    });
-
-    auto shell_loop_ptr = std::make_unique<S2Loop>();
-    // TODO: maybe add an option to skip validity checks
-    shell_loop_ptr->set_s2debug_override(S2Debug::DISABLE);
-    shell_loop_ptr->Init(shell_pts);
-    if (!shell_loop_ptr->IsValid()) {
-        std::stringstream err;
-        S2Error s2err;
-        err << "loop is not valid: ";
-        shell_loop_ptr->FindValidationError(&s2err);
-        err << s2err.text();
-        throw py::value_error(err.str());
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog) {
+    if (const auto *ptr = dynamic_cast<const s2geog::PointGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::Point);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::PolylineGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::LineString);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::PolygonGeography *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::Polygon);
+    } else if (const auto *ptr = dynamic_cast<const s2geog::GeographyCollection *>(&geog); ptr) {
+        return clone_s2geography(geog, GeographyType::GeometryCollection);
+    } else {
+        throw py::type_error("unknown geography type");
     }
-
-    // TODO: maybe add an option to skip normalization (simply assume
-    // vertices are given in the CCW order).
-    shell_loop_ptr->Normalize();
-
-    std::vector<std::unique_ptr<S2Loop>> loops;
-    loops.push_back(std::move(shell_loop_ptr));
-
-    auto polygon_ptr = std::make_unique<S2Polygon>();
-    // TODO: maybe add an option to skip validity checks
-    polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
-    polygon_ptr->InitOriented(std::move(loops));
-
-    return make_geography<s2geog::PolygonGeography, spherely::Polygon>(std::move(polygon_ptr));
 }
 
 /*
-** Temporary testing Numpy-vectorized API (TODO: remove)
+** Geography implementation
 */
 
-py::array_t<int> num_shapes(const py::array_t<PyObjectGeography> geographies) {
-    py::buffer_info buf = geographies.request();
-
-    auto result = py::array_t<int>(buf.size);
-    py::buffer_info result_buf = result.request();
-    int *rptr = static_cast<int *>(result_buf.ptr);
-
-    for (py::ssize_t i = 0; i < buf.size; i++) {
-        auto geog_ptr = (*geographies.data(i)).as_geog_ptr();
-        rptr[i] = geog_ptr->num_shapes();
-    }
-
-    return result;
+std::unique_ptr<s2geog::Geography> Geography::clone_geog() const {
+    return clone_s2geography(*m_s2geog_ptr, m_geog_type);
 }
 
-py::array_t<PyObjectGeography> create(py::array_t<double> xs, py::array_t<double> ys) {
-    py::buffer_info xbuf = xs.request(), ybuf = ys.request();
-    if (xbuf.ndim != 1 || ybuf.ndim != 1) {
-        throw std::runtime_error("Number of dimensions must be one");
+Geography Geography::clone() const {
+    auto new_geog_ptr = clone_s2geography(*m_s2geog_ptr, m_geog_type);
+
+    // skip extract properties
+    auto new_object = Geography();
+
+    new_object.m_s2geog_ptr = std::move(new_geog_ptr);
+    new_object.m_geog_type = m_geog_type;
+    new_object.m_is_empty = m_is_empty;
+
+    return new_object;
+}
+
+void Geography::extract_geog_properties() {
+    if (const auto *ptr = downcast_geog<s2geog::PointGeography>(); ptr) {
+        if (ptr->Points().empty()) {
+            m_is_empty = true;
+        }
+        if (ptr->Points().size() <= 1) {
+            m_geog_type = GeographyType::Point;
+        } else {
+            m_geog_type = GeographyType::MultiPoint;
+        }
+    } else if (const auto *ptr = downcast_geog<s2geog::PolylineGeography>(); ptr) {
+        if (ptr->Polylines().empty()) {
+            m_is_empty = true;
+        }
+        if (ptr->Polylines().size() <= 1) {
+            m_geog_type = GeographyType::LineString;
+        } else {
+            m_geog_type = GeographyType::MultiLineString;
+        }
+    } else if (const auto *ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
+        const auto &s2poly_ptr = ptr->Polygon();
+        // count the outer shells (loop depth = 0, 2, 4, etc.)
+        int n_outer_shell_loops = 0;
+
+        for (int i = 0; i < s2poly_ptr->num_loops(); i++) {
+            if ((s2poly_ptr->loop(i)->depth() % 2) == 0) {
+                n_outer_shell_loops++;
+            }
+        }
+
+        if (n_outer_shell_loops == 0) {
+            m_is_empty = true;
+        }
+        if (n_outer_shell_loops <= 1) {
+            m_geog_type = GeographyType::Polygon;
+        } else {
+            m_geog_type = GeographyType::MultiPolygon;
+        }
+    } else if (const auto *ptr = downcast_geog<s2geog::GeographyCollection>(); ptr) {
+        if (ptr->Features().empty()) {
+            m_is_empty = true;
+        }
+        m_geog_type = GeographyType::GeometryCollection;
+    } else {
+        m_geog_type = GeographyType::None;
     }
-    if (xbuf.size != ybuf.size) {
-        throw std::runtime_error("Input shapes must match");
-    }
-
-    auto result = py::array_t<PyObjectGeography>(xbuf.size);
-    py::buffer_info rbuf = result.request();
-
-    double *xptr = static_cast<double *>(xbuf.ptr);
-    double *yptr = static_cast<double *>(ybuf.ptr);
-    py::object *rptr = static_cast<py::object *>(rbuf.ptr);
-
-    for (py::ssize_t i = 0; i < xbuf.shape[0]; i++) {
-        auto point_ptr = PointFactory::FromLatLonDegrees(xptr[i], yptr[i]);
-        // rptr[i] = PyObjectGeography::as_py_object(std::move(point_ptr));
-        rptr[i] = py::cast(std::move(point_ptr));
-    }
-
-    return result;
 }
 
 /*
@@ -192,7 +204,7 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 void init_geography(py::module &m) {
     // Geography types
 
-    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", R"pbdoc(
+    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", py::arithmetic(), R"pbdoc(
         The enumeration of Geography types
     )pbdoc");
 
@@ -200,6 +212,10 @@ void init_geography(py::module &m) {
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
+    pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
+    pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
+    pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
+    pygeography_types.value("GEOMETRYCOLLECTION", GeographyType::GeometryCollection);
 
     // Geography classes
 
@@ -216,8 +232,10 @@ void init_geography(py::module &m) {
         Returns the inherent dimensionality of a geometry.
 
         The inherent dimension is 0 for points, 1 for linestrings and 2 for
-        polygons. For geometrycollections it is the max of the containing elements.
-        Empty collections and None values return -1.
+        polygons. For geometry collections it returns either the dimension of
+        all their features (uniform collections) or -1 (collections with
+        features of different dimensions). Empty collections and None values
+        return -1.
 
     )pbdoc");
 
@@ -228,65 +246,17 @@ void init_geography(py::module &m) {
     )pbdoc");
 
     pygeography.def("__repr__", [](const Geography &geog) {
-        s2geog::WKTWriter writer;
+        s2geog::WKTWriter writer(6);
         return writer.write_feature(geog.geog());
     });
 
-    auto pypoint = py::class_<Point, Geography>(m, "Point", R"pbdoc(
-        A geography type that represents a single coordinate with lat,lon or x,y,z values.
+    pygeography.def("__eq__", [](const Geography &geog1, const Geography &geog2) {
+        s2geog::ShapeIndexGeography idx1{geog1.geog()};
+        s2geog::ShapeIndexGeography idx2{geog2.geog()};
 
-        A point is a zero-dimensional feature and has zero length and zero area.
-
-        Parameters
-        ----------
-        lat : float
-            latitude coordinate, in degrees
-        lon : float
-            longitude coordinate, in degrees
-
-    )pbdoc");
-
-    pypoint.def(py::init(&PointFactory::FromLatLonDegrees), py::arg("lat"), py::arg("lon"));
-
-    auto pylinestring = py::class_<LineString, Geography>(m, "LineString", R"pbdoc(
-        A geography type composed of one or more arc segments.
-
-        A LineString is a one-dimensional feature and has a non-zero length but
-        zero area. A LineString is not closed.
-
-        Parameters
-        ----------
-        coordinates : list
-            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
-            for each vertex.
-
-    )pbdoc");
-
-    pylinestring.def(py::init(&create_linestring<std::pair<double, double>>),
-                     py::arg("coordinates"));
-
-    pylinestring.def(py::init(&create_linestring<Point *>), py::arg("coordinates"));
-
-    auto pypolygon = py::class_<spherely::Polygon, Geography>(m, "Polygon", R"pbdoc(
-        A geography type representing an area that is enclosed by a linear ring.
-
-        A polygon is a two-dimensional feature and has a non-zero area.
-
-        Parameters
-        ----------
-        shell : list
-            A sequence of (lat, lon) tuple coordinates or :py:class:`Point` objects
-            for each vertex of the polygon.
-
-    )pbdoc");
-
-    pypolygon.def(py::init(&create_polygon<std::pair<double, double>>), py::arg("shell"));
-    pypolygon.def(py::init(&create_polygon<Point *>), py::arg("shell"));
-
-    // Temp test
-
-    m.def("nshape", &num_shapes);
-    m.def("create", &create);
+        S2BooleanOperation::Options options;
+        return s2geog::s2_equals(idx1, idx2, options);
+    });
 
     // Geography properties
 
@@ -336,7 +306,7 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    // Geography creation
+    // Geography index
 
     m.def("is_prepared",
           py::vectorize(&is_prepared),

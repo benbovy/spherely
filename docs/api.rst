@@ -5,18 +5,6 @@ API reference
 
 .. currentmodule:: spherely
 
-.. _api_types:
-
-Geography types
----------------
-
-.. autosummary::
-   :toctree: _api_generated/
-
-   Point
-   LineString
-   Polygon
-
 .. _api_properties:
 
 Geography properties
@@ -38,21 +26,42 @@ Geography creation
 .. autosummary::
    :toctree: _api_generated/
 
+   point
+   linestring
+   multipoint
+   multilinestring
+   polygon
+   collection
    is_prepared
    prepare
    destroy_prepared
 
-.. _api_accessors:
+.. _api_io:
 
-Geography accessors
--------------------
+Input/Output
+------------
 
 .. autosummary::
    :toctree: _api_generated/
 
-   centroid
-   boundary
-   convex_hull
+   from_wkt
+   to_wkt
+   from_wkb
+   to_wkb
+   from_geoarrow
+   to_geoarrow
+   Projection
+
+.. _api_measurement:
+
+Measurement
+-----------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   area
+   distance
 
 .. _api_predicates:
 
@@ -64,6 +73,21 @@ Predicates
 
    equals
    intersects
+   touches
    contains
    within
    disjoint
+   covers
+   covered_by
+
+.. _api_constructive_ops:
+
+Constructive operations
+-----------------------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   centroid
+   boundary
+   convex_hull
