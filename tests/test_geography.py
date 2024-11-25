@@ -4,72 +4,8 @@ import numpy as np
 import spherely
 
 
-def test_point() -> None:
-    point = spherely.Point(40.2, 5.2)
-    assert point.dimensions == 0
-    assert point.nshape == 1
-    assert repr(point).startswith("POINT (5.2 40.")
-
-
-@pytest.mark.parametrize(
-    "coords",
-    [
-        [(50, 5), (51, 6)],
-        [spherely.Point(50, 5), spherely.Point(51, 6)],
-    ],
-)
-def test_linestring(coords) -> None:
-    line = spherely.LineString(coords)
-    assert line.dimensions == 1
-    assert line.nshape == 1
-    assert repr(line).startswith("LINESTRING (5 50")
-
-
-@pytest.mark.parametrize(
-    "coords",
-    [
-        [(0, 0), (0, 2), (2, 2), (2, 0)],
-        [
-            spherely.Point(0, 0),
-            spherely.Point(0, 2),
-            spherely.Point(2, 2),
-            spherely.Point(2, 0),
-        ],
-    ],
-)
-def test_polygon(coords) -> None:
-    poly = spherely.Polygon(coords)
-    assert poly.dimensions == 2
-    assert poly.nshape == 1
-    assert repr(poly).startswith("POLYGON ((0 0")
-
-
-def test_polygon_error() -> None:
-    with pytest.raises(ValueError, match="loop is not valid.*duplicate vertex.*"):
-        # polygon vertices should be open (duplicate vertex error)
-        spherely.Polygon([(0, 0), (0, 2), (2, 0), (0, 0)])
-
-    with pytest.raises(ValueError, match="loop is not valid.*at least 3 vertices.*"):
-        spherely.Polygon([(0, 0), (0, 2)])
-
-
-def test_polygon_normalize() -> None:
-    poly_ccw = spherely.Polygon([(0, 0), (0, 2), (2, 2), (2, 0)])
-    poly_cw = spherely.Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
-
-    point = spherely.Point(1, 1)
-
-    # CW and CCW polygons should be both valid
-    assert spherely.contains(poly_ccw, point)
-    assert spherely.contains(poly_cw, point)
-
-    # CW polygon vertices reordered
-    # TODO: better to test actual coordinate values when implemented
-    assert repr(poly_cw) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
-
-
 def test_is_geography() -> None:
-    arr = np.array([1, 2.33, spherely.Point(30, 6)])
+    arr = np.array([1, 2.33, spherely.point(30, 6)])
 
     actual = spherely.is_geography(arr)
     expected = np.array([False, False, True])
@@ -77,7 +13,7 @@ def test_is_geography() -> None:
 
 
 def test_not_geography_raise() -> None:
-    arr = np.array([1, 2.33, spherely.Point(30, 6)])
+    arr = np.array([1, 2.33, spherely.point(30, 6)])
 
     with pytest.raises(TypeError, match="not a Geography object"):
         spherely.get_dimensions(arr)
@@ -85,15 +21,44 @@ def test_not_geography_raise() -> None:
 
 def test_get_type_id() -> None:
     # array
-    geog = np.array([spherely.Point(45, 50), spherely.LineString([(50, 5), (51, 6)])])
+    geog = np.array(
+        [
+            spherely.point(45, 50),
+            spherely.multipoint([(5, 50), (6, 51)]),
+            spherely.linestring([(5, 50), (6, 51)]),
+            spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
+            spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+            # with hole
+            spherely.polygon(
+                shell=[(5, 60), (6, 60), (6, 50), (5, 50)],
+                holes=[[(5.1, 59), (5.9, 59), (5.9, 51), (5.1, 51)]],
+            ),
+            spherely.multipolygon(
+                [
+                    spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                    spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+                ]
+            ),
+            spherely.collection([spherely.point(40, 50)]),
+        ]
+    )
     actual = spherely.get_type_id(geog)
     expected = np.array(
-        [spherely.GeographyType.POINT.value, spherely.GeographyType.LINESTRING.value]
+        [
+            spherely.GeographyType.POINT.value,
+            spherely.GeographyType.MULTIPOINT.value,
+            spherely.GeographyType.LINESTRING.value,
+            spherely.GeographyType.MULTILINESTRING.value,
+            spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.POLYGON.value,
+            spherely.GeographyType.MULTIPOLYGON.value,
+            spherely.GeographyType.GEOMETRYCOLLECTION.value,
+        ]
     )
     np.testing.assert_array_equal(actual, expected)
 
     # scalar
-    geog2 = spherely.Point(45, 50)
+    geog2 = spherely.point(45, 50)
     assert spherely.get_type_id(geog2) == spherely.GeographyType.POINT.value
 
 
@@ -102,20 +67,20 @@ def test_get_dimensions() -> None:
     expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
     geog = np.array(
         [
-            [spherely.Point(40, 5), spherely.Point(30, 6)],
-            [spherely.LineString([(50, 5), (51, 6)]), spherely.Point(20, 4)],
+            [spherely.point(5, 40), spherely.point(6, 30)],
+            [spherely.linestring([(5, 50), (6, 51)]), spherely.point(4, 20)],
         ]
     )
     actual = spherely.get_dimensions(geog)
     np.testing.assert_array_equal(actual, expected)
 
     # test scalar
-    assert spherely.get_dimensions(spherely.Point(40, 5)) == 0
+    assert spherely.get_dimensions(spherely.point(5, 40)) == 0
 
 
 def test_prepare() -> None:
     # test array
-    geog = np.array([spherely.Point(45, 50), spherely.LineString([(50, 5), (51, 6)])])
+    geog = np.array([spherely.point(50, 45), spherely.linestring([(5, 50), (6, 51)])])
     np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
 
     spherely.prepare(geog)
@@ -125,7 +90,7 @@ def test_prepare() -> None:
     np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
 
     # test scalar
-    geog2 = spherely.Point(45, 50)
+    geog2 = spherely.points(45, 50)
     assert spherely.is_prepared(geog2) is False
 
     spherely.prepare(geog2)
@@ -135,20 +100,26 @@ def test_prepare() -> None:
     assert spherely.is_prepared(geog2) is False
 
 
-def test_create() -> None:
-    points = spherely.create([40.0, 30.0], [5.0, 6.0])
-    assert points.size == 2
-    assert all([isinstance(p, spherely.Point) for p in points])
+def test_equality() -> None:
+    p1 = spherely.point(1, 1)
+    p2 = spherely.point(1, 1)
+    p3 = spherely.point(2, 2)
 
+    assert p1 == p1
+    assert p1 == p2
+    assert not p1 == p3
 
-@pytest.mark.parametrize(
-    "points",
-    [
-        np.array([spherely.Point(40, 5), spherely.Point(30, 6)]),
-        spherely.create([40, 30], [5, 6]),
-    ],
-)
-def test_nshape(points) -> None:
-    expected = np.ones(2, dtype=np.int32)
-    actual = spherely.nshape(points)
-    np.testing.assert_array_equal(actual, expected)
+    line1 = spherely.linestring([(1, 1), (2, 2), (3, 3)])
+    line2 = spherely.linestring([(3, 3), (2, 2), (1, 1)])
+
+    assert line1 == line2
+
+    poly1 = spherely.polygon([(1, 1), (3, 1), (2, 3)])
+    poly2 = spherely.polygon([(2, 3), (1, 1), (3, 1)])
+    poly3 = spherely.polygon([(2, 3), (3, 1), (1, 1)])
+
+    assert p1 != poly1
+    assert line1 != poly1
+    assert poly1 == poly2
+    assert poly2 == poly3
+    assert poly1 == poly3

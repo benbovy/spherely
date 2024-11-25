@@ -7,7 +7,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "spherely"
-version = "0.0.1"
+version = "0.1.0"
 description = "Manipulation and analysis of geometric objects on the sphere"
 keywords = ["gis", "geometry", "s2geometry", "shapely"]
 readme = "README.md"
@@ -18,7 +18,7 @@ authors = [
 maintainers = [
     {name = "Spherely contributors"},
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 dependencies = ["numpy"]
 
 [project.urls]
@@ -27,6 +27,9 @@ Repository = "https://github.com/benbovy/spherely"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0"]
+
+[tool.scikit-build]
+sdist.exclude = [".github"]
 
 [tool.mypy]
 files = ["tests", "src/spherely.pyi"]

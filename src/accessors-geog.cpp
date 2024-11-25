@@ -1,5 +1,8 @@
 #include <s2geography.h>
+#include <s2geography/geography.h>
 
+#include "constants.hpp"
+#include "creation.hpp"
 #include "geography.hpp"
 #include "pybind11.hpp"
 
@@ -10,27 +13,32 @@ using namespace spherely;
 PyObjectGeography centroid(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
     auto s2_point = s2geog::s2_centroid(a_ptr);
-    std::unique_ptr<Point> point =
-        make_geography<s2geog::PointGeography, spherely::Point>(s2_point);
-    return PyObjectGeography::from_geog(std::move(point));
+    return make_py_geography<s2geog::PointGeography>(s2_point);
 }
 
 PyObjectGeography boundary(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
-    auto s2_obj = s2geog::s2_boundary(a_ptr);
-    // TODO return specific subclass
-    auto geog_ptr = std::make_unique<spherely::Geography>(std::move(s2_obj));
-    return PyObjectGeography::from_geog(std::move(geog_ptr));
+    return make_py_geography(s2geog::s2_boundary(a_ptr));
 }
 
 PyObjectGeography convex_hull(PyObjectGeography a) {
     const auto& a_ptr = a.as_geog_ptr()->geog();
-    auto s2_obj = s2geog::s2_convex_hull(a_ptr);
-    auto geog_ptr = std::make_unique<spherely::Polygon>(std::move(s2_obj));
-    return PyObjectGeography::from_geog(std::move(geog_ptr));
+    return make_py_geography(s2geog::s2_convex_hull(a_ptr));
+}
+
+double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
+    const auto& a_index = a.as_geog_ptr()->geog_index();
+    const auto& b_index = b.as_geog_ptr()->geog_index();
+    return s2geog::s2_distance(a_index, b_index) * radius;
+}
+
+double area(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_area(a.as_geog_ptr()->geog()) * radius * radius;
 }
 
 void init_accessors(py::module& m) {
+    m.attr("EARTH_RADIUS_METERS") = py::float_(EARTH_RADIUS_METERS);
+
     m.def("centroid",
           py::vectorize(&centroid),
           py::arg("a"),
@@ -67,6 +75,41 @@ void init_accessors(py::module& m) {
         ----------
         a : :py:class:`Geography` or array_like
             Geography object
+
+    )pbdoc");
+
+    m.def("distance",
+          py::vectorize(&distance),
+          py::arg("a"),
+          py::arg("b"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculate the distance between two geographies.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+        b : :py:class:`Geography` or array_like
+            Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
+
+    )pbdoc");
+
+    m.def("area",
+          py::vectorize(&area),
+          py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculate the area of the geography.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
 
     )pbdoc");
 }
