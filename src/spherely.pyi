@@ -60,6 +60,16 @@ MultiLineStringGeography = Annotated[Geography, GeographyType.MULTILINESTRING]
 MultiPolygonGeography = Annotated[Geography, GeographyType.MULTIPOLYGON]
 GeometryCollection = Annotated[Geography, GeographyType.GEOMETRYCOLLECTION]
 
+# Projection class
+
+class Projection:
+    @staticmethod
+    def lnglat() -> Projection: ...
+    @staticmethod
+    def speudo_mercator() -> Projection: ...
+    @staticmethod
+    def orthographic(longitude: float, latitude: float) -> Projection: ...
+
 # Numpy-like vectorized (universal) functions
 
 _NameType = TypeVar("_NameType", bound=str)
@@ -222,11 +232,24 @@ def from_wkb(
     tessellate_tolerance: float = 100.0,
 ) -> npt.NDArray[Any]: ...
 
+class ArrowSchemaExportable(Protocol):
+    def __arrow_c_schema__(self) -> object: ...
+
 class ArrowArrayExportable(Protocol):
     def __arrow_c_array__(
         self, requested_schema: object | None = None
     ) -> Tuple[object, object]: ...
 
+def to_geoarrow(
+    input: npt.ArrayLike,
+    /,
+    *,
+    output_schema: ArrowSchemaExportable | None = None,
+    projection: Projection = Projection.lnglat(),
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+    precision: int = 6,
+) -> ArrowArrayExportable: ...
 def from_geoarrow(
     input: ArrowArrayExportable,
     /,
@@ -234,5 +257,6 @@ def from_geoarrow(
     oriented: bool = False,
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
+    projection: Projection = Projection.lnglat(),
     geometry_encoding: str | None = None,
 ) -> npt.NDArray[Any]: ...

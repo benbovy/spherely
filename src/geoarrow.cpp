@@ -15,6 +15,7 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
                                              bool oriented,
                                              bool planar,
                                              float tessellate_tolerance,
+                                             Projection projection,
                                              py::object geometry_encoding) {
     if (!py::hasattr(input, "__arrow_c_array__")) {
         throw std::invalid_argument(
@@ -33,6 +34,7 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
 
     s2geog::geoarrow::ImportOptions options;
     options.set_oriented(oriented);
+    options.set_projection(projection.s2_projection());
     if (planar) {
         auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
@@ -264,6 +266,7 @@ void init_geoarrow(py::module& m) {
           py::arg("oriented") = false,
           py::arg("planar") = false,
           py::arg("tessellate_tolerance") = 100.0,
+          py::arg("projection") = Projection::lnglat(),
           py::arg("geometry_encoding") = py::none(),
           R"pbdoc(
         Create an array of geographies from an Arrow array object with a GeoArrow
@@ -301,6 +304,10 @@ void init_geoarrow(py::module& m) {
             The maximum distance in meters that a point must be moved to
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
+        projection : spherely.Projection, default Projection.lnglat()
+            The projection of the input coordinates. By default, it assumes
+            longitude/latitude coordinates, but this option allows to convert
+            from coordinates in pseudo-mercator or orthographic projection as well.
         geometry_encoding : str, default None
             By default, the encoding is inferred from the GeoArrow extension
             type of the input array.
