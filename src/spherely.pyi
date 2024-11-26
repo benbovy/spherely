@@ -206,8 +206,8 @@ covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
 # coords
 
-get_y: _VFunc_Nin1_Nout1[Literal["get_y"], float, np.float64]
 get_x: _VFunc_Nin1_Nout1[Literal["get_x"], float, np.float64]
+get_y: _VFunc_Nin1_Nout1[Literal["get_y"], float, np.float64]
 
 # geography accessors
 

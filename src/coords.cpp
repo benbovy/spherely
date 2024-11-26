@@ -16,8 +16,8 @@ double get_y(PyObjectGeography a) {
     if (geog->geog_type() != GeographyType::Point) {
         throw py::value_error("Only Point geometries supported");
     }
-    auto point = static_cast<Point*>(geog);
-    auto s2point = point->s2point();
+    const auto *point = geog->downcast_geog<s2geog::PointGeography>();
+    auto s2point = point->Points()[0];
     auto latlng = S2LatLng(std::move(s2point));
     double lat = latlng.lat().degrees();
     return lat;
@@ -28,14 +28,14 @@ double get_x(PyObjectGeography a) {
     if (geog->geog_type() != GeographyType::Point) {
         throw py::value_error("Only Point geometries supported");
     }
-    auto point = static_cast<Point*>(geog);
-    auto s2point = point->s2point();
+    const auto *point = geog->downcast_geog<s2geog::PointGeography>();
+    auto s2point = point->Points()[0];
     auto latlng = S2LatLng(std::move(s2point));
     double lng = latlng.lng().degrees();
     return lng;
 }
 
-void init_coords(py::module& m) {
+void init_coords(py::module &m) {
     m.def("get_y",
           py::vectorize(&get_y),
           py::arg("a"),
