@@ -73,7 +73,6 @@ endif()
 
 set(CPP_SOURCES
   src/accessors-geog.cpp
-  src/coords.cpp
   src/creation.cpp
   src/geography.cpp
   src/io.cpp

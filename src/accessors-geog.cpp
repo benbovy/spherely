@@ -26,6 +26,22 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
     return make_py_geography(s2geog::s2_convex_hull(a_ptr));
 }
 
+double get_x(PyObjectGeography a) {
+    auto geog = a.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_x(geog->geog());
+}
+
+double get_y(PyObjectGeography a) {
+    auto geog = a.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_y(geog->geog());
+}
+
 double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
     const auto& a_index = a.as_geog_ptr()->geog_index();
     const auto& b_index = b.as_geog_ptr()->geog_index();
@@ -75,6 +91,32 @@ void init_accessors(py::module& m) {
         ----------
         a : :py:class:`Geography` or array_like
             Geography object
+
+    )pbdoc");
+
+    m.def("get_x",
+          py::vectorize(&get_x),
+          py::arg("a"),
+          R"pbdoc(
+        Returns the longitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        a: :py:class:`Geography` or array_like
+            Geography object(s).
+
+    )pbdoc");
+
+    m.def("get_y",
+          py::vectorize(&get_y),
+          py::arg("a"),
+          R"pbdoc(
+        Returns the latitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        a: :py:class:`Geography` or array_like
+            Geography object(s).
 
     )pbdoc");
 
