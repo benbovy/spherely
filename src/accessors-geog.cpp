@@ -26,6 +26,10 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
     return make_py_geography(s2geog::s2_convex_hull(a_ptr));
 }
 
+bool is_empty(PyObjectGeography a) {
+    return s2geog::s2_is_empty(a.as_geog_ptr()->geog());
+}
+
 double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
     const auto& a_index = a.as_geog_ptr()->geog_index();
     const auto& b_index = b.as_geog_ptr()->geog_index();
@@ -78,6 +82,19 @@ void init_accessors(py::module& m) {
           py::arg("a"),
           R"pbdoc(
         Computes the convex hull of each geography.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+
+    )pbdoc");
+
+    m.def("is_empty",
+          py::vectorize(&is_empty),
+          py::arg("a"),
+          R"pbdoc(
+        Returns True if the geography object is empty, False otherwise.
 
         Parameters
         ----------
