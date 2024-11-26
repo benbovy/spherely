@@ -62,6 +62,8 @@ Measurement
 
    area
    distance
+   length
+   perimeter
 
 .. _api_predicates:
 

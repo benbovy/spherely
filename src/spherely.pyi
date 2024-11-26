@@ -213,6 +213,8 @@ convex_hull: _VFunc_Nin1_Nout1[
 ]
 distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
 area: _VFunc_Nin1optradius_Nout1[Literal["area"], float, float]
+length: _VFunc_Nin1optradius_Nout1[Literal["length"], float, float]
+perimeter: _VFunc_Nin1optradius_Nout1[Literal["perimeter"], float, float]
 
 # io functions
 
