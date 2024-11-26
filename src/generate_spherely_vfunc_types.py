@@ -37,7 +37,11 @@ def _vfunctype_factory(class_name, n_in, **optargs):
     """Create new VFunc types.
 
     Based on the number of input arrays and optional arguments and their types."""
-    arg_names = ["geography"] if n_in == 1 else list(string.ascii_lowercase[:n_in])
+    arg_names = (
+        ["geography"]
+        if n_in == 1 and not optargs
+        else list(string.ascii_lowercase[:n_in])
+    )
     class_code = [
         f"class {class_name}(",
         "    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]",
