@@ -17,6 +17,8 @@ Geography properties
    is_geography
    get_dimensions
    get_type_id
+   get_x
+   get_y
 
 .. _api_creation:
 
