@@ -92,6 +92,18 @@ def test_from_wkt_planar():
     assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
 
 
+def test_from_geoarrow_projection():
+    arr = ga.as_wkt(["POINT (1 0)", "POINT(0 1)"])
+
+    result = spherely.from_geoarrow(
+        arr, projection=spherely.Projection.orthographic(0, 0)
+    )
+    expected = spherely.points([90, 0], [0, 90])
+    # TODO use equality when we support precision / snapping
+    # assert spherely.equals(result, expected).all()
+    assert (spherely.to_wkt(result) == spherely.to_wkt(expected)).all()
+
+
 def test_from_geoarrow_no_extension_type():
     arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 

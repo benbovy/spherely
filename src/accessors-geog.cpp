@@ -26,6 +26,22 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
     return make_py_geography(s2geog::s2_convex_hull(a_ptr));
 }
 
+double get_x(PyObjectGeography a) {
+    auto geog = a.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_x(geog->geog());
+}
+
+double get_y(PyObjectGeography a) {
+    auto geog = a.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_y(geog->geog());
+}
+
 double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
     const auto& a_index = a.as_geog_ptr()->geog_index();
     const auto& b_index = b.as_geog_ptr()->geog_index();
@@ -34,6 +50,14 @@ double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_
 
 double area(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
     return s2geog::s2_area(a.as_geog_ptr()->geog()) * radius * radius;
+}
+
+double length(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_length(a.as_geog_ptr()->geog()) * radius;
+}
+
+double perimeter(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+    return s2geog::s2_perimeter(a.as_geog_ptr()->geog()) * radius;
 }
 
 void init_accessors(py::module& m) {
@@ -78,6 +102,32 @@ void init_accessors(py::module& m) {
 
     )pbdoc");
 
+    m.def("get_x",
+          py::vectorize(&get_x),
+          py::arg("a"),
+          R"pbdoc(
+        Returns the longitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        a: :py:class:`Geography` or array_like
+            Geography object(s).
+
+    )pbdoc");
+
+    m.def("get_y",
+          py::vectorize(&get_y),
+          py::arg("a"),
+          R"pbdoc(
+        Returns the latitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        a: :py:class:`Geography` or array_like
+            Geography object(s).
+
+    )pbdoc");
+
     m.def("distance",
           py::vectorize(&distance),
           py::arg("a"),
@@ -111,5 +161,36 @@ void init_accessors(py::module& m) {
         radius : float, optional
             Radius of Earth in meters, default 6,371,010
 
+    )pbdoc");
+
+    m.def("length",
+          py::vectorize(&length),
+          py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculates the length of a line geography, returning zero for other types.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
+
+   )pbdoc");
+
+    m.def("perimeter",
+          py::vectorize(&perimeter),
+          py::arg("a"),
+          py::arg("radius") = EARTH_RADIUS_METERS,
+          R"pbdoc(
+        Calculates the perimeter of a polygon geography, returning zero for other types.
+
+        Parameters
+        ----------
+        a : :py:class:`Geography` or array_like
+            Geography object
+        radius : float, optional
+            Radius of Earth in meters, default 6,371,010
     )pbdoc");
 }
