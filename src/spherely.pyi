@@ -76,6 +76,11 @@ _NameType = TypeVar("_NameType", bound=str)
 _ScalarReturnType = TypeVar("_ScalarReturnType", bound=Any)
 _ArrayReturnDType = TypeVar("_ArrayReturnDType", bound=Any)
 
+# The following types are auto-generated. Please don't edit them by hand.
+# Instead, update the generate_spherely_vfunc_types.py script and run it
+# to update the types.
+#
+# /// Begin types
 class _VFunc_Nin1_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
     @property
     def __name__(self) -> _NameType: ...
@@ -91,15 +96,15 @@ class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
     def __call__(self, a: Geography, b: Geography) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
-    @overload
-    def __call__(
         self, a: Geography, b: npt.ArrayLike
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
         self, a: npt.ArrayLike, b: Geography
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, b: npt.ArrayLike
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin2optradius_Nout1(
@@ -113,15 +118,15 @@ class _VFunc_Nin2optradius_Nout1(
     ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike, radius: float = ...
-    ) -> npt.NDArray[_ArrayReturnDType]: ...
-    @overload
-    def __call__(
         self, a: Geography, b: npt.ArrayLike, radius: float = ...
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
         self, a: npt.ArrayLike, b: Geography, radius: float = ...
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+    @overload
+    def __call__(
+        self, a: npt.ArrayLike, b: npt.ArrayLike, radius: float = ...
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin1optradius_Nout1(
@@ -135,6 +140,8 @@ class _VFunc_Nin1optradius_Nout1(
     def __call__(
         self, a: npt.ArrayLike, radius: float = ...
     ) -> npt.NDArray[_ArrayReturnDType]: ...
+
+# /// End types
 
 # Geography properties
 
