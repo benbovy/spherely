@@ -211,6 +211,15 @@ touches: _VFunc_Nin2_Nout1[Literal["touches"], bool, bool]
 covers: _VFunc_Nin2_Nout1[Literal["covers"], bool, bool]
 covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
+# boolean operations
+
+union: _VFunc_Nin2_Nout1[Literal["union"], Geography, Geography]
+intersection: _VFunc_Nin2_Nout1[Literal["intersection"], Geography, Geography]
+difference: _VFunc_Nin2_Nout1[Literal["difference"], Geography, Geography]
+symmetric_difference: _VFunc_Nin2_Nout1[
+    Literal["symmetric_difference"], Geography, Geography
+]
+
 # coords
 
 get_x: _VFunc_Nin1_Nout1[Literal["get_x"], float, np.float64]

@@ -73,6 +73,7 @@ endif()
 
 set(CPP_SOURCES
   src/accessors-geog.cpp
+  src/boolean-operations.cpp
   src/creation.cpp
   src/geography.cpp
   src/io.cpp

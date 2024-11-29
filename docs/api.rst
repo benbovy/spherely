@@ -84,6 +84,19 @@ Predicates
    covers
    covered_by
 
+.. _api_overlays:
+
+Overlays (boolean operations)
+-----------------------------
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   union
+   intersection
+   difference
+   symmetric_difference
+
 .. _api_constructive_ops:
 
 Constructive operations
