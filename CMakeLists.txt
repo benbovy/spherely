@@ -34,9 +34,8 @@ target_include_directories(s2::s2 INTERFACE ${OPENSSL_INCLUDE_DIR})
 
 find_package(s2geography CONFIG REQUIRED)
 if(${s2geography_FOUND})
-  # not yet provided by s2geography
-  # get_target_property(s2geography_INCLUDE_DIRS s2geography INTERFACE_INCLUDE_DIRECTORIES)
-  message(STATUS "Found s2geography v${s2geography_VERSION}")
+  get_target_property(s2geography_INCLUDE_DIRS s2geography INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Found s2geography v${s2geography_VERSION}: ${s2geography_INCLUDE_DIRS}")
 else()
   message(FATAL_ERROR "Couldn't find s2geography")
 endif()
