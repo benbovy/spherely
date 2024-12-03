@@ -13,8 +13,6 @@ using namespace spherely;
 class FromWKT {
 public:
     FromWKT(bool oriented, bool planar, float tessellate_tolerance = 100.0) {
-#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
-    (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
         s2geog::geoarrow::ImportOptions options;
         options.set_oriented(oriented);
         if (planar) {
@@ -22,13 +20,6 @@ public:
             options.set_tessellate_tolerance(tol);
         }
         m_reader = std::make_shared<s2geog::WKTReader>(options);
-#else
-        if (planar || oriented) {
-            throw std::invalid_argument(
-                "planar and oriented options are only available with s2geography >= 0.2");
-        }
-        m_reader = std::make_shared<s2geog::WKTReader>();
-#endif
     }
 
     PyObjectGeography operator()(py::str a) const {
@@ -54,8 +45,6 @@ private:
     std::shared_ptr<s2geog::WKTWriter> m_writer;
 };
 
-#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
-    (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
 class FromWKB {
 public:
     FromWKB(bool oriented, bool planar, float tessellate_tolerance = 100.0) {
@@ -89,8 +78,6 @@ public:
 private:
     std::shared_ptr<s2geog::WKBWriter> m_writer;
 };
-
-#endif
 
 void init_io(py::module& m) {
     m.def(
@@ -148,9 +135,6 @@ void init_io(py::module& m) {
 
     )pbdoc");
 
-#if defined(S2GEOGRAPHY_VERSION_MAJOR) && \
-    (S2GEOGRAPHY_VERSION_MAJOR >= 1 || S2GEOGRAPHY_VERSION_MINOR >= 2)
-
     m.def(
         "from_wkb",
         [](py::array_t<py::bytes> a, bool oriented, bool planar, float tessellate_tolerance) {
@@ -199,6 +183,4 @@ void init_io(py::module& m) {
             Geography object(s)
 
     )pbdoc");
-
-#endif
 }
