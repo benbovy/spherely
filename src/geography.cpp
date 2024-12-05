@@ -7,6 +7,7 @@
 #include <s2/s2loop.h>
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
+#include <s2/util/coding/coder.h>
 #include <s2geography/geography.h>
 #include <s2geography/predicates.h>
 #include <s2geography/wkt-writer.h>
@@ -171,6 +172,76 @@ void Geography::extract_geog_properties() {
     }
 }
 
+py::tuple Geography::encode() const {
+    // encode geography type
+    using IntType = std::underlying_type_t<GeographyType>;
+    auto encoded_geog_type = static_cast<IntType>(geog_type());
+
+    // encode empty
+    // (note: this is already handled internally by s2geography::Geography::EncodeTagged() but
+    // there no current way to get the that information externally when/after decoding)
+    auto empty = m_is_empty;
+
+    // encode geog
+    Encoder geog_encoder;
+    s2geog::EncodeOptions encode_opts;
+    geog().EncodeTagged(&geog_encoder, encode_opts);
+
+    std::string encoded_geog;
+    encoded_geog.assign(geog_encoder.base(), geog_encoder.base() + geog_encoder.length());
+
+    // encode geog_index (if any)
+    //
+    // TODO (benbovy): s2geography decodes the index as s2geography::EncodedShapeIndexGeography
+    // whereas s2geography functions like predicates still expect s2geography::ShapeIndexGeography.
+    // I haven't figured out yet out to convert from EncodedShapeIndexGeography to
+    // ShapeIndexGeography
+    //
+    // std::string encoded_geog_index;
+
+    // if (m_s2geog_index_ptr) {
+    //     Encoder geog_index_encoder;
+    //     (*m_s2geog_index_ptr).EncodeTagged(&geog_index_encoder, encode_opts);
+
+    //     encoded_geog_index.assign(geog_index_encoder.base(), geog_index_encoder.base() +
+    //     geog_index_encoder.length());
+    // }
+
+    return py::make_tuple(encoded_geog_type, empty, py::bytes(encoded_geog));
+}
+
+Geography Geography::decode(const py::tuple &encoded) {
+    auto decoded = Geography();
+
+    // decode geography type
+    using IntType = std::underlying_type_t<GeographyType>;
+    GeographyType geog_type{encoded[0].cast<IntType>()};
+    decoded.m_geog_type = geog_type;
+
+    // decode empty
+    decoded.m_is_empty = encoded[1].cast<bool>();
+
+    // decode geog() (s2geography::Geography)
+    auto encoded_geog = encoded[2].cast<std::string>();
+    Decoder geog_decoder(encoded_geog.c_str(), encoded_geog.size());
+    decoded.m_s2geog_ptr = s2geog::Geography::DecodeTagged(&geog_decoder);
+
+    // decode geog_index() (s2geography::ShapeIndexGeography), if any
+    //
+    // TODO (benbovy): s2geography decodes the index as s2geography::EncodedShapeIndexGeography
+    // whereas s2geography functions like predicates still expect s2geography::ShapeIndexGeography.
+    // I haven't figured out yet out to convert from EncodedShapeIndexGeography to
+    // ShapeIndexGeography
+    //
+    // auto encoded_geog_index = encoded[2].cast<std::string>();
+    // if (!encoded_geog_index.empty()) {
+    //     Decoder geog_index_decoder(encoded_geog_index.c_str(), encoded_geog_index.size());
+    //     decoded.m_s2geog_index_ptr = s2geog::Geography::DecodeTagged(&geog_index_decoder);
+    // }
+
+    return decoded;
+}
+
 /*
 ** Geography properties
 */
@@ -266,6 +337,9 @@ void init_geography(py::module &m) {
         S2BooleanOperation::Options options;
         return s2geog::s2_equals(idx1, idx2, options);
     });
+
+    pygeography.def(py::pickle([](Geography &geog) { return geog.encode(); },
+                               [](py::tuple &encoded) { return Geography::decode(encoded); }));
 
     // Geography properties
 
