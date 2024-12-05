@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 import numpy as np
 
@@ -130,3 +132,37 @@ def test_equality() -> None:
     assert poly1 == poly2
     assert poly2 == poly3
     assert poly1 == poly3
+
+    coll1 = (spherely.create_collection([spherely.create_point(40, 50)]),)
+    coll2 = (spherely.create_collection([spherely.create_point(40, 50)]),)
+
+    assert coll1 == coll2
+
+
+@pytest.mark.parametrize(
+    "geog",
+    [
+        spherely.create_point(45, 50),
+        spherely.create_multipoint([(5, 50), (6, 51)]),
+        spherely.create_linestring([(5, 50), (6, 51)]),
+        spherely.create_multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
+        spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+        spherely.create_multipolygon(
+            [
+                spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                spherely.create_polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+            ]
+        ),
+        spherely.create_collection([spherely.create_point(40, 50)]),
+        # empty geography
+        spherely.create_point(),
+        spherely.create_linestring(),
+        spherely.create_polygon(),
+    ],
+)
+def test_pickle_roundtrip(geog):
+    roundtripped = pickle.loads(pickle.dumps(geog))
+
+    assert spherely.get_type_id(roundtripped) == spherely.get_type_id(geog)
+    assert spherely.to_wkt(roundtripped) == spherely.to_wkt(geog)
+    assert roundtripped == geog
