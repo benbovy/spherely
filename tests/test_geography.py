@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 import numpy as np
 
@@ -123,3 +125,41 @@ def test_equality() -> None:
     assert poly1 == poly2
     assert poly2 == poly3
     assert poly1 == poly3
+
+    coll1 = (spherely.collection([spherely.point(40, 50)]),)
+    coll2 = (spherely.collection([spherely.point(40, 50)]),)
+
+    assert coll1 == coll2
+
+
+@pytest.mark.parametrize(
+    "geog",
+    [
+        spherely.point(45, 50),
+        spherely.multipoint([(5, 50), (6, 51)]),
+        spherely.linestring([(5, 50), (6, 51)]),
+        spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
+        spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+        spherely.multipolygon(
+            [
+                spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+            ]
+        ),
+        spherely.collection([spherely.point(40, 50)]),
+        # empty geography
+        spherely.point(),
+        spherely.linestring(),
+        spherely.polygon(),
+    ],
+)
+def test_pickle_roundtrip(geog):
+    pickled = pickle.dumps(geog)
+    roundtriped = pickle.loads(pickled)
+
+    assert spherely.get_type_id(roundtriped) == spherely.get_type_id(geog)
+    assert spherely.to_wkt(geog) == spherely.to_wkt(roundtriped)
+
+    # FIXME: investigate why directy equality check doesn't work with collection
+    if spherely.get_type_id(geog) != spherely.GeographyType.GEOMETRYCOLLECTION.value:
+        assert roundtriped == geog
