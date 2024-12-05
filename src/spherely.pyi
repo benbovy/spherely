@@ -150,16 +150,16 @@ get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
 # Geography creation (scalar)
 
-def point(
+def create_point(
     longitude: float | None = None, latitude: float | None = None
 ) -> Geography: ...
-def multipoint(
+def create_multipoint(
     points: Iterable[Sequence[float]] | Iterable[PointGeography],
 ) -> MultiPointGeography: ...
-def linestring(
+def create_linestring(
     vertices: Iterable[Sequence[float]] | Iterable[PointGeography] | None = None,
 ) -> LineStringGeography: ...
-def multilinestring(
+def create_multilinestring(
     vertices: (
         Iterable[Iterable[Sequence[float]]]
         | Iterable[Iterable[PointGeography]]
@@ -167,22 +167,24 @@ def multilinestring(
     ),
 ) -> MultiLineStringGeography: ...
 @overload
-def polygon(
+def create_polygon(
     shell: None = None,
     holes: None = None,
 ) -> PolygonGeography: ...
 @overload
-def polygon(
+def create_polygon(
     shell: Iterable[Sequence[float]],
     holes: Iterable[Iterable[Sequence[float]]] | None = None,
 ) -> PolygonGeography: ...
 @overload
-def polygon(
+def create_polygon(
     shell: Iterable[PointGeography],
     holes: Iterable[Iterable[PointGeography]] | None = None,
 ) -> PolygonGeography: ...
-def multipolygon(polygons: Iterable[PolygonGeography]) -> MultiPolygonGeography: ...
-def collection(geographies: Iterable[Geography]) -> GeometryCollection: ...
+def create_multipolygon(
+    polygons: Iterable[PolygonGeography],
+) -> MultiPolygonGeography: ...
+def create_collection(geographies: Iterable[Geography]) -> GeometryCollection: ...
 
 # Geography creation (vectorized)
 

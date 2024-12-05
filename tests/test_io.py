@@ -64,15 +64,15 @@ def test_from_wkt_oriented():
 
 def test_from_wkt_planar():
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
-    assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000
 
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)", planar=True)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 100
 
     result = spherely.from_wkt(
         "LINESTRING (-64 45, 0 45)", planar=True, tessellate_tolerance=10
     )
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10
 
 
 def test_to_wkt():
@@ -132,28 +132,28 @@ def test_from_wkb_invalid_type():
 @pytest.mark.parametrize(
     "geog",
     [
-        spherely.point(45, 50),
-        spherely.multipoint([(5, 50), (6, 51)]),
-        spherely.linestring([(5, 50), (6, 51)]),
-        spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
-        spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+        spherely.create_point(45, 50),
+        spherely.create_multipoint([(5, 50), (6, 51)]),
+        spherely.create_linestring([(5, 50), (6, 51)]),
+        spherely.create_multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
+        spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
         # with hole
-        spherely.polygon(
+        spherely.create_polygon(
             shell=[(5, 60), (6, 60), (6, 50), (5, 50)],
             holes=[[(5.1, 59), (5.9, 59), (5.9, 51), (5.1, 51)]],
         ),
-        spherely.multipolygon(
+        spherely.create_multipolygon(
             [
-                spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
-                spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+                spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                spherely.create_polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
             ]
         ),
-        spherely.collection([spherely.point(40, 50)]),
-        spherely.collection(
+        spherely.create_collection([spherely.create_point(40, 50)]),
+        spherely.create_collection(
             [
-                spherely.point(0, 0),
-                spherely.linestring([(0, 0), (1, 1)]),
-                spherely.polygon([(0, 0), (1, 0), (1, 1)]),
+                spherely.create_point(0, 0),
+                spherely.create_linestring([(0, 0), (1, 1)]),
+                spherely.create_polygon([(0, 0), (1, 0), (1, 1)]),
             ]
         ),
     ],
@@ -176,21 +176,21 @@ def test_from_wkb_oriented():
     result = spherely.from_wkb(wkb)
     # by default re-oriented to take the smaller polygon
     assert str(result) == "POLYGON ((10 0, 10 10, 0 10, 0 0, 10 0))"
-    assert spherely.within(spherely.point(5, 5), result)
+    assert spherely.within(spherely.create_point(5, 5), result)
 
     result = spherely.from_wkb(wkb, oriented=True)
     assert str(result) == "POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"
-    assert not spherely.within(spherely.point(5, 5), result)
+    assert not spherely.within(spherely.create_point(5, 5), result)
 
 
 def test_from_wkb_planar():
     wkb = spherely.to_wkb(spherely.from_wkt("LINESTRING (-64 45, 0 45)"))
 
     result = spherely.from_wkb(wkb)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000
 
     result = spherely.from_wkb(wkb, planar=True)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 100
 
     result = spherely.from_wkb(wkb, planar=True, tessellate_tolerance=10)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10

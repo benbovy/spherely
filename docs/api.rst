@@ -19,6 +19,9 @@ Geography properties
    get_type_id
    get_x
    get_y
+   is_prepared
+   prepare
+   destroy_prepared
 
 .. _api_creation:
 
@@ -28,15 +31,13 @@ Geography creation
 .. autosummary::
    :toctree: _api_generated/
 
-   point
-   linestring
-   multipoint
-   multilinestring
-   polygon
-   collection
-   is_prepared
-   prepare
-   destroy_prepared
+   create_point
+   create_multipoint
+   create_linestring
+   create_multilinestring
+   create_polygon
+   create_multipolygon
+   create_collection
 
 .. _api_io:
 
