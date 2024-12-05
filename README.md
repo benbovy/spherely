@@ -19,8 +19,8 @@ This library is at an early stage of development.
 
 - Python
 - Numpy
-- [s2geography](https://github.com/paleolimbot/s2geography)
-- [s2geometry](https://github.com/google/s2geometry)
+- [s2geography](https://github.com/paleolimbot/s2geography) v0.2.0 or higher
+- [s2geometry](https://github.com/google/s2geometry) v0.11.1 or higher
 
 Additional requirements when building spherely from source:
 

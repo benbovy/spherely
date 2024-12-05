@@ -75,9 +75,9 @@ public:
         return *m_s2geog_ptr;
     }
 
-    template <class T, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
-    inline const T* downcast_geog() const {
-        return dynamic_cast<const T*>(&geog());
+    template <class T>
+    inline const T* cast_geog() const noexcept {
+        return reinterpret_cast<const T*>(&geog());
     }
 
     inline const s2geog::ShapeIndexGeography& geog_index() {

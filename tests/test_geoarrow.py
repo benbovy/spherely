@@ -7,11 +7,6 @@ import pytest
 import spherely
 
 
-pytestmark = pytest.mark.skipif(
-    Version(spherely.__s2geography_version__) < Version("0.2.0"),
-    reason="Needs s2geography >= 0.2.0",
-)
-
 pa = pytest.importorskip("pyarrow")
 ga = pytest.importorskip("geoarrow.pyarrow")
 

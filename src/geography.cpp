@@ -35,61 +35,52 @@ py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
 */
 
 // TODO: May be worth moving this upstream as a `s2geog::Geography::clone()` virtual function
-std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog);
-
-std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog,
-                                                     GeographyType geog_type) {
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog) {
     std::unique_ptr<s2geog::Geography> new_geog_ptr;
 
-    if (geog_type == GeographyType::Point || geog_type == GeographyType::MultiPoint) {
-        const auto &points = reinterpret_cast<const s2geog::PointGeography &>(geog).Points();
-        new_geog_ptr = std::make_unique<s2geog::PointGeography>(points);
-
-    } else if (geog_type == GeographyType::LineString ||
-               geog_type == GeographyType::MultiLineString) {
-        const auto &polylines =
-            reinterpret_cast<const s2geog::PolylineGeography &>(geog).Polylines();
-        std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
-
-        auto copy_polyline = [](const std::unique_ptr<S2Polyline> &polyline) {
-            return std::unique_ptr<S2Polyline>(polyline->Clone());
-        };
-
-        std::transform(polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
-
-        new_geog_ptr = std::make_unique<s2geog::PolylineGeography>(std::move(polylines_copy));
-
-    } else if (geog_type == GeographyType::Polygon || geog_type == GeographyType::MultiPolygon) {
-        const auto &poly = reinterpret_cast<const s2geog::PolygonGeography &>(geog).Polygon();
-        std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
-        new_geog_ptr = std::make_unique<s2geog::PolygonGeography>(std::move(poly_ptr));
-
-    } else if (geog_type == GeographyType::GeometryCollection) {
-        const auto &features =
-            reinterpret_cast<const s2geog::GeographyCollection &>(geog).Features();
-        std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
-        features_copy.reserve(features.size());
-
-        for (const auto &feature_ptr : features) {
-            features_copy.push_back(clone_s2geography(*feature_ptr));
+    switch (geog.kind()) {
+        case s2geog::GeographyKind::CELL_CENTER:
+        case s2geog::GeographyKind::POINT: {
+            const auto &points = reinterpret_cast<const s2geog::PointGeography &>(geog).Points();
+            return std::make_unique<s2geog::PointGeography>(points);
         }
-        new_geog_ptr = std::make_unique<s2geog::GeographyCollection>(std::move(features_copy));
-    }
 
-    return new_geog_ptr;
-}
+        case s2geog::GeographyKind::POLYLINE: {
+            const auto &polylines =
+                reinterpret_cast<const s2geog::PolylineGeography &>(geog).Polylines();
+            std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
 
-std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog) {
-    if (const auto *ptr = dynamic_cast<const s2geog::PointGeography *>(&geog); ptr) {
-        return clone_s2geography(geog, GeographyType::Point);
-    } else if (const auto *ptr = dynamic_cast<const s2geog::PolylineGeography *>(&geog); ptr) {
-        return clone_s2geography(geog, GeographyType::LineString);
-    } else if (const auto *ptr = dynamic_cast<const s2geog::PolygonGeography *>(&geog); ptr) {
-        return clone_s2geography(geog, GeographyType::Polygon);
-    } else if (const auto *ptr = dynamic_cast<const s2geog::GeographyCollection *>(&geog); ptr) {
-        return clone_s2geography(geog, GeographyType::GeometryCollection);
-    } else {
-        throw py::type_error("unknown geography type");
+            auto copy_polyline = [](const std::unique_ptr<S2Polyline> &polyline) {
+                return std::unique_ptr<S2Polyline>(polyline->Clone());
+            };
+
+            std::transform(
+                polylines.begin(), polylines.end(), polylines_copy.begin(), copy_polyline);
+
+            return std::make_unique<s2geog::PolylineGeography>(std::move(polylines_copy));
+        }
+
+        case s2geog::GeographyKind::POLYGON: {
+            const auto &poly = reinterpret_cast<const s2geog::PolygonGeography &>(geog).Polygon();
+            std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
+            return std::make_unique<s2geog::PolygonGeography>(std::move(poly_ptr));
+        }
+
+        case s2geog::GeographyKind::GEOGRAPHY_COLLECTION: {
+            const auto &features =
+                reinterpret_cast<const s2geog::GeographyCollection &>(geog).Features();
+            std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
+            features_copy.reserve(features.size());
+
+            for (const auto &feature_ptr : features) {
+                features_copy.push_back(clone_s2geography(*feature_ptr));
+            }
+            return std::make_unique<s2geog::GeographyCollection>(std::move(features_copy));
+        }
+
+        default: {
+            throw py::type_error("clone: s2geography kind not implemented");
+        }
     }
 }
 
@@ -98,11 +89,11 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
 */
 
 std::unique_ptr<s2geog::Geography> Geography::clone_geog() const {
-    return clone_s2geography(*m_s2geog_ptr, m_geog_type);
+    return clone_s2geography(geog());
 }
 
 Geography Geography::clone() const {
-    auto new_geog_ptr = clone_s2geography(*m_s2geog_ptr, m_geog_type);
+    auto new_geog_ptr = clone_s2geography(geog());
 
     // skip extract properties
     auto new_object = Geography();
@@ -115,50 +106,68 @@ Geography Geography::clone() const {
 }
 
 void Geography::extract_geog_properties() {
-    if (const auto *ptr = downcast_geog<s2geog::PointGeography>(); ptr) {
-        if (ptr->Points().empty()) {
-            m_is_empty = true;
-        }
-        if (ptr->Points().size() <= 1) {
-            m_geog_type = GeographyType::Point;
-        } else {
-            m_geog_type = GeographyType::MultiPoint;
-        }
-    } else if (const auto *ptr = downcast_geog<s2geog::PolylineGeography>(); ptr) {
-        if (ptr->Polylines().empty()) {
-            m_is_empty = true;
-        }
-        if (ptr->Polylines().size() <= 1) {
-            m_geog_type = GeographyType::LineString;
-        } else {
-            m_geog_type = GeographyType::MultiLineString;
-        }
-    } else if (const auto *ptr = downcast_geog<s2geog::PolygonGeography>(); ptr) {
-        const auto &s2poly_ptr = ptr->Polygon();
-        // count the outer shells (loop depth = 0, 2, 4, etc.)
-        int n_outer_shell_loops = 0;
-
-        for (int i = 0; i < s2poly_ptr->num_loops(); i++) {
-            if ((s2poly_ptr->loop(i)->depth() % 2) == 0) {
-                n_outer_shell_loops++;
+    switch (geog().kind()) {
+        case s2geog::GeographyKind::CELL_CENTER:
+        case s2geog::GeographyKind::POINT: {
+            auto ptr = cast_geog<s2geog::PointGeography>();
+            if (ptr->Points().empty()) {
+                m_is_empty = true;
             }
+            if (ptr->Points().size() <= 1) {
+                m_geog_type = GeographyType::Point;
+            } else {
+                m_geog_type = GeographyType::MultiPoint;
+            }
+            break;
         }
 
-        if (n_outer_shell_loops == 0) {
-            m_is_empty = true;
+        case s2geog::GeographyKind::POLYLINE: {
+            auto ptr = cast_geog<s2geog::PolylineGeography>();
+            if (ptr->Polylines().empty()) {
+                m_is_empty = true;
+            }
+            if (ptr->Polylines().size() <= 1) {
+                m_geog_type = GeographyType::LineString;
+            } else {
+                m_geog_type = GeographyType::MultiLineString;
+            }
+            break;
         }
-        if (n_outer_shell_loops <= 1) {
-            m_geog_type = GeographyType::Polygon;
-        } else {
-            m_geog_type = GeographyType::MultiPolygon;
+
+        case s2geog::GeographyKind::POLYGON: {
+            auto ptr = cast_geog<s2geog::PolygonGeography>();
+            const auto &s2poly_ptr = ptr->Polygon();
+            // count the outer shells (loop depth = 0, 2, 4, etc.)
+            int n_outer_shell_loops = 0;
+
+            for (int i = 0; i < s2poly_ptr->num_loops(); i++) {
+                if ((s2poly_ptr->loop(i)->depth() % 2) == 0) {
+                    n_outer_shell_loops++;
+                }
+            }
+
+            if (n_outer_shell_loops == 0) {
+                m_is_empty = true;
+            }
+            if (n_outer_shell_loops <= 1) {
+                m_geog_type = GeographyType::Polygon;
+            } else {
+                m_geog_type = GeographyType::MultiPolygon;
+            }
+            break;
         }
-    } else if (const auto *ptr = downcast_geog<s2geog::GeographyCollection>(); ptr) {
-        if (ptr->Features().empty()) {
-            m_is_empty = true;
+
+        case s2geog::GeographyKind::GEOGRAPHY_COLLECTION: {
+            auto ptr = cast_geog<s2geog::GeographyCollection>();
+            if (ptr->Features().empty()) {
+                m_is_empty = true;
+            }
+            m_geog_type = GeographyType::GeometryCollection;
+            break;
         }
-        m_geog_type = GeographyType::GeometryCollection;
-    } else {
-        m_geog_type = GeographyType::None;
+
+        default:
+            m_geog_type = GeographyType::None;
     }
 }
 

@@ -101,13 +101,12 @@ build_install_dependencies(){
     rm -f s2geography.tar.gz
 
     # TODO: remove when fixed in s2geography
+    # (https://github.com/paleolimbot/s2geography/pull/53)
     cd $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION
     if [ "$(uname)" == "Darwin" ]; then
         patch -p1 < $PROJECT_DIR/ci/s2geography-add-openssl-as-requirement.patch
-        patch -p1 < $PROJECT_DIR/ci/s2geography-add-include-dir.patch
     else
         patch -p1 < /project/ci/s2geography-add-openssl-as-requirement.patch
-        patch -p1 < /project/ci/s2geography-add-include-dir.patch
     fi
 
     cmake -S $SRC_DIR/s2geography-$S2GEOGRAPHY_VERSION -B $S2GEOGRAPHY_BUILD_DIR \
