@@ -161,9 +161,8 @@ def test_equality() -> None:
     ],
 )
 def test_pickle_roundtrip(geog):
-    pickled = pickle.dumps(geog)
-    roundtripped = pickle.loads(pickled)
+    roundtripped = pickle.loads(pickle.dumps(geog))
 
     assert spherely.get_type_id(roundtripped) == spherely.get_type_id(geog)
-    assert spherely.to_wkt(geog) == spherely.to_wkt(roundtripped)
+    assert spherely.to_wkt(roundtripped) == spherely.to_wkt(geog)
     assert roundtripped == geog
