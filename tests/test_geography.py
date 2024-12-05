@@ -155,11 +155,11 @@ def test_equality() -> None:
 )
 def test_pickle_roundtrip(geog):
     pickled = pickle.dumps(geog)
-    roundtriped = pickle.loads(pickled)
+    roundtripped = pickle.loads(pickled)
 
-    assert spherely.get_type_id(roundtriped) == spherely.get_type_id(geog)
-    assert spherely.to_wkt(geog) == spherely.to_wkt(roundtriped)
+    assert spherely.get_type_id(roundtripped) == spherely.get_type_id(geog)
+    assert spherely.to_wkt(geog) == spherely.to_wkt(roundtripped)
 
     # FIXME: investigate why directy equality check doesn't work with collection
     if spherely.get_type_id(geog) != spherely.GeographyType.GEOMETRYCOLLECTION.value:
-        assert roundtriped == geog
+        assert roundtripped == geog
