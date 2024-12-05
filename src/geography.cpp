@@ -190,23 +190,6 @@ py::tuple Geography::encode() const {
     std::string encoded_geog;
     encoded_geog.assign(geog_encoder.base(), geog_encoder.base() + geog_encoder.length());
 
-    // encode geog_index (if any)
-    //
-    // TODO (benbovy): s2geography decodes the index as s2geography::EncodedShapeIndexGeography
-    // whereas s2geography functions like predicates still expect s2geography::ShapeIndexGeography.
-    // I haven't figured out yet out to convert from EncodedShapeIndexGeography to
-    // ShapeIndexGeography
-    //
-    // std::string encoded_geog_index;
-
-    // if (m_s2geog_index_ptr) {
-    //     Encoder geog_index_encoder;
-    //     (*m_s2geog_index_ptr).EncodeTagged(&geog_index_encoder, encode_opts);
-
-    //     encoded_geog_index.assign(geog_index_encoder.base(), geog_index_encoder.base() +
-    //     geog_index_encoder.length());
-    // }
-
     return py::make_tuple(encoded_geog_type, empty, py::bytes(encoded_geog));
 }
 
@@ -232,19 +215,6 @@ Geography Geography::decode(const py::tuple &encoded) {
     } else {
         decoded.m_s2geog_ptr = std::move(decoded_geog_ptr);
     }
-
-    // decode geog_index() (s2geography::ShapeIndexGeography), if any
-    //
-    // TODO (benbovy): s2geography decodes the index as s2geography::EncodedShapeIndexGeography
-    // whereas s2geography functions like predicates still expect s2geography::ShapeIndexGeography.
-    // I haven't figured out yet out to convert from EncodedShapeIndexGeography to
-    // ShapeIndexGeography
-    //
-    // auto encoded_geog_index = encoded[2].cast<std::string>();
-    // if (!encoded_geog_index.empty()) {
-    //     Decoder geog_index_decoder(encoded_geog_index.c_str(), encoded_geog_index.size());
-    //     decoded.m_s2geog_index_ptr = s2geog::Geography::DecodeTagged(&geog_index_decoder);
-    // }
 
     return decoded;
 }
