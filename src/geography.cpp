@@ -224,7 +224,14 @@ Geography Geography::decode(const py::tuple &encoded) {
     // decode geog() (s2geography::Geography)
     auto encoded_geog = encoded[2].cast<std::string>();
     Decoder geog_decoder(encoded_geog.c_str(), encoded_geog.size());
-    decoded.m_s2geog_ptr = s2geog::Geography::DecodeTagged(&geog_decoder);
+    auto decoded_geog_ptr = s2geog::Geography::DecodeTagged(&geog_decoder);
+
+    // TODO: remove this quick & dirty fix (https://github.com/paleolimbot/s2geography/issues/54)
+    if (decoded_geog_ptr->kind() == s2geog::GeographyKind::GEOGRAPHY_COLLECTION) {
+        decoded.m_s2geog_ptr = clone_s2geography(*decoded_geog_ptr);
+    } else {
+        decoded.m_s2geog_ptr = std::move(decoded_geog_ptr);
+    }
 
     // decode geog_index() (s2geography::ShapeIndexGeography), if any
     //

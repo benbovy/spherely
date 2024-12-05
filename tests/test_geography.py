@@ -166,7 +166,4 @@ def test_pickle_roundtrip(geog):
 
     assert spherely.get_type_id(roundtripped) == spherely.get_type_id(geog)
     assert spherely.to_wkt(geog) == spherely.to_wkt(roundtripped)
-
-    # FIXME: see https://github.com/paleolimbot/s2geography/issues/54
-    if spherely.get_type_id(geog) != spherely.GeographyType.GEOMETRYCOLLECTION.value:
-        assert roundtripped == geog
+    assert roundtripped == geog
