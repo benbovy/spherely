@@ -78,13 +78,13 @@ def test_from_geoarrow_oriented():
 def test_from_wkt_planar():
     arr = ga.as_geoarrow(["LINESTRING (-64 45, 0 45)"])
     result = spherely.from_geoarrow(arr)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) > 10000
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000
 
     result = spherely.from_geoarrow(arr, planar=True)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 100
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 100
 
     result = spherely.from_geoarrow(arr, planar=True, tessellate_tolerance=10)
-    assert spherely.distance(result, spherely.point(-30.1, 45)) < 10
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10
 
 
 def test_from_geoarrow_projection():

@@ -5,7 +5,7 @@ import spherely
 
 
 def test_is_geography() -> None:
-    arr = np.array([1, 2.33, spherely.point(30, 6)])
+    arr = np.array([1, 2.33, spherely.create_point(30, 6)])
 
     actual = spherely.is_geography(arr)
     expected = np.array([False, False, True])
@@ -13,7 +13,7 @@ def test_is_geography() -> None:
 
 
 def test_not_geography_raise() -> None:
-    arr = np.array([1, 2.33, spherely.point(30, 6)])
+    arr = np.array([1, 2.33, spherely.create_point(30, 6)])
 
     with pytest.raises(TypeError, match="not a Geography object"):
         spherely.get_dimensions(arr)
@@ -23,23 +23,25 @@ def test_get_type_id() -> None:
     # array
     geog = np.array(
         [
-            spherely.point(45, 50),
-            spherely.multipoint([(5, 50), (6, 51)]),
-            spherely.linestring([(5, 50), (6, 51)]),
-            spherely.multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
-            spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+            spherely.create_point(45, 50),
+            spherely.create_multipoint([(5, 50), (6, 51)]),
+            spherely.create_linestring([(5, 50), (6, 51)]),
+            spherely.create_multilinestring([[(5, 50), (6, 51)], [(15, 60), (16, 61)]]),
+            spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
             # with hole
-            spherely.polygon(
+            spherely.create_polygon(
                 shell=[(5, 60), (6, 60), (6, 50), (5, 50)],
                 holes=[[(5.1, 59), (5.9, 59), (5.9, 51), (5.1, 51)]],
             ),
-            spherely.multipolygon(
+            spherely.create_multipolygon(
                 [
-                    spherely.polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
-                    spherely.polygon([(10, 100), (10, 160), (11, 160), (11, 100)]),
+                    spherely.create_polygon([(5, 50), (5, 60), (6, 60), (6, 51)]),
+                    spherely.create_polygon(
+                        [(10, 100), (10, 160), (11, 160), (11, 100)]
+                    ),
                 ]
             ),
-            spherely.collection([spherely.point(40, 50)]),
+            spherely.create_collection([spherely.create_point(40, 50)]),
         ]
     )
     actual = spherely.get_type_id(geog)
@@ -58,7 +60,7 @@ def test_get_type_id() -> None:
     np.testing.assert_array_equal(actual, expected)
 
     # scalar
-    geog2 = spherely.point(45, 50)
+    geog2 = spherely.create_point(45, 50)
     assert spherely.get_type_id(geog2) == spherely.GeographyType.POINT.value
 
 
@@ -67,20 +69,25 @@ def test_get_dimensions() -> None:
     expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
     geog = np.array(
         [
-            [spherely.point(5, 40), spherely.point(6, 30)],
-            [spherely.linestring([(5, 50), (6, 51)]), spherely.point(4, 20)],
+            [spherely.create_point(5, 40), spherely.create_point(6, 30)],
+            [
+                spherely.create_linestring([(5, 50), (6, 51)]),
+                spherely.create_point(4, 20),
+            ],
         ]
     )
     actual = spherely.get_dimensions(geog)
     np.testing.assert_array_equal(actual, expected)
 
     # test scalar
-    assert spherely.get_dimensions(spherely.point(5, 40)) == 0
+    assert spherely.get_dimensions(spherely.create_point(5, 40)) == 0
 
 
 def test_prepare() -> None:
     # test array
-    geog = np.array([spherely.point(50, 45), spherely.linestring([(5, 50), (6, 51)])])
+    geog = np.array(
+        [spherely.create_point(50, 45), spherely.create_linestring([(5, 50), (6, 51)])]
+    )
     np.testing.assert_array_equal(spherely.is_prepared(geog), np.array([False, False]))
 
     spherely.prepare(geog)
@@ -101,22 +108,22 @@ def test_prepare() -> None:
 
 
 def test_equality() -> None:
-    p1 = spherely.point(1, 1)
-    p2 = spherely.point(1, 1)
-    p3 = spherely.point(2, 2)
+    p1 = spherely.create_point(1, 1)
+    p2 = spherely.create_point(1, 1)
+    p3 = spherely.create_point(2, 2)
 
     assert p1 == p1
     assert p1 == p2
     assert not p1 == p3
 
-    line1 = spherely.linestring([(1, 1), (2, 2), (3, 3)])
-    line2 = spherely.linestring([(3, 3), (2, 2), (1, 1)])
+    line1 = spherely.create_linestring([(1, 1), (2, 2), (3, 3)])
+    line2 = spherely.create_linestring([(3, 3), (2, 2), (1, 1)])
 
     assert line1 == line2
 
-    poly1 = spherely.polygon([(1, 1), (3, 1), (2, 3)])
-    poly2 = spherely.polygon([(2, 3), (1, 1), (3, 1)])
-    poly3 = spherely.polygon([(2, 3), (3, 1), (1, 1)])
+    poly1 = spherely.create_polygon([(1, 1), (3, 1), (2, 3)])
+    poly2 = spherely.create_polygon([(2, 3), (1, 1), (3, 1)])
+    poly3 = spherely.create_polygon([(2, 3), (3, 1), (1, 1)])
 
     assert p1 != poly1
     assert line1 != poly1
