@@ -106,8 +106,8 @@ def test_from_wkb_point_empty() -> None:
     expected = spherely.from_wkt(["POINT (1 1)", "POINT EMPTY", "POINT EMPTY"])
     assert spherely.equals(result, expected).all()
 
-    result = spherely.from_wkb(GEOMETRYCOLLECTION_NAN_WKB)
-    assert str(result) == "GEOMETRYCOLLECTION (POINT EMPTY)"
+    result2 = spherely.from_wkb(GEOMETRYCOLLECTION_NAN_WKB)
+    assert str(result2) == "GEOMETRYCOLLECTION (POINT EMPTY)"
 
 
 def test_from_wkb_invalid() -> None:
