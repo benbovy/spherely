@@ -1,4 +1,7 @@
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 
 import spherely
 import pytest
@@ -44,7 +47,7 @@ def test_equals() -> None:
     assert spherely.equals(a2, b2)
 
 
-def test_contains():
+def test_contains() -> None:
     # test array + scalar
     a = np.array(
         [
@@ -64,7 +67,7 @@ def test_contains():
     assert spherely.contains(a2, b2)
 
 
-def test_contains_polygon():
+def test_contains_polygon() -> None:
     # plain vs. hole polygon
     poly_plain = spherely.create_polygon(shell=[(0, 0), (4, 0), (4, 4), (0, 4)])
 
@@ -77,7 +80,7 @@ def test_contains_polygon():
     assert not spherely.contains(poly_hole, spherely.create_point(2, 2))
 
 
-def test_within():
+def test_within() -> None:
     # test array + scalar
     a = spherely.create_point(40, 8)
     b = np.array(
@@ -97,7 +100,7 @@ def test_within():
     assert spherely.within(a2, b2)
 
 
-def test_within_polygon():
+def test_within_polygon() -> None:
     # plain vs. hole polygon
     poly_plain = spherely.create_polygon(shell=[(0, 0), (4, 0), (4, 4), (0, 4)])
 
@@ -110,7 +113,7 @@ def test_within_polygon():
     assert not spherely.within(spherely.create_point(2, 2), poly_hole)
 
 
-def test_disjoint():
+def test_disjoint() -> None:
     a = spherely.create_point(40, 9)
     b = np.array(
         [
@@ -129,7 +132,7 @@ def test_disjoint():
     assert spherely.disjoint(a2, b2)
 
 
-def test_touches():
+def test_touches() -> None:
     a = spherely.create_polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
     b = np.array(
         [
@@ -154,7 +157,7 @@ def test_touches():
 
 
 @pytest.fixture
-def parent_poly():
+def parent_poly() -> spherely.Geography:
     return spherely.create_polygon(
         [
             (-118.0, 60.0),
@@ -168,7 +171,7 @@ def parent_poly():
 
 
 @pytest.fixture
-def geographies_covers_contains():
+def geographies_covers_contains() -> npt.NDArray[Any]:
     return np.array(
         [
             # Basic point covers tests, outside, on boundary and interior
@@ -208,7 +211,9 @@ def geographies_covers_contains():
 
 
 @pytest.fixture
-def geographies_covers_with_labels(geographies_covers_contains):
+def geographies_covers_with_labels(
+    geographies_covers_contains,
+) -> tuple[npt.NDArray[Any], npt.NDArray[np.bool_]]:
     return (
         geographies_covers_contains,
         np.array([False, True, True, False, True, True, False, True, True]),
@@ -216,7 +221,9 @@ def geographies_covers_with_labels(geographies_covers_contains):
 
 
 @pytest.fixture
-def geographies_contains_with_labels(geographies_covers_contains):
+def geographies_contains_with_labels(
+    geographies_covers_contains,
+) -> tuple[npt.NDArray[Any], npt.NDArray[np.bool_]]:
     return (
         geographies_covers_contains,
         np.array([False, False, True, False, False, True, False, True, True]),
@@ -227,21 +234,21 @@ def geographies_contains_with_labels(geographies_covers_contains):
     reason="Testing whether a polygon contains a points on its boundary \
                 currently returns true, although it should be false"
 )
-def test_contains_edge_cases(parent_poly, geographies_contains_with_labels):
+def test_contains_edge_cases(parent_poly, geographies_contains_with_labels) -> None:
     polys_to_check, expected_labels = geographies_contains_with_labels
 
     actual = spherely.contains(parent_poly, polys_to_check)
     np.testing.assert_array_equal(actual, expected_labels)
 
 
-def test_covers(parent_poly, geographies_covers_with_labels):
+def test_covers(parent_poly, geographies_covers_with_labels) -> None:
     polys_to_check, expected_labels = geographies_covers_with_labels
 
     actual = spherely.covers(parent_poly, polys_to_check)
     np.testing.assert_array_equal(actual, expected_labels)
 
 
-def test_covered_by(parent_poly, geographies_covers_with_labels):
+def test_covered_by(parent_poly, geographies_covers_with_labels) -> None:
     polys_to_check, expected_labels = geographies_covers_with_labels
 
     actual = spherely.covered_by(polys_to_check, parent_poly)

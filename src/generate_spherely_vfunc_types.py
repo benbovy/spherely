@@ -2,11 +2,15 @@ import itertools
 import string
 from pathlib import Path
 
+from spherely import EARTH_RADIUS_METERS
+
+
 VFUNC_TYPE_SPECS = {
     "_VFunc_Nin1_Nout1": {"n_in": 1},
     "_VFunc_Nin2_Nout1": {"n_in": 2},
-    "_VFunc_Nin2optradius_Nout1": {"n_in": 2, "radius": "float"},
-    "_VFunc_Nin1optradius_Nout1": {"n_in": 1, "radius": "float"},
+    "_VFunc_Nin2optradius_Nout1": {"n_in": 2, "radius": ("float", EARTH_RADIUS_METERS)},
+    "_VFunc_Nin1optradius_Nout1": {"n_in": 1, "radius": ("float", EARTH_RADIUS_METERS)},
+    "_VFunc_Nin1optprecision_Nout1": {"n_in": 1, "precision": ("int", 6)},
 }
 
 STUB_FILE_PATH = Path(__file__).parent / "spherely.pyi"
@@ -51,10 +55,11 @@ def _vfunctype_factory(class_name, n_in, **optargs):
         "",
     ]
     optarg_str = ", ".join(
-        f"{arg_name}: {arg_type} = ..." for arg_name, arg_type in optargs.items()
+        f"{arg_name}: {arg_type} = {arg_value}"
+        for arg_name, (arg_type, arg_value) in optargs.items()
     )
 
-    geog_types = ["Geography", "npt.ArrayLike"]
+    geog_types = ["Geography", "Iterable[Geography]"]
     for arg_types in itertools.product(geog_types, repeat=n_in):
         arg_str = ", ".join(
             f"{arg_name}: {arg_type}"
