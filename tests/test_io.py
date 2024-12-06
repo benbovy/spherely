@@ -2,7 +2,6 @@ import struct
 
 import numpy as np
 import pytest
-from packaging.version import Version
 
 import spherely
 
@@ -35,11 +34,11 @@ def test_from_wkt_invalid() -> None:
 
 def test_from_wkt_wrong_type() -> None:
     with pytest.raises(TypeError, match="expected bytes, int found"):
-        spherely.from_wkt([1])
+        spherely.from_wkt([1])  # type: ignore
 
     # TODO support missing values
     with pytest.raises(TypeError, match="expected bytes, NoneType found"):
-        spherely.from_wkt(["POINT (1 1)", None])
+        spherely.from_wkt(["POINT (1 1)", None])  # type: ignore
 
 
 polygon_with_bad_hole_wkt = (
@@ -126,7 +125,7 @@ def test_from_wkb_invalid() -> None:
 
 def test_from_wkb_invalid_type() -> None:
     with pytest.raises(TypeError, match="expected bytes, str found"):
-        spherely.from_wkb("POINT (1 1)")
+        spherely.from_wkb("POINT (1 1)")  # type: ignore
 
 
 @pytest.mark.parametrize(

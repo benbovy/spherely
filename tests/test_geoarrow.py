@@ -115,7 +115,7 @@ def test_from_geoarrow_invalid_encoding() -> None:
 
 def test_from_geoarrow_no_arrow_object() -> None:
     with pytest.raises(ValueError, match="input should be an Arrow-compatible array"):
-        spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))
+        spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))  # type: ignore
 
 
 def test_to_geoarrow() -> None:
