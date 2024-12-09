@@ -210,6 +210,33 @@ def test_polygon_normalize() -> None:
 
 
 @pytest.mark.parametrize(
+    "shell",
+    [
+        [(0, 0), (0, 2), (2, 2), (2, 0)],
+        [
+            spherely.create_point(0, 0),
+            spherely.create_point(0, 2),
+            spherely.create_point(2, 2),
+            spherely.create_point(2, 0),
+        ],
+    ],
+)
+def test_polygon_oriented(shell) -> None:
+    # "CW" polygon + oriented=True => the polygon's interior is the largest
+    # area of the sphere divided by the polygon's ring
+    poly_cw = spherely.create_polygon(shell, oriented=True)
+
+    point = spherely.create_point(1, 1)
+
+    # point above is NOT in polygon's interior
+    assert not spherely.contains(poly_cw, point)
+
+    # polygon vertices not reordered
+    # TODO: better to test actual coordinate values when implemented
+    assert repr(poly_cw) == "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"
+
+
+@pytest.mark.parametrize(
     "shell,holes",
     [
         (
@@ -269,6 +296,16 @@ def test_polygon_normalize_holes() -> None:
         repr(poly_hole_ccw)
         == "POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0), (0.5 1.5, 1.5 1.5, 1.5 0.5, 0.5 0.5, 0.5 1.5))"
     )
+
+
+def test_polygon_oriented_holes() -> None:
+    # CCW polygon hole vertices + oriented=True => error
+    with pytest.raises(ValueError, match="Inconsistent loop orientations detected"):
+        spherely.create_polygon(
+            shell=[(0, 0), (2, 0), (2, 2), (0, 2)],
+            holes=[[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]],
+            oriented=True,
+        )
 
 
 def test_polygon_empty() -> None:
