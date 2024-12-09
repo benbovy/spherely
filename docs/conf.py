@@ -20,6 +20,8 @@ intersphinx_mapping = {
     "shapely": ("https://shapely.readthedocs.io/en/latest/", None),
 }
 
+# TODO: seem to have no effect
+# (see https://github.com/sphinx-doc/sphinx/issues/10235)
 autodoc_typehints = "none"
 
 napoleon_google_docstring = False
@@ -28,8 +30,17 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = {
+    # general terms
+    "sequence": ":term:`sequence`",
+    "iterable": ":term:`iterable`",
+    # numpy terms
     "array_like": ":term:`array_like`",
     "array-like": ":term:`array-like <array_like>`",
+    # objects without namespace: spherely
+    "EARTH_RADIUS_METERS": "spherely.EARTH_RADIUS_METERS",
+    # objects without namespace: numpy
+    "ndarray": "~numpy.ndarray",
+    "array": ":term:`array`",
 }
 
 # source_suffix = ['.rst', '.md']

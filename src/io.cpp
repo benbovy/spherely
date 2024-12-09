@@ -82,6 +82,9 @@ private:
 };
 
 void init_io(py::module& m) {
+    py::options options;
+    options.disable_function_signatures();
+
     m.def(
         "from_wkt",
         [](py::array_t<py::str> a, bool oriented, bool planar, float tessellate_tolerance) {
@@ -91,7 +94,8 @@ void init_io(py::module& m) {
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(
+        R"pbdoc(from_wkt(a, oriented=False, planar=False, tessellate_tolerance=100.0)
+
         Creates geographies from the Well-Known Text (WKT) representation.
 
         Parameters
@@ -116,6 +120,11 @@ void init_io(py::module& m) {
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of geography objects.
+
     )pbdoc");
 
     m.def(
@@ -125,7 +134,8 @@ void init_io(py::module& m) {
         },
         py::arg("a"),
         py::arg("precision") = 6,
-        R"pbdoc(
+        R"pbdoc(to_wkt(a, precision=6)
+
         Returns the WKT representation of each geography.
 
         Parameters
@@ -134,6 +144,11 @@ void init_io(py::module& m) {
             Geography object(s)
         precision : int, default 6
             The number of decimal places to include in the output.
+
+        Returns
+        -------
+        str or array
+            A string or an array of strings.
 
     )pbdoc");
 
@@ -146,7 +161,8 @@ void init_io(py::module& m) {
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(
+        R"pbdoc(from_wkb(a, oriented=False, planar=False, tessellate_tolerance=100.0)
+
         Creates geographies from the Well-Known Bytes (WKB) representation.
 
         Parameters
@@ -171,18 +187,29 @@ void init_io(py::module& m) {
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of geography objects.
+
     )pbdoc");
 
     m.def("to_wkb",
           py::vectorize(ToWKB()),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(to_wkb(a)
+
         Returns the WKB representation of each geography.
 
         Parameters
         ----------
         a : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        bytes or array
+            A bytes object or an array of bytes.
 
     )pbdoc");
 }

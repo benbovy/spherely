@@ -269,9 +269,9 @@ void init_geography(py::module &m) {
     pygeography_types.value("POINT", GeographyType::Point);
     pygeography_types.value("LINESTRING", GeographyType::LineString);
     pygeography_types.value("POLYGON", GeographyType::Polygon);
-    pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
     pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
     pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
+    pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
     pygeography_types.value("GEOMETRYCOLLECTION", GeographyType::GeometryCollection);
 
     // Geography classes
@@ -318,26 +318,37 @@ void init_geography(py::module &m) {
     pygeography.def(py::pickle([](Geography &geog) { return geog.encode(); },
                                [](py::tuple &encoded) { return Geography::decode(encoded); }));
 
+    py::options options;
+    options.disable_function_signatures();
+
     // Geography properties
 
     m.def("get_type_id",
           py::vectorize(&get_type_id),
           py::arg("geography"),
-          R"pbdoc(
-        Returns the type ID of a geography.
+          R"pbdoc(get_type_id(geography)
 
-        - None (missing) is -1
-        - POINT is 0
-        - LINESTRING is 1
+        Returns the type ID of a geography.
 
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
             Geography object(s).
 
+        Returns
+        -------
+        type_id : int or array
+            The type id(s) of the input geography object(s). None (missing) is -1,
+            POINT is 0, LINESTRING is 1, etc. See the ``value`` property of the
+            :py:class:`GeographyType` enumeration.
+
     )pbdoc");
 
-    m.def("get_dimensions", py::vectorize(&get_dimensions), py::arg("geography"), R"pbdoc(
+    m.def("get_dimensions",
+          py::vectorize(&get_dimensions),
+          py::arg("geography"),
+          R"pbdoc(get_dimensions(geography)
+
         Returns the inherent dimensionality of a geography.
 
         The inherent dimension is 0 for points, 1 for linestrings and 2 for
@@ -356,7 +367,8 @@ void init_geography(py::module &m) {
     m.def("is_geography",
           py::vectorize(&is_geography),
           py::arg("obj"),
-          R"pbdoc(
+          R"pbdoc(is_geography(obj)
+
         Returns True if the object is a :py:class:`Geography`, False otherwise.
 
         Parameters
@@ -371,7 +383,8 @@ void init_geography(py::module &m) {
     m.def("is_prepared",
           py::vectorize(&is_prepared),
           py::arg("geography"),
-          R"pbdoc(
+          R"pbdoc(is_prepared(geography)
+
         Returns True if the geography object is "prepared", False otherwise.
 
         A prepared geography is a normal geography with added information such as
@@ -396,7 +409,8 @@ void init_geography(py::module &m) {
     m.def("prepare",
           py::vectorize(&prepare),
           py::arg("geography"),
-          R"pbdoc(
+          R"pbdoc(prepare(geography)
+
         Prepare a geography, improving performance of other operations.
 
         A prepared geography is a normal geography with added information such as
@@ -422,7 +436,8 @@ void init_geography(py::module &m) {
     m.def("destroy_prepared",
           py::vectorize(&destroy_prepared),
           py::arg("geography"),
-          R"pbdoc(
+          R"pbdoc(destroy_prepared(geography)
+
         Destroy the prepared part of a geography, freeing up memory.
 
         Note that the prepared geography will always be cleaned up if the

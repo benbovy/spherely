@@ -63,12 +63,16 @@ double perimeter(PyObjectGeography a, double radius = numeric_constants::EARTH_R
 }
 
 void init_accessors(py::module& m) {
+    py::options options;
+    options.disable_function_signatures();
+
     m.attr("EARTH_RADIUS_METERS") = py::float_(numeric_constants::EARTH_RADIUS_METERS);
 
     m.def("centroid",
           py::vectorize(&centroid),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(centroid(a)
+
         Computes the centroid of each geography.
 
         Parameters
@@ -76,12 +80,18 @@ void init_accessors(py::module& m) {
         a : :py:class:`Geography` or array_like
             Geography object
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of POINT geography object(s).
+
     )pbdoc");
 
     m.def("boundary",
           py::vectorize(&boundary),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(boundary(a)
+
         Computes the boundary of each geography.
 
         Parameters
@@ -89,12 +99,19 @@ void init_accessors(py::module& m) {
         a : :py:class:`Geography` or array_like
             Geography object
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of either (MULTI)POINT or (MULTI)LINESTRING
+            geography object(s).
+
     )pbdoc");
 
     m.def("convex_hull",
           py::vectorize(&convex_hull),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(convex_hull(a)
+
         Computes the convex hull of each geography.
 
         Parameters
@@ -102,12 +119,18 @@ void init_accessors(py::module& m) {
         a : :py:class:`Geography` or array_like
             Geography object
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of POLYGON geography object(s).
+
     )pbdoc");
 
     m.def("get_x",
           py::vectorize(&get_x),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(get_x(a)
+
         Returns the longitude value of the Point (in degrees).
 
         Parameters
@@ -115,18 +138,29 @@ void init_accessors(py::module& m) {
         a: :py:class:`Geography` or array_like
             Geography object(s).
 
+        Returns
+        -------
+        float or array
+            Longitude coordinate value(s).
+
     )pbdoc");
 
     m.def("get_y",
           py::vectorize(&get_y),
           py::arg("a"),
-          R"pbdoc(
+          R"pbdoc(get_y(a)
+
         Returns the latitude value of the Point (in degrees).
 
         Parameters
         ----------
         a: :py:class:`Geography` or array_like
             Geography object(s).
+
+        Returns
+        -------
+        float or array
+            Latitude coordinate value(s).
 
     )pbdoc");
 
@@ -135,7 +169,8 @@ void init_accessors(py::module& m) {
           py::arg("a"),
           py::arg("b"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(
+          R"pbdoc(distance(a, b, radius=spherely.EARTH_RADIUS_METERS)
+
         Calculate the distance between two geographies.
 
         Parameters
@@ -147,13 +182,19 @@ void init_accessors(py::module& m) {
         radius : float, optional
             Radius of Earth in meters, default 6,371,010
 
+        Returns
+        -------
+        float or array
+            Distance value(s), in meters.
+
     )pbdoc");
 
     m.def("area",
           py::vectorize(&area),
           py::arg("a"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(
+          R"pbdoc(area(a, radius=spherely.EARTH_RADIUS_METERS)
+
         Calculate the area of the geography.
 
         Parameters
@@ -163,13 +204,19 @@ void init_accessors(py::module& m) {
         radius : float, optional
             Radius of Earth in meters, default 6,371,010
 
+        Returns
+        -------
+        float or array
+            Area value(s), in square meters.
+
     )pbdoc");
 
     m.def("length",
           py::vectorize(&length),
           py::arg("a"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(
+          R"pbdoc(length(a, radius=spherely.EARTH_RADIUS_METERS)
+
         Calculates the length of a line geography, returning zero for other types.
 
         Parameters
@@ -179,13 +226,19 @@ void init_accessors(py::module& m) {
         radius : float, optional
             Radius of Earth in meters, default 6,371,010
 
+        Returns
+        -------
+        float or array
+            Length value(s), in meters.
+
    )pbdoc");
 
     m.def("perimeter",
           py::vectorize(&perimeter),
           py::arg("a"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(
+          R"pbdoc(perimeter(a, radius=spherely.EARTH_RADIUS_METERS)
+
         Calculates the perimeter of a polygon geography, returning zero for other types.
 
         Parameters
@@ -194,5 +247,11 @@ void init_accessors(py::module& m) {
             Geography object
         radius : float, optional
             Radius of Earth in meters, default 6,371,010
+
+        Returns
+        -------
+        float or array
+            Perimeter value(s), in meters.
+
     )pbdoc");
 }
