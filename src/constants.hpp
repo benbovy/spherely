@@ -1,5 +1,9 @@
+#include "s2/s2earth.h"
+
 namespace spherely {
 
-const double EARTH_RADIUS_METERS = 6371.01 * 1000;
+struct numeric_constants {
+    static constexpr double EARTH_RADIUS_METERS = S2Earth::RadiusMeters();
+};
 
-}
+}  // namespace spherely

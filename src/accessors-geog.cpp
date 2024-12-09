@@ -42,26 +42,28 @@ double get_y(PyObjectGeography a) {
     return s2geog::s2_y(geog->geog());
 }
 
-double distance(PyObjectGeography a, PyObjectGeography b, double radius = EARTH_RADIUS_METERS) {
+double distance(PyObjectGeography a,
+                PyObjectGeography b,
+                double radius = numeric_constants::EARTH_RADIUS_METERS) {
     const auto& a_index = a.as_geog_ptr()->geog_index();
     const auto& b_index = b.as_geog_ptr()->geog_index();
     return s2geog::s2_distance(a_index, b_index) * radius;
 }
 
-double area(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+double area(PyObjectGeography a, double radius = numeric_constants::EARTH_RADIUS_METERS) {
     return s2geog::s2_area(a.as_geog_ptr()->geog()) * radius * radius;
 }
 
-double length(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+double length(PyObjectGeography a, double radius = numeric_constants::EARTH_RADIUS_METERS) {
     return s2geog::s2_length(a.as_geog_ptr()->geog()) * radius;
 }
 
-double perimeter(PyObjectGeography a, double radius = EARTH_RADIUS_METERS) {
+double perimeter(PyObjectGeography a, double radius = numeric_constants::EARTH_RADIUS_METERS) {
     return s2geog::s2_perimeter(a.as_geog_ptr()->geog()) * radius;
 }
 
 void init_accessors(py::module& m) {
-    m.attr("EARTH_RADIUS_METERS") = py::float_(EARTH_RADIUS_METERS);
+    m.attr("EARTH_RADIUS_METERS") = py::float_(numeric_constants::EARTH_RADIUS_METERS);
 
     m.def("centroid",
           py::vectorize(&centroid),
@@ -132,7 +134,7 @@ void init_accessors(py::module& m) {
           py::vectorize(&distance),
           py::arg("a"),
           py::arg("b"),
-          py::arg("radius") = EARTH_RADIUS_METERS,
+          py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
           R"pbdoc(
         Calculate the distance between two geographies.
 
@@ -150,7 +152,7 @@ void init_accessors(py::module& m) {
     m.def("area",
           py::vectorize(&area),
           py::arg("a"),
-          py::arg("radius") = EARTH_RADIUS_METERS,
+          py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
           R"pbdoc(
         Calculate the area of the geography.
 
@@ -166,7 +168,7 @@ void init_accessors(py::module& m) {
     m.def("length",
           py::vectorize(&length),
           py::arg("a"),
-          py::arg("radius") = EARTH_RADIUS_METERS,
+          py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
           R"pbdoc(
         Calculates the length of a line geography, returning zero for other types.
 
@@ -182,7 +184,7 @@ void init_accessors(py::module& m) {
     m.def("perimeter",
           py::vectorize(&perimeter),
           py::arg("a"),
-          py::arg("radius") = EARTH_RADIUS_METERS,
+          py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
           R"pbdoc(
         Calculates the perimeter of a polygon geography, returning zero for other types.
 
