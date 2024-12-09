@@ -377,6 +377,19 @@ def test_multipolygons() -> None:
     assert repr(multipoly).startswith("MULTIPOLYGON (((0 0")
 
 
+def test_multipolygons_oriented() -> None:
+    # same than `test_polygon_oriented`: make sure that it works for multipolygon too
+    poly_cw = spherely.create_polygon([(0, 0), (0, 2), (2, 2), (2, 0)], oriented=True)
+
+    # original polygon loops are cloned (so shouldn't be normalized) before being passed
+    # to the multipolygon
+    multipoly = spherely.create_multipolygon([poly_cw])
+
+    point = spherely.create_point(1, 1)
+
+    assert not spherely.contains(multipoly, point)
+
+
 def test_multipolygon_invalid_geography() -> None:
     poly = spherely.create_polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
     line = spherely.create_linestring([(3, 0), (3, 1)])
