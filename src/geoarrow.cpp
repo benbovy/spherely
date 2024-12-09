@@ -36,7 +36,7 @@ py::array_t<PyObjectGeography> from_geoarrow(py::object input,
     options.set_oriented(oriented);
     options.set_projection(projection.s2_projection());
     if (planar) {
-        auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
+        auto tol = S1Angle::Radians(tessellate_tolerance / numeric_constants::EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
     }
     if (geometry_encoding.is(py::none())) {
@@ -213,7 +213,7 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
     options.set_precision(precision);
     options.set_projection(projection.s2_projection());
     if (planar) {
-        auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
+        auto tol = S1Angle::Radians(tessellate_tolerance / numeric_constants::EARTH_RADIUS_METERS);
         options.set_tessellate_tolerance(tol);
     }
 

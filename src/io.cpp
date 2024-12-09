@@ -16,7 +16,8 @@ public:
         s2geog::geoarrow::ImportOptions options;
         options.set_oriented(oriented);
         if (planar) {
-            auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
+            auto tol =
+                S1Angle::Radians(tessellate_tolerance / numeric_constants::EARTH_RADIUS_METERS);
             options.set_tessellate_tolerance(tol);
         }
         m_reader = std::make_shared<s2geog::WKTReader>(options);
@@ -51,7 +52,8 @@ public:
         s2geog::geoarrow::ImportOptions options;
         options.set_oriented(oriented);
         if (planar) {
-            auto tol = S1Angle::Radians(tessellate_tolerance / EARTH_RADIUS_METERS);
+            auto tol =
+                S1Angle::Radians(tessellate_tolerance / numeric_constants::EARTH_RADIUS_METERS);
             options.set_tessellate_tolerance(tol);
         }
         m_reader = std::make_shared<s2geog::WKBReader>(options);
