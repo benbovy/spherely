@@ -298,10 +298,7 @@ class ArrowArrayExportable(Protocol):
         self, requested_schema: object | None = None
     ) -> tuple[object, object]: ...
 
-class ArrowArrayHolder:
-    def __arrow_c_array__(
-        self, requested_schema: object | None = None
-    ) -> tuple[object, object]: ...
+class ArrowArrayHolder(ArrowArrayExportable): ...
 
 def to_geoarrow(
     input: Geography | T_NDArray_Geography,
