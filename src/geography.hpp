@@ -107,6 +107,9 @@ public:
     Geography clone() const;
     std::unique_ptr<s2geog::Geography> clone_geog() const;
 
+    py::tuple encode() const;
+    static Geography decode(const py::tuple& encoded);
+
 private:
     S2GeographyPtr m_s2geog_ptr;
     S2GeographyIndexPtr m_s2geog_index_ptr;
