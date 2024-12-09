@@ -2,12 +2,11 @@ import struct
 
 import numpy as np
 import pytest
-from packaging.version import Version
 
 import spherely
 
 
-def test_from_wkt():
+def test_from_wkt() -> None:
     result = spherely.from_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
     expected = spherely.points([1, 2, 3], [1, 2, 3])
     # object equality does not yet work
@@ -27,19 +26,19 @@ def test_from_wkt():
     assert spherely.equals(result, expected).all()
 
 
-def test_from_wkt_invalid():
+def test_from_wkt_invalid() -> None:
     # TODO can we provide better error type?
     with pytest.raises(RuntimeError):
         spherely.from_wkt(["POINT (1)"])
 
 
-def test_from_wkt_wrong_type():
+def test_from_wkt_wrong_type() -> None:
     with pytest.raises(TypeError, match="expected bytes, int found"):
-        spherely.from_wkt([1])
+        spherely.from_wkt([1])  # type: ignore
 
     # TODO support missing values
     with pytest.raises(TypeError, match="expected bytes, NoneType found"):
-        spherely.from_wkt(["POINT (1 1)", None])
+        spherely.from_wkt(["POINT (1 1)", None])  # type: ignore
 
 
 polygon_with_bad_hole_wkt = (
@@ -49,7 +48,7 @@ polygon_with_bad_hole_wkt = (
 )
 
 
-def test_from_wkt_oriented():
+def test_from_wkt_oriented() -> None:
     # by default re-orients the inner ring
     result = spherely.from_wkt(polygon_with_bad_hole_wkt)
     assert (
@@ -62,7 +61,7 @@ def test_from_wkt_oriented():
         spherely.from_wkt(polygon_with_bad_hole_wkt, oriented=True)
 
 
-def test_from_wkt_planar():
+def test_from_wkt_planar() -> None:
     result = spherely.from_wkt("LINESTRING (-64 45, 0 45)")
     assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000
 
@@ -75,14 +74,14 @@ def test_from_wkt_planar():
     assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10
 
 
-def test_to_wkt():
+def test_to_wkt() -> None:
     arr = spherely.points([1.1, 2, 3], [1.1, 2, 3])
     result = spherely.to_wkt(arr)
     expected = np.array(["POINT (1.1 1.1)", "POINT (2 2)", "POINT (3 3)"], dtype=object)
     np.testing.assert_array_equal(result, expected)
 
 
-def test_to_wkt_precision():
+def test_to_wkt_precision() -> None:
     arr = spherely.points([0.12345], [0.56789])
     result = spherely.to_wkt(arr)
     assert result[0] == "POINT (0.12345 0.56789)"
@@ -101,17 +100,17 @@ INVALID_WKB = bytes.fromhex(
 )  # noqa: E501
 
 
-def test_from_wkb_point_empty():
+def test_from_wkb_point_empty() -> None:
     result = spherely.from_wkb([POINT11_WKB, POINT_NAN_WKB, MULTIPOINT_NAN_WKB])
     # empty MultiPoint is converted to empty Point
     expected = spherely.from_wkt(["POINT (1 1)", "POINT EMPTY", "POINT EMPTY"])
     assert spherely.equals(result, expected).all()
 
-    result = spherely.from_wkb(GEOMETRYCOLLECTION_NAN_WKB)
-    assert str(result) == "GEOMETRYCOLLECTION (POINT EMPTY)"
+    result2 = spherely.from_wkb(GEOMETRYCOLLECTION_NAN_WKB)
+    assert str(result2) == "GEOMETRYCOLLECTION (POINT EMPTY)"
 
 
-def test_from_wkb_invalid():
+def test_from_wkb_invalid() -> None:
     with pytest.raises(RuntimeError, match="Expected endian byte"):
         spherely.from_wkb(b"")
 
@@ -124,9 +123,9 @@ def test_from_wkb_invalid():
     assert str(result) == "POLYGON ((108.7761 -10.2852, 108.7761 -10.2852))"
 
 
-def test_from_wkb_invalid_type():
+def test_from_wkb_invalid_type() -> None:
     with pytest.raises(TypeError, match="expected bytes, str found"):
-        spherely.from_wkb("POINT (1 1)")
+        spherely.from_wkb("POINT (1 1)")  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -158,7 +157,7 @@ def test_from_wkb_invalid_type():
         ),
     ],
 )
-def test_wkb_roundtrip(geog):
+def test_wkb_roundtrip(geog) -> None:
     wkb = spherely.to_wkb(geog)
     result = spherely.from_wkb(wkb)
     # roundtrip through Geography unit vector is not exact, so equals can fail
@@ -167,7 +166,7 @@ def test_wkb_roundtrip(geog):
     assert str(result) == str(geog)
 
 
-def test_from_wkb_oriented():
+def test_from_wkb_oriented() -> None:
     # WKB for POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0)) -> non-CCW box
     wkb = bytes.fromhex(
         "010300000001000000050000000000000000000000000000000000000000000000000000000000000000002440000000000000244000000000000024400000000000002440000000000000000000000000000000000000000000000000"
@@ -183,7 +182,7 @@ def test_from_wkb_oriented():
     assert not spherely.within(spherely.create_point(5, 5), result)
 
 
-def test_from_wkb_planar():
+def test_from_wkb_planar() -> None:
     wkb = spherely.to_wkb(spherely.from_wkt("LINESTRING (-64 45, 0 45)"))
 
     result = spherely.from_wkb(wkb)

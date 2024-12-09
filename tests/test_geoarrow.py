@@ -1,5 +1,3 @@
-from packaging.version import Version
-
 import numpy as np
 
 import pytest
@@ -11,7 +9,7 @@ pa = pytest.importorskip("pyarrow")
 ga = pytest.importorskip("geoarrow.pyarrow")
 
 
-def test_from_geoarrow_wkt():
+def test_from_geoarrow_wkt() -> None:
 
     arr = ga.as_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
@@ -27,7 +25,7 @@ def test_from_geoarrow_wkt():
     assert spherely.equals(result, expected).all()
 
 
-def test_from_geoarrow_wkb():
+def test_from_geoarrow_wkb() -> None:
 
     arr = ga.as_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
     arr_wkb = ga.as_wkb(arr)
@@ -43,7 +41,7 @@ def test_from_geoarrow_wkb():
     assert spherely.equals(result, expected).all()
 
 
-def test_from_geoarrow_native():
+def test_from_geoarrow_native() -> None:
 
     arr = ga.as_wkt(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
     arr_point = ga.as_geoarrow(arr)
@@ -60,7 +58,7 @@ polygon_with_bad_hole_wkt = (
 )
 
 
-def test_from_geoarrow_oriented():
+def test_from_geoarrow_oriented() -> None:
     # by default re-orients the inner ring
     arr = ga.as_geoarrow([polygon_with_bad_hole_wkt])
 
@@ -75,19 +73,19 @@ def test_from_geoarrow_oriented():
         spherely.from_geoarrow(arr, oriented=True)
 
 
-def test_from_wkt_planar():
+def test_from_wkt_planar() -> None:
     arr = ga.as_geoarrow(["LINESTRING (-64 45, 0 45)"])
     result = spherely.from_geoarrow(arr)
-    assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) > 10000.0
 
     result = spherely.from_geoarrow(arr, planar=True)
-    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 100
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 100.0
 
     result = spherely.from_geoarrow(arr, planar=True, tessellate_tolerance=10)
-    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10
+    assert spherely.distance(result, spherely.create_point(-30.1, 45)) < 10.0
 
 
-def test_from_geoarrow_projection():
+def test_from_geoarrow_projection() -> None:
     arr = ga.as_wkt(["POINT (1 0)", "POINT(0 1)"])
 
     result = spherely.from_geoarrow(
@@ -99,26 +97,26 @@ def test_from_geoarrow_projection():
     assert (spherely.to_wkt(result) == spherely.to_wkt(expected)).all()
 
 
-def test_from_geoarrow_no_extension_type():
+def test_from_geoarrow_no_extension_type() -> None:
     arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
     with pytest.raises(ValueError, match="Expected extension type"):
         spherely.from_geoarrow(arr)
 
 
-def test_from_geoarrow_invalid_encoding():
+def test_from_geoarrow_invalid_encoding() -> None:
     arr = pa.array(["POINT (1 1)", "POINT(2 2)", "POINT(3 3)"])
 
     with pytest.raises(ValueError, match="'geometry_encoding' should be one"):
         spherely.from_geoarrow(arr, geometry_encoding="point")
 
 
-def test_from_geoarrow_no_arrow_object():
+def test_from_geoarrow_no_arrow_object() -> None:
     with pytest.raises(ValueError, match="input should be an Arrow-compatible array"):
-        spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))
+        spherely.from_geoarrow(np.array(["POINT (1 1)"], dtype=object))  # type: ignore
 
 
-def test_to_geoarrow():
+def test_to_geoarrow() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     res = spherely.to_geoarrow(
         arr, output_schema=ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
@@ -132,14 +130,14 @@ def test_to_geoarrow():
     np.testing.assert_allclose(coords, expected)
 
 
-def test_to_geoarrow_wkt():
+def test_to_geoarrow_wkt() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkt()))
     expected = pa.array(["POINT (1 1)", "POINT (2 2)", "POINT (3 3)"])
     assert result.storage.equals(expected)
 
 
-def test_to_geoarrow_wkb():
+def test_to_geoarrow_wkb() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     result = pa.array(spherely.to_geoarrow(arr, output_schema=ga.wkb()))
     # the conversion from lon/lat values to S2 points and back gives some floating
@@ -155,7 +153,7 @@ def test_to_geoarrow_wkb():
     assert result.equals(expected)
 
 
-def test_wkt_roundtrip():
+def test_wkt_roundtrip() -> None:
     wkt = [
         "POINT (30 10)",
         "LINESTRING (30 10, 10 30, 40 40)",
@@ -173,14 +171,14 @@ def test_wkt_roundtrip():
     np.testing.assert_array_equal(result, wkt)
 
 
-def test_to_geoarrow_no_output_encoding():
+def test_to_geoarrow_no_output_encoding() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
 
     with pytest.raises(ValueError, match="'output_schema' should be specified"):
         spherely.to_geoarrow(arr)
 
 
-def test_to_geoarrow_invalid_output_schema():
+def test_to_geoarrow_invalid_output_schema() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     with pytest.raises(
         ValueError, match="'output_schema' should be an Arrow-compatible schema"
@@ -191,7 +189,7 @@ def test_to_geoarrow_invalid_output_schema():
         spherely.to_geoarrow(arr, output_schema=pa.schema([("test", pa.int64())]))
 
 
-def test_to_geoarrow_projected():
+def test_to_geoarrow_projected() -> None:
     arr = spherely.points([1, 2, 3], [1, 2, 3])
     point_schema = ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
     result = pa.array(

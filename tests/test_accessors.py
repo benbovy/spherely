@@ -162,7 +162,7 @@ def test_distance_with_custom_radius() -> None:
     assert actual == pytest.approx(np.pi / 2)
 
 
-def test_area():
+def test_area() -> None:
     # scalar
     geog = spherely.create_polygon([(0, 0), (90, 0), (0, 90), (0, 0)])
     result = spherely.area(geog, radius=1)
@@ -191,11 +191,11 @@ def test_area():
         "POLYGON EMPTY",
     ],
 )
-def test_area_empty(geog):
+def test_area_empty(geog) -> None:
     assert spherely.area(spherely.from_wkt(geog)) == 0
 
 
-def test_length():
+def test_length() -> None:
     geog = spherely.create_linestring([(0, 0), (1, 0)])
     result = spherely.length(geog, radius=1)
     assert isinstance(result, float)
@@ -218,11 +218,11 @@ def test_length():
         "POLYGON ((0 0, 0 1, 1 0, 0 0))",
     ],
 )
-def test_length_invalid(geog):
+def test_length_invalid(geog) -> None:
     assert spherely.length(spherely.from_wkt(geog)) == 0.0
 
 
-def test_perimeter():
+def test_perimeter() -> None:
     geog = spherely.create_polygon([(0, 0), (0, 90), (90, 90), (90, 0), (0, 0)])
     result = spherely.perimeter(geog, radius=1)
     assert isinstance(result, float)
@@ -239,5 +239,5 @@ def test_perimeter():
 @pytest.mark.parametrize(
     "geog", ["POINT (0 0)", "POINT EMPTY", "LINESTRING (0 0, 1 0)", "POLYGON EMPTY"]
 )
-def test_perimeter_invalid(geog):
+def test_perimeter_invalid(geog) -> None:
     assert spherely.perimeter(spherely.from_wkt(geog)) == 0.0

@@ -7,7 +7,6 @@ from typing import (
     Literal,
     Protocol,
     Sequence,
-    Tuple,
     TypeVar,
     overload,
 )
@@ -66,7 +65,7 @@ class Projection:
     @staticmethod
     def lnglat() -> Projection: ...
     @staticmethod
-    def speudo_mercator() -> Projection: ...
+    def pseudo_mercator() -> Projection: ...
     @staticmethod
     def orthographic(longitude: float, latitude: float) -> Projection: ...
 
@@ -75,6 +74,11 @@ class Projection:
 _NameType = TypeVar("_NameType", bound=str)
 _ScalarReturnType = TypeVar("_ScalarReturnType", bound=Any)
 _ArrayReturnDType = TypeVar("_ArrayReturnDType", bound=Any)
+
+# TODO: npt.NDArray[Geography] not supported yet
+# (see https://github.com/numpy/numpy/issues/24738)
+# (unless Geography is passed via Generic[...], see VFunc below)
+T_NDArray_Geography = npt.NDArray[Any]
 
 # The following types are auto-generated. Please don't edit them by hand.
 # Instead, update the generate_spherely_vfunc_types.py script and run it
@@ -87,7 +91,9 @@ class _VFunc_Nin1_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
     @overload
     def __call__(self, geography: Geography) -> _ScalarReturnType: ...
     @overload
-    def __call__(self, geography: npt.ArrayLike) -> npt.NDArray[_ArrayReturnDType]: ...
+    def __call__(
+        self, geography: Iterable[Geography]
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]):
     @property
@@ -96,15 +102,15 @@ class _VFunc_Nin2_Nout1(Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
     def __call__(self, a: Geography, b: Geography) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: Geography, b: npt.ArrayLike
+        self, a: Geography, b: Iterable[Geography]
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: Geography
+        self, a: Iterable[Geography], b: Geography
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike
+        self, a: Iterable[Geography], b: Iterable[Geography]
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin2optradius_Nout1(
@@ -114,19 +120,19 @@ class _VFunc_Nin2optradius_Nout1(
     def __name__(self) -> _NameType: ...
     @overload
     def __call__(
-        self, a: Geography, b: Geography, radius: float = ...
+        self, a: Geography, b: Geography, radius: float = 6371010.0
     ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: Geography, b: npt.ArrayLike, radius: float = ...
+        self, a: Geography, b: Iterable[Geography], radius: float = 6371010.0
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: Geography, radius: float = ...
+        self, a: Iterable[Geography], b: Geography, radius: float = 6371010.0
     ) -> npt.NDArray[_ArrayReturnDType]: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, b: npt.ArrayLike, radius: float = ...
+        self, a: Iterable[Geography], b: Iterable[Geography], radius: float = 6371010.0
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin1optradius_Nout1(
@@ -135,10 +141,24 @@ class _VFunc_Nin1optradius_Nout1(
     @property
     def __name__(self) -> _NameType: ...
     @overload
-    def __call__(self, a: Geography, radius: float = ...) -> _ScalarReturnType: ...
+    def __call__(
+        self, a: Geography, radius: float = 6371010.0
+    ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: npt.ArrayLike, radius: float = ...
+        self, a: Iterable[Geography], radius: float = 6371010.0
+    ) -> npt.NDArray[_ArrayReturnDType]: ...
+
+class _VFunc_Nin1optprecision_Nout1(
+    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]
+):
+    @property
+    def __name__(self) -> _NameType: ...
+    @overload
+    def __call__(self, a: Geography, precision: int = 6) -> _ScalarReturnType: ...
+    @overload
+    def __call__(
+        self, a: Iterable[Geography], precision: int = 6
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 # /// End types
@@ -188,12 +208,9 @@ def create_collection(geographies: Iterable[Geography]) -> GeometryCollection: .
 
 # Geography creation (vectorized)
 
-@overload
 def points(
     longitude: npt.ArrayLike, latitude: npt.ArrayLike
-) -> npt.NDArray[np.object_]: ...
-@overload
-def points(longitude: float, latitude: float) -> PointGeography: ...  # type: ignore[misc]
+) -> PointGeography | T_NDArray_Geography: ...
 
 # Geography utils
 
@@ -234,28 +251,44 @@ boundary: _VFunc_Nin1_Nout1[Literal["boundary"], Geography, Geography]
 convex_hull: _VFunc_Nin1_Nout1[
     Literal["convex_hull"], PolygonGeography, PolygonGeography
 ]
-distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, float]
-area: _VFunc_Nin1optradius_Nout1[Literal["area"], float, float]
-length: _VFunc_Nin1optradius_Nout1[Literal["length"], float, float]
-perimeter: _VFunc_Nin1optradius_Nout1[Literal["perimeter"], float, float]
+distance: _VFunc_Nin2optradius_Nout1[Literal["distance"], float, np.float64]
+area: _VFunc_Nin1optradius_Nout1[Literal["area"], float, np.float64]
+length: _VFunc_Nin1optradius_Nout1[Literal["length"], float, np.float64]
+perimeter: _VFunc_Nin1optradius_Nout1[Literal["perimeter"], float, np.float64]
 
 # io functions
 
-to_wkt: _VFunc_Nin1_Nout1[Literal["to_wkt"], str, object]
+to_wkt: _VFunc_Nin1optprecision_Nout1[Literal["to_wkt"], str, object]
 to_wkb: _VFunc_Nin1_Nout1[Literal["to_wkb"], bytes, object]
 
+@overload
 def from_wkt(
-    a: Iterable[str],
+    a: str,
     oriented: bool = False,
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
-) -> npt.NDArray[Any]: ...
+) -> Geography: ...
+@overload
+def from_wkt(
+    a: list[str] | npt.NDArray[np.str_],
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+) -> T_NDArray_Geography: ...
+@overload
+def from_wkb(
+    a: bytes,
+    oriented: bool = False,
+    planar: bool = False,
+    tessellate_tolerance: float = 100.0,
+) -> Geography: ...
+@overload
 def from_wkb(
     a: Iterable[bytes],
     oriented: bool = False,
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
-) -> npt.NDArray[Any]: ...
+) -> T_NDArray_Geography: ...
 
 class ArrowSchemaExportable(Protocol):
     def __arrow_c_schema__(self) -> object: ...
@@ -263,13 +296,15 @@ class ArrowSchemaExportable(Protocol):
 class ArrowArrayExportable(Protocol):
     def __arrow_c_array__(
         self, requested_schema: object | None = None
-    ) -> Tuple[object, object]: ...
+    ) -> tuple[object, object]: ...
+
+class ArrowArrayHolder(ArrowArrayExportable): ...
 
 def to_geoarrow(
-    input: npt.ArrayLike,
+    input: Geography | T_NDArray_Geography,
     /,
     *,
-    output_schema: ArrowSchemaExportable | None = None,
+    output_schema: ArrowSchemaExportable | str | None = None,
     projection: Projection = Projection.lnglat(),
     planar: bool = False,
     tessellate_tolerance: float = 100.0,
@@ -284,4 +319,4 @@ def from_geoarrow(
     tessellate_tolerance: float = 100.0,
     projection: Projection = Projection.lnglat(),
     geometry_encoding: str | None = None,
-) -> npt.NDArray[Any]: ...
+) -> T_NDArray_Geography: ...
