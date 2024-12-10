@@ -53,7 +53,6 @@ Input/Output
    to_wkb
    from_geoarrow
    to_geoarrow
-   Projection
 
 .. _api_measurement:
 

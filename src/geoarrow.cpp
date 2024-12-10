@@ -381,7 +381,7 @@ void init_geoarrow(py::module& m) {
         Returns
         -------
         ArrowArrayHolder
-            A generic Arrow array object with geograhies encoded to GeoArrow.
+            A generic Arrow array object with geographies encoded to GeoArrow.
 
         Examples
         --------
