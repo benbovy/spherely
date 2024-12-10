@@ -142,11 +142,11 @@ class _VFunc_Nin1optradius_Nout1(
     def __name__(self) -> _NameType: ...
     @overload
     def __call__(
-        self, a: Geography, radius: float = 6371010.0
+        self, geography: Geography, radius: float = 6371010.0
     ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: Iterable[Geography], radius: float = 6371010.0
+        self, geography: Iterable[Geography], radius: float = 6371010.0
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 class _VFunc_Nin1optprecision_Nout1(
@@ -155,10 +155,12 @@ class _VFunc_Nin1optprecision_Nout1(
     @property
     def __name__(self) -> _NameType: ...
     @overload
-    def __call__(self, a: Geography, precision: int = 6) -> _ScalarReturnType: ...
+    def __call__(
+        self, geography: Geography, precision: int = 6
+    ) -> _ScalarReturnType: ...
     @overload
     def __call__(
-        self, a: Iterable[Geography], precision: int = 6
+        self, geography: Iterable[Geography], precision: int = 6
     ) -> npt.NDArray[_ArrayReturnDType]: ...
 
 # /// End types

@@ -236,6 +236,22 @@ int get_dimensions(PyObjectGeography obj) {
     return s2geog::s2_dimension(obj.as_geog_ptr()->geog());
 }
 
+double get_x(PyObjectGeography obj) {
+    auto geog = obj.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_x(geog->geog());
+}
+
+double get_y(PyObjectGeography obj) {
+    auto geog = obj.as_geog_ptr();
+    if (geog->geog_type() != GeographyType::Point) {
+        throw py::value_error("Only Point geometries supported");
+    }
+    return s2geog::s2_y(geog->geog());
+}
+
 /*
 ** Geography utils
 */
@@ -267,7 +283,7 @@ void init_geography(py::module &m) {
     // Geography types
 
     auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", py::arithmetic(), R"pbdoc(
-        The enumeration of Geography types
+        The enumeration of Geography types.
     )pbdoc");
 
     pygeography_types.value("NONE", GeographyType::None, "Undefined geography type (-1).");
@@ -369,7 +385,7 @@ void init_geography(py::module &m) {
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
 
         Returns
         -------
@@ -377,6 +393,44 @@ void init_geography(py::module &m) {
             The inherent dimension is 0 for points, 1 for linestrings and 2 for
             polygons. For geometrycollections it is either the max of the containing
             elements or -1 for empty collections.
+
+    )pbdoc");
+
+    m.def("get_x",
+          py::vectorize(&get_x),
+          py::arg("geography"),
+          R"pbdoc(get_x(geography)
+
+        Returns the longitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        geography: :py:class:`Geography` or array_like
+            POINT Geography object(s).
+
+        Returns
+        -------
+        float or array
+            Longitude coordinate value(s).
+
+    )pbdoc");
+
+    m.def("get_y",
+          py::vectorize(&get_y),
+          py::arg("geography"),
+          R"pbdoc(get_y(geography)
+
+        Returns the latitude value of the Point (in degrees).
+
+        Parameters
+        ----------
+        geography: :py:class:`Geography` or array_like
+            POINT Geography object(s).
+
+        Returns
+        -------
+        float or array
+            Latitude coordinate value(s).
 
     )pbdoc");
 
@@ -415,7 +469,7 @@ void init_geography(py::module &m) {
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
 
         See Also
         --------
@@ -442,7 +496,7 @@ void init_geography(py::module &m) {
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
 
         Returns
         -------
@@ -471,7 +525,7 @@ void init_geography(py::module &m) {
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
 
         Returns
         -------

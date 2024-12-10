@@ -47,7 +47,7 @@ void init_boolean_operations(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
 
         Returns
         -------
@@ -67,7 +67,7 @@ void init_boolean_operations(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
 
         Returns
         -------
@@ -87,7 +87,7 @@ void init_boolean_operations(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
 
         Returns
         -------
@@ -107,7 +107,7 @@ void init_boolean_operations(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
 
         Returns
         -------

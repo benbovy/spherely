@@ -40,12 +40,12 @@ def update_stub_file(path, **type_specs):
 def _vfunctype_factory(class_name, n_in, **optargs):
     """Create new VFunc types.
 
-    Based on the number of input arrays and optional arguments and their types."""
-    arg_names = (
-        ["geography"]
-        if n_in == 1 and not optargs
-        else list(string.ascii_lowercase[:n_in])
-    )
+    Based on the number of input arrays and optional arguments and their types.
+    """
+    arg_names = list(string.ascii_lowercase[:n_in])
+    if n_in == 1:
+        arg_names[0] = "geography"
+
     class_code = [
         f"class {class_name}(",
         "    Generic[_NameType, _ScalarReturnType, _ArrayReturnDType]",

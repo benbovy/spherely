@@ -26,22 +26,6 @@ PyObjectGeography convex_hull(PyObjectGeography a) {
     return make_py_geography(s2geog::s2_convex_hull(a_ptr));
 }
 
-double get_x(PyObjectGeography a) {
-    auto geog = a.as_geog_ptr();
-    if (geog->geog_type() != GeographyType::Point) {
-        throw py::value_error("Only Point geometries supported");
-    }
-    return s2geog::s2_x(geog->geog());
-}
-
-double get_y(PyObjectGeography a) {
-    auto geog = a.as_geog_ptr();
-    if (geog->geog_type() != GeographyType::Point) {
-        throw py::value_error("Only Point geometries supported");
-    }
-    return s2geog::s2_y(geog->geog());
-}
-
 double distance(PyObjectGeography a,
                 PyObjectGeography b,
                 double radius = numeric_constants::EARTH_RADIUS_METERS) {
@@ -70,15 +54,15 @@ void init_accessors(py::module& m) {
 
     m.def("centroid",
           py::vectorize(&centroid),
-          py::arg("a"),
-          R"pbdoc(centroid(a)
+          py::arg("geography"),
+          R"pbdoc(centroid(geography)
 
         Computes the centroid of each geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
 
         Returns
         -------
@@ -89,15 +73,15 @@ void init_accessors(py::module& m) {
 
     m.def("boundary",
           py::vectorize(&boundary),
-          py::arg("a"),
-          R"pbdoc(boundary(a)
+          py::arg("geography"),
+          R"pbdoc(boundary(geography)
 
         Computes the boundary of each geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
 
         Returns
         -------
@@ -109,58 +93,20 @@ void init_accessors(py::module& m) {
 
     m.def("convex_hull",
           py::vectorize(&convex_hull),
-          py::arg("a"),
-          R"pbdoc(convex_hull(a)
+          py::arg("geography"),
+          R"pbdoc(convex_hull(geography)
 
         Computes the convex hull of each geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
 
         Returns
         -------
         Geography or array
             A single or an array of POLYGON Geography object(s).
-
-    )pbdoc");
-
-    m.def("get_x",
-          py::vectorize(&get_x),
-          py::arg("a"),
-          R"pbdoc(get_x(a)
-
-        Returns the longitude value of the Point (in degrees).
-
-        Parameters
-        ----------
-        a: :py:class:`Geography` or array_like
-            Geography object(s).
-
-        Returns
-        -------
-        float or array
-            Longitude coordinate value(s).
-
-    )pbdoc");
-
-    m.def("get_y",
-          py::vectorize(&get_y),
-          py::arg("a"),
-          R"pbdoc(get_y(a)
-
-        Returns the latitude value of the Point (in degrees).
-
-        Parameters
-        ----------
-        a: :py:class:`Geography` or array_like
-            Geography object(s).
-
-        Returns
-        -------
-        float or array
-            Latitude coordinate value(s).
 
     )pbdoc");
 
@@ -176,11 +122,11 @@ void init_accessors(py::module& m) {
         Parameters
         ----------
         a : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
         b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
         radius : float, optional
-            Radius of Earth in meters, default 6,371,010
+            Radius of Earth in meters, default 6,371,010.
 
         Returns
         -------
@@ -191,18 +137,18 @@ void init_accessors(py::module& m) {
 
     m.def("area",
           py::vectorize(&area),
-          py::arg("a"),
+          py::arg("geography"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(area(a, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(area(geography, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculate the area of the geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
         radius : float, optional
-            Radius of Earth in meters, default 6,371,010
+            Radius of Earth in meters, default 6,371,010.
 
         Returns
         -------
@@ -213,18 +159,18 @@ void init_accessors(py::module& m) {
 
     m.def("length",
           py::vectorize(&length),
-          py::arg("a"),
+          py::arg("geography"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(length(a, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(length(geography, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculates the length of a line geography, returning zero for other types.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
         radius : float, optional
-            Radius of Earth in meters, default 6,371,010
+            Radius of Earth in meters, default 6,371,010.
 
         Returns
         -------
@@ -235,18 +181,18 @@ void init_accessors(py::module& m) {
 
     m.def("perimeter",
           py::vectorize(&perimeter),
-          py::arg("a"),
+          py::arg("geography"),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(perimeter(a, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(perimeter(geography, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculates the perimeter of a polygon geography, returning zero for other types.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
         radius : float, optional
-            Radius of Earth in meters, default 6,371,010
+            Radius of Earth in meters, default 6,371,010.
 
         Returns
         -------
