@@ -85,6 +85,26 @@ def test_get_dimensions() -> None:
     assert spherely.get_dimensions(spherely.create_point(5, 40)) == 0
 
 
+@pytest.mark.parametrize(
+    "empty_geog, expected",
+    [
+        (spherely.create_point(), 0),
+        (spherely.create_linestring(), 1),
+        (spherely.create_polygon(), 2),
+        (spherely.create_collection([]), -1),
+    ],
+)
+def test_get_dimensions_empty(empty_geog, expected) -> None:
+    assert spherely.get_dimensions(empty_geog) == expected
+
+
+def test_get_dimensions_collection() -> None:
+    geog = spherely.create_collection(
+        [spherely.create_point(0, 0), spherely.create_polygon([(0, 0), (1, 1), (2, 0)])]
+    )
+    assert spherely.get_dimensions(geog) == 2
+
+
 def test_prepare() -> None:
     # test array
     geog = np.array(
