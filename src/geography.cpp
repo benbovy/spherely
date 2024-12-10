@@ -270,14 +270,20 @@ void init_geography(py::module &m) {
         The enumeration of Geography types
     )pbdoc");
 
-    pygeography_types.value("NONE", GeographyType::None);
-    pygeography_types.value("POINT", GeographyType::Point);
-    pygeography_types.value("LINESTRING", GeographyType::LineString);
-    pygeography_types.value("POLYGON", GeographyType::Polygon);
-    pygeography_types.value("MULTIPOINT", GeographyType::MultiPoint);
-    pygeography_types.value("MULTILINESTRING", GeographyType::MultiLineString);
-    pygeography_types.value("MULTIPOLYGON", GeographyType::MultiPolygon);
-    pygeography_types.value("GEOMETRYCOLLECTION", GeographyType::GeometryCollection);
+    pygeography_types.value("NONE", GeographyType::None, "Undefined geography type (-1).");
+    pygeography_types.value("POINT", GeographyType::Point, "Single point geography type (0).");
+    pygeography_types.value(
+        "LINESTRING", GeographyType::LineString, "Single line geography type (1).");
+    pygeography_types.value(
+        "POLYGON", GeographyType::Polygon, "Single polygon geography type (2).");
+    pygeography_types.value(
+        "MULTIPOINT", GeographyType::MultiPoint, "Multiple point geography type (3).");
+    pygeography_types.value(
+        "MULTILINESTRING", GeographyType::MultiLineString, "Multiple line geography type (4).");
+    pygeography_types.value(
+        "MULTIPOLYGON", GeographyType::MultiPolygon, "Multiple polygon geography type (5).");
+    pygeography_types.value(
+        "GEOMETRYCOLLECTION", GeographyType::GeometryCollection, "Collection geography type (6).");
 
     // Geography classes
 
@@ -346,6 +352,10 @@ void init_geography(py::module &m) {
             The type id(s) of the input geography object(s). None (missing) is -1,
             POINT is 0, LINESTRING is 1, etc. See the ``value`` property of the
             :py:class:`GeographyType` enumeration.
+
+        See Also
+        --------
+        GeographyType
 
     )pbdoc");
 

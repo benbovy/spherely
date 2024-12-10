@@ -6,6 +6,17 @@ import numpy as np
 import spherely
 
 
+def test_geography_type() -> None:
+    assert spherely.GeographyType.NONE.value == -1
+    assert spherely.GeographyType.POINT.value == 0
+    assert spherely.GeographyType.LINESTRING.value == 1
+    assert spherely.GeographyType.POLYGON.value == 2
+    assert spherely.GeographyType.MULTIPOINT.value == 3
+    assert spherely.GeographyType.MULTILINESTRING.value == 4
+    assert spherely.GeographyType.MULTIPOLYGON.value == 5
+    assert spherely.GeographyType.GEOMETRYCOLLECTION.value == 6
+
+
 def test_is_geography() -> None:
     arr = np.array([1, 2.33, spherely.create_point(30, 6)])
 
