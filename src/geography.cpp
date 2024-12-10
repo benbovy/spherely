@@ -434,6 +434,11 @@ void init_geography(py::module &m) {
         geography : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Returns
+        -------
+        prepared : Geography or array
+            The same input Geography object(s) with an attached index.
+
         See Also
         --------
         is_prepared
@@ -457,6 +462,11 @@ void init_geography(py::module &m) {
         ----------
         geography : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        unprepared : Geography or array
+            The same input Geography object(s) with no attached index.
 
         See Also
         --------

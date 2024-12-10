@@ -52,6 +52,7 @@ void init_boolean_operations(py::module& m) {
         Returns
         -------
         Geography or array
+            New Geography object(s) representing the union of the input geographies.
 
     )pbdoc");
 
@@ -71,6 +72,7 @@ void init_boolean_operations(py::module& m) {
         Returns
         -------
         Geography or array
+            New Geography object(s) representing the interesction of the input geographies.
 
     )pbdoc");
 
@@ -90,6 +92,7 @@ void init_boolean_operations(py::module& m) {
         Returns
         -------
         Geography or array
+            New Geography object(s) representing the difference of the input geographies.
 
     )pbdoc");
 
@@ -109,6 +112,8 @@ void init_boolean_operations(py::module& m) {
         Returns
         -------
         Geography or array
+            New Geography object(s) representing the symmetric difference of
+            the input geographies.
 
     )pbdoc");
 }

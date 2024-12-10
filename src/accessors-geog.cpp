@@ -83,7 +83,7 @@ void init_accessors(py::module& m) {
         Returns
         -------
         Geography or array
-            A single or an array of POINT geography object(s).
+            A single or an array of POINT Geography object(s).
 
     )pbdoc");
 
@@ -103,7 +103,7 @@ void init_accessors(py::module& m) {
         -------
         Geography or array
             A single or an array of either (MULTI)POINT or (MULTI)LINESTRING
-            geography object(s).
+            Geography object(s).
 
     )pbdoc");
 
@@ -122,7 +122,7 @@ void init_accessors(py::module& m) {
         Returns
         -------
         Geography or array
-            A single or an array of POLYGON geography object(s).
+            A single or an array of POLYGON Geography object(s).
 
     )pbdoc");
 

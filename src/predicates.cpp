@@ -83,6 +83,11 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Returns
+        -------
+        bool or array
+            Results of the ``intersects`` test.
+
     )pbdoc");
 
     m.def("equals",
@@ -101,6 +106,11 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Returns
+        -------
+        bool or array
+            Results of the ``equals`` test.
+
     )pbdoc");
 
     m.def("contains",
@@ -115,6 +125,11 @@ void init_predicates(py::module& m) {
         ----------
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        bool or array
+            Results of the ``contains`` test.
 
     )pbdoc");
 
@@ -134,6 +149,11 @@ void init_predicates(py::module& m) {
         ----------
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        bool or array
+            Results of the ``within`` test.
 
     )pbdoc");
 
@@ -155,6 +175,11 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Returns
+        -------
+        bool or array
+            Results of the ``disjoint`` test.
+
     )pbdoc");
 
     m.def("touches",
@@ -172,6 +197,11 @@ void init_predicates(py::module& m) {
         ----------
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        bool or array
+            Results of the ``touches`` test.
 
     )pbdoc");
 
@@ -197,6 +227,11 @@ void init_predicates(py::module& m) {
         ----------
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        bool or array
+            Results of the ``covers`` test.
 
         Notes
         -----
@@ -225,8 +260,14 @@ void init_predicates(py::module& m) {
         a, b : :py:class:`Geography` or array_like
             Geography object(s)
 
+        Returns
+        -------
+        bool or array
+            Results of the ``covered_by`` test.
+
         See Also
         --------
         covers
+
     )pbdoc");
 }
