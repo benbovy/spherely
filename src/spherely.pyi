@@ -190,16 +190,19 @@ def create_multilinestring(
 def create_polygon(
     shell: None = None,
     holes: None = None,
+    oriented: bool = False,
 ) -> PolygonGeography: ...
 @overload
 def create_polygon(
     shell: Iterable[Sequence[float]],
     holes: Iterable[Iterable[Sequence[float]]] | None = None,
+    oriented: bool = False,
 ) -> PolygonGeography: ...
 @overload
 def create_polygon(
     shell: Iterable[PointGeography],
     holes: Iterable[Iterable[PointGeography]] | None = None,
+    oriented: bool = False,
 ) -> PolygonGeography: ...
 def create_multipolygon(
     polygons: Iterable[PolygonGeography],
