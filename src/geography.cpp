@@ -8,6 +8,7 @@
 #include <s2/s2point.h>
 #include <s2/s2polygon.h>
 #include <s2/util/coding/coder.h>
+#include <s2geography/accessors.h>
 #include <s2geography/geography.h>
 #include <s2geography/predicates.h>
 #include <s2geography/wkt-writer.h>
@@ -228,7 +229,11 @@ std::int8_t get_type_id(PyObjectGeography obj) {
 }
 
 int get_dimensions(PyObjectGeography obj) {
-    return obj.as_geog_ptr()->dimension();
+    // note: in case of a collection with features of different dimensions:
+    // - Geography::dimension() returns -1
+    // - s2geography::s2_dimension(geog) returns the max value found in collection
+    // => we want the latter here.
+    return s2geog::s2_dimension(obj.as_geog_ptr()->geog());
 }
 
 /*
@@ -340,14 +345,17 @@ void init_geography(py::module &m) {
     m.def("get_dimensions", py::vectorize(&get_dimensions), py::arg("geography"), R"pbdoc(
         Returns the inherent dimensionality of a geography.
 
-        The inherent dimension is 0 for points, 1 for linestrings and 2 for
-        polygons. For geometrycollections it is the max of the containing elements.
-        Empty collections and None values return -1.
-
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
             Geography object(s)
+
+        Returns
+        -------
+        dimensions : int or array
+            The inherent dimension is 0 for points, 1 for linestrings and 2 for
+            polygons. For geometrycollections it is either the max of the containing
+            elements or -1 for empty collections.
 
     )pbdoc");
 
