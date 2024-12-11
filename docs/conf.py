@@ -18,6 +18,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "shapely": ("https://shapely.readthedocs.io/en/latest/", None),
+    "pyarrow": ("https://arrow.apache.org/docs/", None),
 }
 
 # TODO: seem to have no effect
