@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get Date
         id: get-date
@@ -55,7 +55,7 @@ jobs:
             python=${{ matrix.python-version }}
 
       - name: Fetch s2geography
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: paleolimbot/s2geography
           ref: main
@@ -100,7 +100,7 @@ jobs:
           pytest . -vv
 
       - name: Generate and upload coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           gcov: true
           gcov_include: src
