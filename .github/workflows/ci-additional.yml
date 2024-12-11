@@ -4,11 +4,21 @@ on:
   pull_request:
     branches: [main]
 
-name: Lint
+name: CI Additional
 
 jobs:
-  lint:
-    name: mypy
+  check-links:
+    name: Check markdown hyperlinks
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Markdown link check
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+
+  mypy:
+    name: Mypy
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@v1
