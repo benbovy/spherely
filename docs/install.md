@@ -10,7 +10,7 @@ and [PyPI](https://pypi.org/project/spherely/).
 
 ### Installation of Python binary wheels (PyPI)
 
-Install the binary wheel, e.g., using [pip](https://pip.pypa.io/):
+Install the last released binary wheel, e.g., using [pip](https://pip.pypa.io/):
 
 ``` sh
 $ pip install spherely
@@ -18,7 +18,7 @@ $ pip install spherely
 
 ### Installation of Conda packages (conda-forge)
 
-Install the conda-forge package using
+Install the last released conda-forge package using
 [conda](https://docs.conda.io/projects/conda/en/stable/):
 
 ``` sh
@@ -28,7 +28,8 @@ $ conda install spherely --channel conda-forge
 ## Installation from source
 
 Compiling and installing Spherely from source may be useful for development
-purpose and/or for using a specific version of S2Geography or S2Geometry.
+purpose and/or for building it against a specific version of S2Geography and/or
+S2Geometry.
 
 ### Requirements
 
@@ -49,14 +50,15 @@ All the requirements listed above are available via conda-forge.
 
 After cloning Spherely's [source
 repository](https://github.com/benbovy/spherely), create a conda environment
-using the `ci/environment.yml` file with the required dependencies:
+with the required (and development) dependencies using the
+`ci/environment-dev.yml` file:
 
 ```sh
-$ conda env create -f spherely/ci/environment.yml
+$ conda env create -f spherely/ci/environment-dev.yml
 $ conda activate spherely-dev
 ```
 
-Build and install `spherely`:
+Build and install Spherely:
 
 ```sh
 $ cd spherely
@@ -86,9 +88,9 @@ $ pre-commit install
 
 (Note: you can skip the pre-commit checks with `git commit --no-verify`)
 
-### Using the latest s2geography version
+### Using the latest S2Geography version
 
-If you want to compile spherely against the latest version of s2geography, use:
+If you want to compile Spherely against the latest version of S2Geography, use:
 
  ```sh
  $ git clone https://github.com/paleolimbot/s2geography

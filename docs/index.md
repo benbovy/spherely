@@ -18,11 +18,7 @@ geometry library [s2geometry] via the library [s2geography] which provides a
 
 ## Contents
 
-- {doc}`install`
-- {doc}`api`
-
 ```{toctree}
-:hidden: true
 :maxdepth: 1
 
 install
