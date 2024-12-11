@@ -1,30 +1,35 @@
-From ccac9b1ea8ef85678473f6f6825e482ca4c19ebc Mon Sep 17 00:00:00 2001
+From 7287508b986e65403b3352889c94249ee11a231a Mon Sep 17 00:00:00 2001
 From: Benoit Bovy <benbovy@gmail.com>
-Date: Mon, 2 Dec 2024 15:52:58 +0100
-Subject: [PATCH] fix openssl header not found in specific cases
+Date: Wed, 11 Dec 2024 09:09:47 +0100
+Subject: [PATCH] another approach for openssl
 
-E.g., on MacOS with s2geometry built from source and installed in a
-custom directory and linked against openssl installed in an other,
-standard directory.
 ---
- CMakeLists.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+ CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5fb3e93..6d040ad 100644
+index 5fb3e93..0028c86 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -173,6 +173,11 @@ elseif(${S2_SOURCE} STREQUAL "SYSTEM")
+@@ -173,6 +173,9 @@ elseif(${S2_SOURCE} STREQUAL "SYSTEM")
    endif()
  endif()
 
-+# this might be needed since s2geometry includes it in general
-+# but not for any target explicilty?
++# --- OpenSSL
 +find_package(OpenSSL REQUIRED)
-+target_include_directories(${s2_NOALIAS_TARGET} INTERFACE ${OPENSSL_INCLUDE_DIR})
 +
  # --- Abseil (bundled build not supported)
 
  find_package(absl REQUIRED)
+@@ -271,7 +274,8 @@ if(MSVC)
+   target_compile_options(s2geography PUBLIC /J)
+ endif()
+
+-target_link_libraries(s2geography PUBLIC s2::s2 absl::memory absl::str_format)
++target_link_libraries(s2geography PUBLIC s2::s2 absl::memory absl::str_format
++                                         OpenSSL::SSL OpenSSL::Crypto)
+
+ # Set somewhat aggressive compiler warning flags
+ if(S2GEOGRAPHY_EXTRA_WARNINGS)
 --
 2.36.0
