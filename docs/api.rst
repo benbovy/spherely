@@ -10,6 +10,9 @@ API reference
 Geography properties
 --------------------
 
+Functions that provide access to properties of :py:class:`~spherely.Geography`
+objects without side-effects (except for ``prepare`` and ``destroy_prepared``).
+
 .. autosummary::
    :toctree: _api_generated/
 
@@ -28,6 +31,9 @@ Geography properties
 Geography creation
 ------------------
 
+Functions that build new :py:class:`~spherely.Geography` objects from
+coordinates or existing geographies.
+
 .. autosummary::
    :toctree: _api_generated/
 
@@ -44,6 +50,9 @@ Geography creation
 Input/Output
 ------------
 
+Functions that convert :py:class:`~spherely.Geography` objects to/from an
+external format such as `WKT <https://en.wikipedia.org/wiki/Well-known_text>`_.
+
 .. autosummary::
    :toctree: _api_generated/
 
@@ -53,12 +62,13 @@ Input/Output
    to_wkb
    from_geoarrow
    to_geoarrow
-   Projection
 
 .. _api_measurement:
 
 Measurement
 -----------
+
+Functions that compute measurements of one or more geographies.
 
 .. autosummary::
    :toctree: _api_generated/
@@ -72,6 +82,9 @@ Measurement
 
 Predicates
 ----------
+
+Functions that return ``True`` or ``False`` for some spatial relationship
+between two geographies.
 
 .. autosummary::
    :toctree: _api_generated/
@@ -90,6 +103,9 @@ Predicates
 Overlays (boolean operations)
 -----------------------------
 
+Functions that generate a new geography based on the combination of two
+geographies.
+
 .. autosummary::
    :toctree: _api_generated/
 
@@ -102,6 +118,8 @@ Overlays (boolean operations)
 
 Constructive operations
 -----------------------
+
+Functions that generate a new geography based on input.
 
 .. autosummary::
    :toctree: _api_generated/

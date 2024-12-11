@@ -65,11 +65,15 @@ private:
 };
 
 void init_predicates(py::module& m) {
+    py::options options;
+    options.disable_function_signatures();
+
     m.def("intersects",
           py::vectorize(Predicate(s2geog::s2_intersects)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(intersects(a, b)
+
         Returns True if A and B share any portion of space.
 
         Intersects implies that overlaps, touches and within are True.
@@ -77,7 +81,12 @@ void init_predicates(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``intersects`` test.
 
     )pbdoc");
 
@@ -85,7 +94,8 @@ void init_predicates(py::module& m) {
           py::vectorize(Predicate(s2geog::s2_equals)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(equals(a, b)
+
         Returns True if A and B are spatially equal.
 
         If A is within B and B is within A, A and B are considered equal. The
@@ -94,7 +104,12 @@ void init_predicates(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``equals`` test.
 
     )pbdoc");
 
@@ -102,13 +117,19 @@ void init_predicates(py::module& m) {
           py::vectorize(Predicate(s2geog::s2_contains)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(contains(a, b)
+
         Returns True if B is completely inside A.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``contains`` test.
 
     )pbdoc");
 
@@ -120,13 +141,19 @@ void init_predicates(py::module& m) {
           })),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(within(a, b)
+
         Returns True if A is completely inside B.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``within`` test.
 
     )pbdoc");
 
@@ -138,14 +165,20 @@ void init_predicates(py::module& m) {
           })),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(disjoint(a, b)
+
         Returns True if A boundaries and interior does not intersect at all
         with those of B.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``disjoint`` test.
 
     )pbdoc");
 
@@ -153,7 +186,8 @@ void init_predicates(py::module& m) {
           py::vectorize(TouchesPredicate()),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(touches(a, b)
+
         Returns True if A and B intersect, but their interiors do not intersect.
 
         A and B must have at least one point in common, where the common point
@@ -162,7 +196,12 @@ void init_predicates(py::module& m) {
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``touches`` test.
 
     )pbdoc");
 
@@ -180,13 +219,19 @@ void init_predicates(py::module& m) {
               closed_options)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(covers(a, b)
+
         Returns True if every point in B lies inside the interior or boundary of A.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``covers`` test.
 
         Notes
         -----
@@ -206,16 +251,23 @@ void init_predicates(py::module& m) {
               closed_options)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(covered_by(a, b)
+
         Returns True if every point in A lies inside the interior or boundary of B.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object(s)
+            Geography object(s).
+
+        Returns
+        -------
+        bool or array
+            Results of the ``covered_by`` test.
 
         See Also
         --------
         covers
+
     )pbdoc");
 }

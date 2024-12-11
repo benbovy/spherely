@@ -7,7 +7,6 @@
 
 #include "pybind11.hpp"
 
-namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
