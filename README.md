@@ -35,7 +35,7 @@ $ conda install spherely --channel conda-forge
 ```
 
 To compile and install Spherely from source, see detailed instructions in the
-documentation.
+[documentation](https://spherely.readthedocs.io/en/latest/install.html).
 
 ## Documentation
 
