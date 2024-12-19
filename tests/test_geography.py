@@ -18,7 +18,7 @@ def test_not_geography_raise() -> None:
     arr = np.array([1, 2.33, spherely.create_point(30, 6)])
 
     with pytest.raises(TypeError, match="not a Geography object"):
-        spherely.get_dimensions(arr)
+        spherely.get_dimension(arr)
 
 
 def test_get_type_id() -> None:
@@ -66,7 +66,7 @@ def test_get_type_id() -> None:
     assert spherely.get_type_id(geog2) == spherely.GeographyType.POINT.value
 
 
-def test_get_dimensions() -> None:
+def test_get_dimension() -> None:
     # test n-d array
     expected = np.array([[0, 0], [1, 0]], dtype=np.int32)
     geog = np.array(
@@ -78,11 +78,11 @@ def test_get_dimensions() -> None:
             ],
         ]
     )
-    actual = spherely.get_dimensions(geog)
+    actual = spherely.get_dimension(geog)
     np.testing.assert_array_equal(actual, expected)
 
     # test scalar
-    assert spherely.get_dimensions(spherely.create_point(5, 40)) == 0
+    assert spherely.get_dimension(spherely.create_point(5, 40)) == 0
 
 
 @pytest.mark.parametrize(
@@ -94,15 +94,15 @@ def test_get_dimensions() -> None:
         (spherely.create_collection([]), -1),
     ],
 )
-def test_get_dimensions_empty(empty_geog, expected) -> None:
-    assert spherely.get_dimensions(empty_geog) == expected
+def test_get_dimension_empty(empty_geog, expected) -> None:
+    assert spherely.get_dimension(empty_geog) == expected
 
 
-def test_get_dimensions_collection() -> None:
+def test_get_dimension_collection() -> None:
     geog = spherely.create_collection(
         [spherely.create_point(0, 0), spherely.create_polygon([(0, 0), (1, 1), (2, 0)])]
     )
-    assert spherely.get_dimensions(geog) == 2
+    assert spherely.get_dimension(geog) == 2
 
 
 def test_prepare() -> None:

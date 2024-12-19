@@ -228,7 +228,7 @@ std::int8_t get_type_id(PyObjectGeography obj) {
     return static_cast<std::int8_t>(obj.as_geog_ptr()->geog_type());
 }
 
-int get_dimensions(PyObjectGeography obj) {
+int get_dimension(PyObjectGeography obj) {
     // note: in case of a collection with features of different dimensions:
     // - Geography::dimension() returns -1
     // - s2geography::s2_dimension(geog) returns the max value found in collection
@@ -323,7 +323,7 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    m.def("get_dimensions", py::vectorize(&get_dimensions), py::arg("geography"), R"pbdoc(
+    m.def("get_dimension", py::vectorize(&get_dimension), py::arg("geography"), R"pbdoc(
         Returns the inherent dimensionality of a geography.
 
         Parameters

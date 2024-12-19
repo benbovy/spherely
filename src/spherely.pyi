@@ -161,7 +161,7 @@ class _VFunc_Nin1optprecision_Nout1(
 
 # Geography properties
 
-get_dimensions: _VFunc_Nin1_Nout1[Literal["get_dimensions"], Geography, Any]
+get_dimension: _VFunc_Nin1_Nout1[Literal["get_dimension"], Geography, Any]
 get_type_id: _VFunc_Nin1_Nout1[Literal["get_type_id"], int, np.int8]
 
 # Geography creation (scalar)
