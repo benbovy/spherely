@@ -288,25 +288,6 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pygeography.def_property_readonly("dimensions",
-                                      &Geography::dimension,
-                                      R"pbdoc(
-        Returns the inherent dimensionality of a geometry.
-
-        The inherent dimension is 0 for points, 1 for linestrings and 2 for
-        polygons. For geometry collections it returns either the dimension of
-        all their features (uniform collections) or -1 (collections with
-        features of different dimensions). Empty collections and None values
-        return -1.
-
-    )pbdoc");
-
-    pygeography.def_property_readonly("nshape", &Geography::num_shapes, R"pbdoc(
-        Returns the number of elements in the collection, or 1 for simple geography
-        objects.
-
-    )pbdoc");
-
     pygeography.def("__repr__", [](const Geography &geog) {
         s2geog::WKTWriter writer(6);
         return writer.write_feature(geog.geog());
