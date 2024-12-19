@@ -37,13 +37,19 @@ void init_boolean_operations(py::module& m) {
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::UNION)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(union(a, b)
+
         Computes the union of both geographies.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
+
+        Returns
+        -------
+        Geography or array
+            New Geography object(s) representing the union of the input geographies.
 
     )pbdoc");
 
@@ -51,13 +57,19 @@ void init_boolean_operations(py::module& m) {
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::INTERSECTION)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(intersection(a, b)
+
         Computes the intersection of both geographies.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
+
+        Returns
+        -------
+        Geography or array
+            New Geography object(s) representing the intersection of the input geographies.
 
     )pbdoc");
 
@@ -65,13 +77,19 @@ void init_boolean_operations(py::module& m) {
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::DIFFERENCE)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(difference(a, b)
+
         Computes the difference of both geographies.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
+
+        Returns
+        -------
+        Geography or array
+            New Geography object(s) representing the difference of the input geographies.
 
     )pbdoc");
 
@@ -79,13 +97,20 @@ void init_boolean_operations(py::module& m) {
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::SYMMETRIC_DIFFERENCE)),
           py::arg("a"),
           py::arg("b"),
-          R"pbdoc(
+          R"pbdoc(symmetric_difference(a, b)
+
         Computes the symmetric difference of both geographies.
 
         Parameters
         ----------
         a, b : :py:class:`Geography` or array_like
-            Geography object
+            Geography object(s).
+
+        Returns
+        -------
+        Geography or array
+            New Geography object(s) representing the symmetric difference of
+            the input geographies.
 
     )pbdoc");
 }
