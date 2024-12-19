@@ -21,10 +21,6 @@ intersphinx_mapping = {
     "pyarrow": ("https://arrow.apache.org/docs/", None),
 }
 
-# TODO: seem to have no effect
-# (see https://github.com/sphinx-doc/sphinx/issues/10235)
-autodoc_typehints = "none"
-
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_use_param = False

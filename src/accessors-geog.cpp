@@ -47,9 +47,6 @@ double perimeter(PyObjectGeography a, double radius = numeric_constants::EARTH_R
 }
 
 void init_accessors(py::module& m) {
-    py::options options;
-    options.disable_function_signatures();
-
     m.attr("EARTH_RADIUS_METERS") = py::float_(numeric_constants::EARTH_RADIUS_METERS);
 
     m.def("centroid",

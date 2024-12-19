@@ -82,9 +82,6 @@ private:
 };
 
 void init_io(py::module& m) {
-    py::options options;
-    options.disable_function_signatures();
-
     m.def(
         "from_wkt",
         [](py::array_t<py::str> string, bool oriented, bool planar, float tessellate_tolerance) {

@@ -14,12 +14,9 @@ void init_projections(py::module& m) {
         Lightweight wrapper for selecting common reference systems used to
         project Geography points or vertices.
 
-        Cannot be instanciated directly.
+        Cannot be instantiated directly.
 
     )pbdoc");
-
-    py::options options;
-    options.disable_function_signatures();
 
     projection
         .def_static("lnglat", &Projection::lnglat, R"pbdoc(lnglat()

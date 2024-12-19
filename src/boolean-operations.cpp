@@ -33,9 +33,6 @@ private:
 };
 
 void init_boolean_operations(py::module& m) {
-    py::options options;
-    options.disable_function_signatures();
-
     m.def("union",
           py::vectorize(BooleanOp(S2BooleanOperation::OpType::UNION)),
           py::arg("a"),
@@ -72,7 +69,7 @@ void init_boolean_operations(py::module& m) {
         Returns
         -------
         Geography or array
-            New Geography object(s) representing the interesction of the input geographies.
+            New Geography object(s) representing the intersection of the input geographies.
 
     )pbdoc");
 

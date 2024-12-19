@@ -255,9 +255,6 @@ ArrowArrayHolder to_geoarrow(py::array_t<PyObjectGeography> input,
 }
 
 void init_geoarrow(py::module& m) {
-    py::options options;
-    options.disable_function_signatures();
-
     py::class_<ArrowArrayHolder>(m, "ArrowArrayHolder")
         .def("__arrow_c_array__", &ArrowArrayHolder::return_capsules);
 
@@ -272,7 +269,7 @@ void init_geoarrow(py::module& m) {
         py::arg("tessellate_tolerance") = 100.0,
         py::arg("projection") = Projection::lnglat(),
         py::arg("geometry_encoding") = py::none(),
-        R"pbdoc(from_geoarrow(geographies, /, *, oriented=False, planar=False, tessellate_tolerance=100.0, projection=Projection.lnglat(), geometry_encoding=None)
+        R"pbdoc(from_geoarrow(geographies, /, *, oriented=False, planar=False, tessellate_tolerance=100.0, projection=spherely.Projection.lnglat(), geometry_encoding=None)
 
         Create an array of geographies from an Arrow array object with a GeoArrow
         extension type.
@@ -339,7 +336,7 @@ void init_geoarrow(py::module& m) {
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
         py::arg("precision") = 6,
-        R"pbdoc(to_geoarrow(geographies, /, *, output_schema=None, projection=Projection.lnglat(), planar=False, tessellate_tolerance=100.0, precision=6)
+        R"pbdoc(to_geoarrow(geographies, /, *, output_schema=None, projection=spherely.Projection.lnglat(), planar=False, tessellate_tolerance=100.0, precision=6)
 
         Convert an array of geographies to an Arrow array object with a GeoArrow
         extension type.

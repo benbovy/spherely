@@ -65,9 +65,6 @@ private:
 };
 
 void init_predicates(py::module& m) {
-    py::options options;
-    options.disable_function_signatures();
-
     m.def("intersects",
           py::vectorize(Predicate(s2geog::s2_intersects)),
           py::arg("a"),
@@ -86,7 +83,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``intersects`` test.
 
     )pbdoc");
 
@@ -109,7 +105,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``equals`` test.
 
     )pbdoc");
 
@@ -129,7 +124,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``contains`` test.
 
     )pbdoc");
 
@@ -153,7 +147,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``within`` test.
 
     )pbdoc");
 
@@ -178,7 +171,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``disjoint`` test.
 
     )pbdoc");
 
@@ -201,7 +193,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``touches`` test.
 
     )pbdoc");
 
@@ -231,7 +222,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``covers`` test.
 
         Notes
         -----
@@ -263,7 +253,6 @@ void init_predicates(py::module& m) {
         Returns
         -------
         bool or array
-            Results of the ``covered_by`` test.
 
         See Also
         --------

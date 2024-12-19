@@ -282,9 +282,8 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
 void init_geography(py::module &m) {
     // Geography types
 
-    auto pygeography_types = py::enum_<GeographyType>(m, "GeographyType", py::arithmetic(), R"pbdoc(
-        The enumeration of Geography types.
-    )pbdoc");
+    auto pygeography_types = py::enum_<GeographyType>(
+        m, "GeographyType", py::arithmetic(), "The enumeration of Geography types.");
 
     pygeography_types.value("NONE", GeographyType::None, "Undefined geography type (-1).");
     pygeography_types.value("POINT", GeographyType::Point, "Single point geography type (0).");
@@ -345,9 +344,6 @@ void init_geography(py::module &m) {
     pygeography.def(py::pickle([](Geography &geog) { return geog.encode(); },
                                [](py::tuple &encoded) { return Geography::decode(encoded); }));
 
-    py::options options;
-    options.disable_function_signatures();
-
     // Geography properties
 
     m.def("get_type_id",
@@ -357,6 +353,15 @@ void init_geography(py::module &m) {
 
         Returns the type ID of a geography.
 
+        - None (missing) is -1
+        - POINT is 0
+        - LINESTRING is 1
+        - POLYGON is 2
+        - MULTIPOINT is 3
+        - MULTILINESTRING is 4
+        - MULTIPOLYGON is 5
+        - GEOMETRYCOLLECTION is 6
+
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
@@ -365,8 +370,8 @@ void init_geography(py::module &m) {
         Returns
         -------
         type_id : int or array
-            The type id(s) of the input geography object(s). None (missing) is -1,
-            POINT is 0, LINESTRING is 1, etc. See the ``value`` property of the
+            The type id(s) of the input geography object(s).
+            See also the ``value`` property of the
             :py:class:`GeographyType` enumeration.
 
         See Also
@@ -493,6 +498,8 @@ void init_geography(py::module &m) {
         efficient to call this function on an array that partially contains
         prepared geographies.
 
+        This function updates the input geographies in-place!
+
         Parameters
         ----------
         geography : :py:class:`Geography` or array_like
@@ -521,6 +528,8 @@ void init_geography(py::module &m) {
         geography itself is dereferenced. This function needs only be called in
         very specific circumstances, such as freeing up memory without losing
         the geographies, or benchmarking.
+
+        This function updates the input geographies in-place!
 
         Parameters
         ----------

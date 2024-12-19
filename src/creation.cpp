@@ -291,9 +291,6 @@ std::unique_ptr<Geography> create_collection(const std::vector<Geography *> &fea
 //
 
 void init_creation(py::module &m) {
-    py::options options;
-    options.disable_function_signatures();
-
     // ----- scalar Geography creation functions
 
     m.def(
