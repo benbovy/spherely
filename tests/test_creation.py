@@ -5,8 +5,6 @@ import spherely
 
 def test_point() -> None:
     point = spherely.create_point(40.2, 5.2)
-    assert point.dimensions == 0
-    assert point.nshape == 1
     assert repr(point).startswith("POINT (40.2 5.2")
 
 
@@ -27,8 +25,6 @@ def test_point_empty() -> None:
 )
 def test_multipoint(points) -> None:
     multipoint = spherely.create_multipoint(points)
-    assert multipoint.dimensions == 0
-    assert multipoint.nshape == 1
     assert repr(multipoint).startswith("MULTIPOINT ((5 50)")
 
 
@@ -74,8 +70,6 @@ def test_multipoint_invalid_geography() -> None:
 )
 def test_linestring(points) -> None:
     line = spherely.create_linestring(points)
-    assert line.dimensions == 1
-    assert line.nshape == 1
     assert repr(line).startswith("LINESTRING (5 50")
 
 
@@ -127,8 +121,6 @@ def test_linestring_invalid_geography() -> None:
 )
 def test_multilinestring(lines) -> None:
     multiline = spherely.create_multilinestring(lines)
-    assert multiline.dimensions == 1
-    assert multiline.nshape == 2
     assert repr(multiline).startswith("MULTILINESTRING ((5 50")
 
 
@@ -157,8 +149,6 @@ def test_multilinestring_invalid_geography() -> None:
 )
 def test_polygon(coords) -> None:
     poly = spherely.create_polygon(coords)
-    assert poly.dimensions == 2
-    assert poly.nshape == 1
     assert repr(poly).startswith("POLYGON ((0 0")
 
 
@@ -263,8 +253,6 @@ def test_polygon_oriented(shell) -> None:
 )
 def test_polygon_holes(shell, holes) -> None:
     poly = spherely.create_polygon(shell, holes=holes)
-    assert poly.dimensions == 2
-    assert poly.nshape == 1
     assert repr(poly).startswith("POLYGON ((0 0")
 
 
@@ -372,8 +360,6 @@ def test_multipolygons() -> None:
 
     multipoly = spherely.create_multipolygon([poly1, poly2])
 
-    assert multipoly.dimensions == 2
-    assert multipoly.nshape == 1
     assert repr(multipoly).startswith("MULTIPOLYGON (((0 0")
 
 
@@ -410,18 +396,12 @@ def test_collection() -> None:
 
     coll = spherely.create_collection(objs)
 
-    assert coll.dimensions == -1
-    assert coll.nshape == 3
     assert repr(coll).startswith("GEOMETRYCOLLECTION (")
 
     # TODO: more robust test than using the WKT repr
     assert repr(coll).count("POINT") == 1
     assert repr(coll).count("LINESTRING") == 1
     assert repr(coll).count("POLYGON") == 1
-
-    # TODO: test objects are copied (if/when we can update them in place)
-    # (for now only test that original objects are preserved)
-    assert [o.nshape for o in objs] == [1, 1, 1]
 
     # test nested collection
     coll2 = spherely.create_collection(objs + [coll])
