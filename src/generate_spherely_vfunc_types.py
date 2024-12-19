@@ -65,6 +65,8 @@ def _vfunctype_factory(class_name, n_in, **optargs):
             f"{arg_name}: {arg_type}"
             for arg_name, arg_type in zip(arg_names, arg_types)
         )
+        if n_in == 1:
+            arg_str += ", /"
         return_type = (
             "_ScalarReturnType"
             if all(t == geog_types[0] for t in arg_types)

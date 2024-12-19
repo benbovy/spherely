@@ -349,7 +349,8 @@ void init_geography(py::module &m) {
     m.def("get_type_id",
           py::vectorize(&get_type_id),
           py::arg("geography"),
-          R"pbdoc(get_type_id(geography)
+          py::pos_only(),
+          R"pbdoc(get_type_id(geography, /)
 
         Returns the type ID of a geography.
 
@@ -383,7 +384,8 @@ void init_geography(py::module &m) {
     m.def("get_dimensions",
           py::vectorize(&get_dimensions),
           py::arg("geography"),
-          R"pbdoc(get_dimensions(geography)
+          py::pos_only(),
+          R"pbdoc(get_dimensions(geography, /)
 
         Returns the inherent dimensionality of a geography.
 
@@ -404,7 +406,8 @@ void init_geography(py::module &m) {
     m.def("get_x",
           py::vectorize(&get_x),
           py::arg("geography"),
-          R"pbdoc(get_x(geography)
+          py::pos_only(),
+          R"pbdoc(get_x(geography, /)
 
         Returns the longitude value of the Point (in degrees).
 
@@ -423,7 +426,8 @@ void init_geography(py::module &m) {
     m.def("get_y",
           py::vectorize(&get_y),
           py::arg("geography"),
-          R"pbdoc(get_y(geography)
+          py::pos_only(),
+          R"pbdoc(get_y(geography, /)
 
         Returns the latitude value of the Point (in degrees).
 
@@ -444,7 +448,8 @@ void init_geography(py::module &m) {
     m.def("is_geography",
           py::vectorize(&is_geography),
           py::arg("obj"),
-          R"pbdoc(is_geography(obj)
+          py::pos_only(),
+          R"pbdoc(is_geography(obj, /)
 
         Returns True if the object is a :py:class:`Geography`, False otherwise.
 
@@ -460,7 +465,8 @@ void init_geography(py::module &m) {
     m.def("is_prepared",
           py::vectorize(&is_prepared),
           py::arg("geography"),
-          R"pbdoc(is_prepared(geography)
+          py::pos_only(),
+          R"pbdoc(is_prepared(geography, /)
 
         Returns True if the geography object is "prepared", False otherwise.
 
@@ -486,7 +492,8 @@ void init_geography(py::module &m) {
     m.def("prepare",
           py::vectorize(&prepare),
           py::arg("geography"),
-          R"pbdoc(prepare(geography)
+          py::pos_only(),
+          R"pbdoc(prepare(geography, /)
 
         Prepare a geography, improving performance of other operations.
 
@@ -520,7 +527,8 @@ void init_geography(py::module &m) {
     m.def("destroy_prepared",
           py::vectorize(&destroy_prepared),
           py::arg("geography"),
-          R"pbdoc(destroy_prepared(geography)
+          py::pos_only(),
+          R"pbdoc(destroy_prepared(geography, /)
 
         Destroy the prepared part of a geography, freeing up memory.
 

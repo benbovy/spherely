@@ -52,7 +52,8 @@ void init_accessors(py::module& m) {
     m.def("centroid",
           py::vectorize(&centroid),
           py::arg("geography"),
-          R"pbdoc(centroid(geography)
+          py::pos_only(),
+          R"pbdoc(centroid(geography, /)
 
         Computes the centroid of each geography.
 
@@ -71,7 +72,8 @@ void init_accessors(py::module& m) {
     m.def("boundary",
           py::vectorize(&boundary),
           py::arg("geography"),
-          R"pbdoc(boundary(geography)
+          py::pos_only(),
+          R"pbdoc(boundary(geography, /)
 
         Computes the boundary of each geography.
 
@@ -91,7 +93,8 @@ void init_accessors(py::module& m) {
     m.def("convex_hull",
           py::vectorize(&convex_hull),
           py::arg("geography"),
-          R"pbdoc(convex_hull(geography)
+          py::pos_only(),
+          R"pbdoc(convex_hull(geography, /)
 
         Computes the convex hull of each geography.
 
@@ -135,8 +138,9 @@ void init_accessors(py::module& m) {
     m.def("area",
           py::vectorize(&area),
           py::arg("geography"),
+          py::pos_only(),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(area(geography, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(area(geography, /, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculate the area of the geography.
 
@@ -157,8 +161,9 @@ void init_accessors(py::module& m) {
     m.def("length",
           py::vectorize(&length),
           py::arg("geography"),
+          py::pos_only(),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(length(geography, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(length(geography, /, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculates the length of a line geography, returning zero for other types.
 
@@ -179,8 +184,9 @@ void init_accessors(py::module& m) {
     m.def("perimeter",
           py::vectorize(&perimeter),
           py::arg("geography"),
+          py::pos_only(),
           py::arg("radius") = numeric_constants::EARTH_RADIUS_METERS,
-          R"pbdoc(perimeter(geography, radius=spherely.EARTH_RADIUS_METERS)
+          R"pbdoc(perimeter(geography, /, radius=spherely.EARTH_RADIUS_METERS)
 
         Calculates the perimeter of a polygon geography, returning zero for other types.
 

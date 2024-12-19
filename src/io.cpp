@@ -89,10 +89,12 @@ void init_io(py::module& m) {
                 std::move(string));
         },
         py::arg("geography"),
+        py::pos_only(),
+        py::kw_only(),
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(from_wkt(geography, oriented=False, planar=False, tessellate_tolerance=100.0)
+        R"pbdoc(from_wkt(geography, /, *, oriented=False, planar=False, tessellate_tolerance=100.0)
 
         Creates geographies from the Well-Known Text (WKT) representation.
 
@@ -131,8 +133,9 @@ void init_io(py::module& m) {
             return py::vectorize(ToWKT(precision))(std::move(obj));
         },
         py::arg("geography"),
+        py::pos_only(),
         py::arg("precision") = 6,
-        R"pbdoc(to_wkt(geography, precision=6)
+        R"pbdoc(to_wkt(geography, /, precision=6)
 
         Returns the WKT representation of each geography.
 
@@ -156,10 +159,12 @@ void init_io(py::module& m) {
             return py::vectorize(FromWKB(oriented, planar, tessellate_tolerance))(std::move(bytes));
         },
         py::arg("geography"),
+        py::pos_only(),
+        py::kw_only(),
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(from_wkb(geography, oriented=False, planar=False, tessellate_tolerance=100.0)
+        R"pbdoc(from_wkb(geography, /, *, oriented=False, planar=False, tessellate_tolerance=100.0)
 
         Creates geographies from the Well-Known Bytes (WKB) representation.
 
@@ -195,7 +200,8 @@ void init_io(py::module& m) {
     m.def("to_wkb",
           py::vectorize(ToWKB()),
           py::arg("geography"),
-          R"pbdoc(to_wkb(geography)
+          py::pos_only(),
+          R"pbdoc(to_wkb(geography, /)
 
         Returns the WKB representation of each geography.
 
