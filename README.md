@@ -13,78 +13,41 @@ the widely deployed open-source geometry library
 [s2geography](https://github.com/paleolimbot/s2geography) which provides a
 [GEOS](https://libgeos.org) compatibility layer on top of s2geometry.
 
-This library is at an early stage of development.
-
-## Requirements
-
-- Python
-- Numpy
-- [s2geography](https://github.com/paleolimbot/s2geography) v0.2.0 or higher
-- [s2geometry](https://github.com/google/s2geometry) v0.11.1 or higher
-
-Additional requirements when building spherely from source:
-
-- C++ compiler supporting C++17 standard
-- CMake
-- [scikit-build-core](https://github.com/scikit-build/scikit-build-core)
-
-(Note: C++11 or C++14 should work too but we have no plan to maintain
-compatibility with those older standards)
+**This library is at an early stage of development.**
 
 ## Installation
 
-There is no pre-compiled package available at the moment. See the section below
-for instructions on how to setup a development environment and build / install
-spherely from source.
+The easiest way to install Spherely is via its binary packages available for
+Linux, MacOS, and Windows platforms on [conda-forge](https://conda-forge.org/)
+and [PyPI](https://pypi.org/project/spherely/).
 
-## Setting up a development environment using conda
+Install the binary wheel using [pip](https://pip.pypa.io/):
 
-After cloning this repo, create a conda environment using the `ci/environment.yml`
-file with the required dependencies:
-
-```
-$ conda env create -f spherely/ci/environment.yml
-$ conda activate spherely-dev
+``` sh
+$ pip install spherely
 ```
 
-Build and install `s2spherely`:
+Install the conda-forge package using
+[conda](https://docs.conda.io/projects/conda/en/stable/):
 
-```
-$ cd spherely
-$ python -m pip install . -v --no-build-isolation
-```
-
-Note that you can specify a build directory in order to avoid rebuilding the
-whole library from scratch each time after editing the code (requires
-scikit-build-core v0.2.0+):
-
-```
-$ python -m pip install . -v --no-build-isolation --config-settings build-dir=build/skbuild
+``` sh
+$ conda install spherely --channel conda-forge
 ```
 
-Run the tests:
+To compile and install Spherely from source, see detailed instructions in the
+[documentation](https://spherely.readthedocs.io/en/latest/install.html).
 
-```
-$ pytest . -v
-```
+## Documentation
 
-Spherely also uses [pre-commit](https://pre-commit.com/) for code
-auto-formatting and linting at every commit. After installing it, you can enable
-pre-commit hooks with the following command:
+https://spherely.readthedocs.io
 
-```
-$ pre-commit install
-```
+## License
 
-(Note: you can skip the pre-commit checks with `git commit --no-verify`)
+Spherely is licensed under BSD 3-Clause license. See the LICENSE file for more
+details.
 
-## Using the latest s2geography version
+## Acknowledgment
 
-If you want to compile spherely against the latest version of s2geography, use:
-
- ```
- $ git clone https://github.com/paleolimbot/s2geography
- $ cmake -S s2geography -B s2geography/build -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
- $ cmake --build s2geography/build
- $ cmake --install s2geography/build
- ```
+The development of this project has been supported by two
+[NumFOCUS](https://numfocus.org) Small Development Grants (GeoPandas 2022 round
+1 and GeoPandas 2023 round 3).
