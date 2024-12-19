@@ -6,6 +6,17 @@ import numpy as np
 import spherely
 
 
+def test_geography_type() -> None:
+    assert spherely.GeographyType.NONE.value == -1
+    assert spherely.GeographyType.POINT.value == 0
+    assert spherely.GeographyType.LINESTRING.value == 1
+    assert spherely.GeographyType.POLYGON.value == 2
+    assert spherely.GeographyType.MULTIPOINT.value == 3
+    assert spherely.GeographyType.MULTILINESTRING.value == 4
+    assert spherely.GeographyType.MULTIPOLYGON.value == 5
+    assert spherely.GeographyType.GEOMETRYCOLLECTION.value == 6
+
+
 def test_is_geography() -> None:
     arr = np.array([1, 2.33, spherely.create_point(30, 6)])
 
@@ -83,6 +94,57 @@ def test_get_dimensions() -> None:
 
     # test scalar
     assert spherely.get_dimensions(spherely.create_point(5, 40)) == 0
+
+
+def test_get_x_y() -> None:
+    # scalar
+    a = spherely.create_point(1.5, 2.6)
+    assert spherely.get_x(a) == pytest.approx(1.5, abs=1e-14)
+    assert spherely.get_y(a) == pytest.approx(2.6, abs=1e-14)
+
+    # array
+    arr = np.array(
+        [
+            spherely.create_point(0, 1),
+            spherely.create_point(1, 2),
+            spherely.create_point(2, 3),
+        ]
+    )
+
+    actual = spherely.get_x(arr)
+    expected = np.array([0, 1, 2], dtype="float64")
+    np.testing.assert_allclose(actual, expected)
+
+    actual = spherely.get_y(arr)
+    expected = np.array([1, 2, 3], dtype="float64")
+    np.testing.assert_allclose(actual, expected)
+
+    # only points are supported
+    with pytest.raises(ValueError):
+        spherely.get_x(spherely.create_linestring([(0, 1), (1, 2)]))
+
+    with pytest.raises(ValueError):
+        spherely.get_y(spherely.create_linestring([(0, 1), (1, 2)]))
+
+
+@pytest.mark.parametrize(
+    "empty_geog, expected",
+    [
+        (spherely.create_point(), 0),
+        (spherely.create_linestring(), 1),
+        (spherely.create_polygon(), 2),
+        (spherely.create_collection([]), -1),
+    ],
+)
+def test_get_dimensions_empty(empty_geog, expected) -> None:
+    assert spherely.get_dimensions(empty_geog) == expected
+
+
+def test_get_dimensions_collection() -> None:
+    geog = spherely.create_collection(
+        [spherely.create_point(0, 0), spherely.create_polygon([(0, 0), (1, 1), (2, 0)])]
+    )
+    assert spherely.get_dimensions(geog) == 2
 
 
 def test_prepare() -> None:
