@@ -290,15 +290,15 @@ void init_geography(py::module &m) {
     pygeography_types.value(
         "LINESTRING", GeographyType::LineString, "Single line geography type (1).");
     pygeography_types.value(
-        "POLYGON", GeographyType::Polygon, "Single polygon geography type (2).");
+        "POLYGON", GeographyType::Polygon, "Single polygon geography type (3).");
     pygeography_types.value(
-        "MULTIPOINT", GeographyType::MultiPoint, "Multiple point geography type (3).");
+        "MULTIPOINT", GeographyType::MultiPoint, "Multiple point geography type (4).");
     pygeography_types.value(
-        "MULTILINESTRING", GeographyType::MultiLineString, "Multiple line geography type (4).");
+        "MULTILINESTRING", GeographyType::MultiLineString, "Multiple line geography type (5).");
     pygeography_types.value(
-        "MULTIPOLYGON", GeographyType::MultiPolygon, "Multiple polygon geography type (5).");
+        "MULTIPOLYGON", GeographyType::MultiPolygon, "Multiple polygon geography type (6).");
     pygeography_types.value(
-        "GEOMETRYCOLLECTION", GeographyType::GeometryCollection, "Collection geography type (6).");
+        "GEOMETRYCOLLECTION", GeographyType::GeometryCollection, "Collection geography type (7).");
 
     // Geography classes
 
