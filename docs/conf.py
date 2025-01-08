@@ -24,9 +24,8 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "shapely": ("https://shapely.readthedocs.io/en/latest/", None),
+    "pyarrow": ("https://arrow.apache.org/docs/", None),
 }
-
-autodoc_typehints = "none"
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
@@ -34,8 +33,17 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_preprocess_types = True
 napoleon_type_aliases = {
+    # general terms
+    "sequence": ":term:`sequence`",
+    "iterable": ":term:`iterable`",
+    # numpy terms
     "array_like": ":term:`array_like`",
     "array-like": ":term:`array-like <array_like>`",
+    # objects without namespace: spherely
+    "EARTH_RADIUS_METERS": "spherely.EARTH_RADIUS_METERS",
+    # objects without namespace: numpy
+    "ndarray": "~numpy.ndarray",
+    "array": ":term:`array`",
 }
 
 source_suffix = [".rst", ".md"]

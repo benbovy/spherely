@@ -23,8 +23,8 @@ public:
         m_reader = std::make_shared<s2geog::WKTReader>(options);
     }
 
-    PyObjectGeography operator()(py::str a) const {
-        return make_py_geography(m_reader->read_feature(a));
+    PyObjectGeography operator()(py::str string) const {
+        return make_py_geography(m_reader->read_feature(string));
     }
 
 private:
@@ -37,8 +37,8 @@ public:
         m_writer = std::make_shared<s2geog::WKTWriter>(precision);
     }
 
-    py::str operator()(PyObjectGeography a) const {
-        auto res = m_writer->write_feature(a.as_geog_ptr()->geog());
+    py::str operator()(PyObjectGeography obj) const {
+        auto res = m_writer->write_feature(obj.as_geog_ptr()->geog());
         return py::str(res);
     }
 
@@ -59,8 +59,8 @@ public:
         m_reader = std::make_shared<s2geog::WKBReader>(options);
     }
 
-    PyObjectGeography operator()(py::bytes a) const {
-        return make_py_geography(m_reader->ReadFeature(a));
+    PyObjectGeography operator()(py::bytes bytes) const {
+        return make_py_geography(m_reader->ReadFeature(bytes));
     }
 
 private:
@@ -73,8 +73,8 @@ public:
         m_writer = std::make_shared<s2geog::WKBWriter>();
     }
 
-    py::bytes operator()(PyObjectGeography a) const {
-        return m_writer->WriteFeature(a.as_geog_ptr()->geog());
+    py::bytes operator()(PyObjectGeography obj) const {
+        return m_writer->WriteFeature(obj.as_geog_ptr()->geog());
     }
 
 private:
@@ -84,20 +84,24 @@ private:
 void init_io(py::module& m) {
     m.def(
         "from_wkt",
-        [](py::array_t<py::str> a, bool oriented, bool planar, float tessellate_tolerance) {
-            return py::vectorize(FromWKT(oriented, planar, tessellate_tolerance))(std::move(a));
+        [](py::array_t<py::str> string, bool oriented, bool planar, float tessellate_tolerance) {
+            return py::vectorize(FromWKT(oriented, planar, tessellate_tolerance))(
+                std::move(string));
         },
-        py::arg("a"),
+        py::arg("geography"),
+        py::pos_only(),
+        py::kw_only(),
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(
+        R"pbdoc(from_wkt(geography, /, *, oriented=False, planar=False, tessellate_tolerance=100.0)
+
         Creates geographies from the Well-Known Text (WKT) representation.
 
         Parameters
         ----------
-        a : str or array_like
-            WKT strings.
+        geography : str or array_like
+            The WKT string(s) to convert.
         oriented : bool, default False
             Set to True if polygon ring directions are known to be correct
             (i.e., exterior rings are defined counter clockwise and interior
@@ -115,44 +119,59 @@ void init_io(py::module& m) {
             The maximum distance in meters that a point must be moved to
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
+
+        Returns
+        -------
+        Geography or array
+            A single or an array of geography objects.
 
     )pbdoc");
 
     m.def(
         "to_wkt",
-        [](py::array_t<PyObjectGeography> a, int precision) {
-            return py::vectorize(ToWKT(precision))(std::move(a));
+        [](py::array_t<PyObjectGeography> obj, int precision) {
+            return py::vectorize(ToWKT(precision))(std::move(obj));
         },
-        py::arg("a"),
+        py::arg("geography"),
+        py::pos_only(),
         py::arg("precision") = 6,
-        R"pbdoc(
+        R"pbdoc(to_wkt(geography, /, precision=6)
+
         Returns the WKT representation of each geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object(s)
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
         precision : int, default 6
             The number of decimal places to include in the output.
+
+        Returns
+        -------
+        str or array
+            A string or an array of strings.
 
     )pbdoc");
 
     m.def(
         "from_wkb",
-        [](py::array_t<py::bytes> a, bool oriented, bool planar, float tessellate_tolerance) {
-            return py::vectorize(FromWKB(oriented, planar, tessellate_tolerance))(std::move(a));
+        [](py::array_t<py::bytes> bytes, bool oriented, bool planar, float tessellate_tolerance) {
+            return py::vectorize(FromWKB(oriented, planar, tessellate_tolerance))(std::move(bytes));
         },
-        py::arg("a"),
+        py::arg("geography"),
+        py::pos_only(),
+        py::kw_only(),
         py::arg("oriented") = false,
         py::arg("planar") = false,
         py::arg("tessellate_tolerance") = 100.0,
-        R"pbdoc(
+        R"pbdoc(from_wkb(geography, /, *, oriented=False, planar=False, tessellate_tolerance=100.0)
+
         Creates geographies from the Well-Known Bytes (WKB) representation.
 
         Parameters
         ----------
-        a : bytes or array_like
-            WKB objects.
+        geography : bytes or array_like
+            The WKB byte object(s) to convert.
         oriented : bool, default False
             Set to True if polygon ring directions are known to be correct
             (i.e., exterior rings are defined counter clockwise and interior
@@ -171,18 +190,30 @@ void init_io(py::module& m) {
             satisfy the planar edge constraint. This is only used if `planar`
             is set to True.
 
+        Returns
+        -------
+        Geography or array
+            A single or an array of geography objects.
+
     )pbdoc");
 
     m.def("to_wkb",
           py::vectorize(ToWKB()),
-          py::arg("a"),
-          R"pbdoc(
+          py::arg("geography"),
+          py::pos_only(),
+          R"pbdoc(to_wkb(geography, /)
+
         Returns the WKB representation of each geography.
 
         Parameters
         ----------
-        a : :py:class:`Geography` or array_like
-            Geography object(s)
+        geography : :py:class:`Geography` or array_like
+            Geography object(s).
+
+        Returns
+        -------
+        bytes or array
+            A bytes object or an array of bytes.
 
     )pbdoc");
 }
