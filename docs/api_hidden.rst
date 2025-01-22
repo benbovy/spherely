@@ -6,5 +6,3 @@
    :toctree: _api_generated/
 
    Geography
-   Geography.dimensions
-   Geography.nshape
