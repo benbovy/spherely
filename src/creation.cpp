@@ -39,7 +39,7 @@ S2Point make_s2point(const std::pair<double, double> &point) {
 
 S2Point make_s2point(const Geography *point_ptr) {
     check_geog_type(*point_ptr, GeographyType::Point);
-    auto s2geog_obj = static_cast<const s2geog::PointGeography &>(point_ptr->geog());
+    const auto &s2geog_obj = static_cast<const s2geog::PointGeography &>(point_ptr->geog());
 
     if (s2geog_obj.Points().empty()) {
         // We raise an exception that is caught when trying to build a Geography from an empty point
