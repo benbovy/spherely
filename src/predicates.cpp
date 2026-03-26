@@ -10,6 +10,10 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
+using PredicateFn = bool (*)(const s2geog::ShapeIndexGeography&,
+                             const s2geog::ShapeIndexGeography&,
+                             const S2BooleanOperation::Options&);
+
 /*
 ** Functor for predicate bindings.
 */
@@ -66,7 +70,7 @@ private:
 
 void init_predicates(py::module& m) {
     m.def("intersects",
-          py::vectorize(Predicate(s2geog::s2_intersects)),
+          py::vectorize(Predicate(static_cast<PredicateFn>(s2geog::s2_intersects))),
           py::arg("a"),
           py::arg("b"),
           R"pbdoc(intersects(a, b)
@@ -87,7 +91,7 @@ void init_predicates(py::module& m) {
     )pbdoc");
 
     m.def("equals",
-          py::vectorize(Predicate(s2geog::s2_equals)),
+          py::vectorize(Predicate(static_cast<PredicateFn>(s2geog::s2_equals))),
           py::arg("a"),
           py::arg("b"),
           R"pbdoc(equals(a, b)
@@ -109,7 +113,7 @@ void init_predicates(py::module& m) {
     )pbdoc");
 
     m.def("contains",
-          py::vectorize(Predicate(s2geog::s2_contains)),
+          py::vectorize(Predicate(static_cast<PredicateFn>(s2geog::s2_contains))),
           py::arg("a"),
           py::arg("b"),
           R"pbdoc(contains(a, b)
