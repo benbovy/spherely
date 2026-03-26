@@ -55,7 +55,7 @@ jobs:
         - os: macos-15-intel
           arch: x86_64
           cmake_osx_architectures: x86_64
-          macosx_deployment_target: 13.0
+          macosx_deployment_target: 15.0
         - os: macos-14
           arch: arm64
           cmake_osx_architectures: arm64
