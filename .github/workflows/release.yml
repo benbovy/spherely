@@ -52,7 +52,7 @@ jobs:
         - os: windows-2019
           arch: AMD64
           msvc_arch: x64
-        - os: macos-13
+        - os: macos-15-intel
           arch: x86_64
           cmake_osx_architectures: x86_64
           macosx_deployment_target: 13.0
