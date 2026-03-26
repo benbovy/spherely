@@ -107,7 +107,6 @@ jobs:
         uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_LINUX:
             DEPENDENCIES_DIR=/host${{ runner.temp }}/3rd-party
