@@ -17,22 +17,22 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
         dev: [false]
         env:
           - ci/environment.yml
         include:
           - env: ci/environment-dev.yml
             os: ubuntu-latest
-            python-version: "3.12"
+            python-version: "3.14"
             dev: true
           - env: ci/environment-dev.yml
             os: macos-latest
-            python-version: "3.12"
+            python-version: "3.14"
             dev: true
           - env: ci/environment-dev.yml
             os: windows-latest
-            python-version: "3.12"
+            python-version: "3.14"
             dev: true
 
     steps:
