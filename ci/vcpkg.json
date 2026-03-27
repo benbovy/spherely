@@ -1,0 +1,11 @@
+{
+    "dependencies": [
+        "s2geometry"
+    ],
+    "overrides": [
+        {
+            "name": "s2geometry",
+            "version": "0.11.1"
+        }
+    ]
+}

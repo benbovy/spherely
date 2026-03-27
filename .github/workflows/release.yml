@@ -97,7 +97,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          vcpkg install s2geometry:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
+          vcpkg install --feature-flags="versions,manifests" --x-manifest-root=./ci --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
           vcpkg list
           ls /c/vcpkg/installed
           ls /c/vcpkg/installed/x64-windows
