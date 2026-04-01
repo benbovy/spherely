@@ -27,7 +27,7 @@ namespace spherely {
 ** @returns A new spherely::Geography object
 */
 template <class T, class S, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
-inline std::unique_ptr<Geography> make_geography(S &&s2_obj) {
+inline std::unique_ptr<Geography> make_geography(S&& s2_obj) {
     auto s2geog_ptr = std::make_unique<T>(std::forward<S>(s2_obj));
     return std::make_unique<Geography>(std::move(s2geog_ptr));
 }
@@ -59,7 +59,7 @@ inline std::unique_ptr<Geography> make_geography(std::unique_ptr<T> s2geog_ptr) 
 ** @returns A new Python Geography object (pybind11::object)
 */
 template <class T, class S, std::enable_if_t<std::is_base_of_v<s2geog::Geography, T>, bool> = true>
-inline PyObjectGeography make_py_geography(S &&s2_obj) {
+inline PyObjectGeography make_py_geography(S&& s2_obj) {
     auto geog_ptr = make_geography<T>(std::forward<S>(s2_obj));
     return PyObjectGeography::from_geog(std::move(geog_ptr));
 }

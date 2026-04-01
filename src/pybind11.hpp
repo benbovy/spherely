@@ -30,10 +30,10 @@ namespace spherely {
 //
 class PyObjectGeography : public py::object {
 public:
-    static py::detail::type_info *geography_tinfo;
+    static py::detail::type_info* geography_tinfo;
 
     bool check_type(bool throw_if_invalid = true) const {
-        PyObject *source = ptr();
+        PyObject* source = ptr();
 
         // TODO: case of Python `None` and/or `NaN` (empty geography)
 
@@ -43,7 +43,7 @@ public:
             geography_tinfo = py::detail::get_type_info(typeid(Geography));
         }
 
-        PyTypeObject *source_type = Py_TYPE(source);
+        PyTypeObject* source_type = Py_TYPE(source);
         if (!PyType_IsSubtype(source_type, geography_tinfo->type)) {
             if (throw_if_invalid) {
                 throw py::type_error("not a Geography object");
@@ -68,15 +68,15 @@ public:
     // Conversion shouldn't involve any copy. The cast is dynamic, though, as
     // needed since the numpy.object dtype can refer to any Python object.
     //
-    Geography *as_geog_ptr() const {
-        PyObject *source = ptr();
+    Geography* as_geog_ptr() const {
+        PyObject* source = ptr();
 
         // TODO: case of Python `None` and/or `NaN` (empty geography)
 
         check_type();
 
-        auto inst = reinterpret_cast<py::detail::instance *>(source);
-        return reinterpret_cast<Geography *>(inst->simple_value_holder[0]);
+        auto inst = reinterpret_cast<py::detail::instance*>(source);
+        return reinterpret_cast<Geography*>(inst->simple_value_holder[0]);
     }
 
     // C++ -> Python conversion
@@ -87,7 +87,7 @@ public:
     template <class T, std::enable_if_t<std::is_base_of<Geography, T>::value, bool> = true>
     static PyObjectGeography from_geog(std::unique_ptr<T> geog_ptr) {
         auto pyobj = py::cast(std::move(geog_ptr));
-        auto pyobj_geog = static_cast<PyObjectGeography &>(pyobj);
+        auto pyobj_geog = static_cast<PyObjectGeography&>(pyobj);
         return std::move(pyobj_geog);
     }
 
@@ -206,17 +206,17 @@ struct handle_type_name<array_t<spherely::PyObjectGeography, Flags>> {
 template <
     typename T,
     typename detail::enable_if_t<std::is_same<T, spherely::PyObjectGeography>::value, int> = 0>
-object cast(T &&value) {
+object cast(T&& value) {
     return value;
 }
 
 template <typename T, typename detail::enable_if_t<std::is_same<T, py::str>::value, int> = 0>
-object cast(T &&value) {
+object cast(T&& value) {
     return value;
 }
 
 template <typename T, typename detail::enable_if_t<std::is_same<T, py::bytes>::value, int> = 0>
-object cast(T &&value) {
+object cast(T&& value) {
     return value;
 }
 

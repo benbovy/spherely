@@ -33,13 +33,13 @@ S2Point make_s2point(double lng, double lat) {
     return S2LatLng::FromDegrees(lat, lng).ToPoint();
 }
 
-S2Point make_s2point(const std::pair<double, double> &point) {
+S2Point make_s2point(const std::pair<double, double>& point) {
     return S2LatLng::FromDegrees(point.second, point.first).ToPoint();
 }
 
-S2Point make_s2point(const Geography *point_ptr) {
+S2Point make_s2point(const Geography* point_ptr) {
     check_geog_type(*point_ptr, GeographyType::Point);
-    const auto &s2geog_obj = static_cast<const s2geog::PointGeography &>(point_ptr->geog());
+    const auto& s2geog_obj = static_cast<const s2geog::PointGeography&>(point_ptr->geog());
 
     if (s2geog_obj.Points().empty()) {
         // We raise an exception that is caught when trying to build a Geography from an empty point
@@ -52,10 +52,10 @@ S2Point make_s2point(const Geography *point_ptr) {
 }
 
 template <class V>
-std::vector<S2Point> make_s2points(const std::vector<V> &points) {
+std::vector<S2Point> make_s2points(const std::vector<V>& points) {
     std::vector<S2Point> s2points(points.size());
 
-    auto func = [](const V &vertex) {
+    auto func = [](const V& vertex) {
         return make_s2point(vertex);
     };
 
@@ -75,7 +75,7 @@ std::vector<S2Point> make_s2points(const std::vector<V> &points) {
 // TODO: add option to skip normalization.
 //
 template <class V>
-std::unique_ptr<S2Loop> make_s2loop(const std::vector<V> &vertices,
+std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
                                     bool check = true,
                                     bool oriented = false) {
     auto s2points = make_s2points(vertices);
@@ -138,7 +138,7 @@ PyObjectGeography point(double longitude, double latitude) {
     return make_py_geography<s2geog::PointGeography>(make_s2point(longitude, latitude));
 }
 
-py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
+py::array_t<PyObjectGeography> points(const py::array_t<double>& coords) {
     auto coords_data = coords.unchecked<2>();
 
     if (coords_data.shape(1) != 2) {
@@ -149,7 +149,7 @@ py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
     auto points = py::array_t<PyObjectGeography>(npoints);
 
     py::buffer_info buf = points.request();
-    py::object *data = static_cast<py::object *>(buf.ptr);
+    py::object* data = static_cast<py::object*>(buf.ptr);
 
     for (py::ssize_t i = 0; i < npoints; i++) {
         auto point_ptr = point(coords_data(i, 0), coords_data(i, 1));
@@ -160,16 +160,16 @@ py::array_t<PyObjectGeography> points(const py::array_t<double> &coords) {
 }
 
 template <class V>
-std::unique_ptr<Geography> create_multipoint(const std::vector<V> &pts) {
+std::unique_ptr<Geography> create_multipoint(const std::vector<V>& pts) {
     try {
         return make_geography<s2geog::PointGeography>(make_s2points(pts));
-    } catch (const EmptyGeographyException &error) {
+    } catch (const EmptyGeographyException& error) {
         throw py::value_error("can't create MultiPoint with empty component");
     }
 }
 
 template <class V>
-std::unique_ptr<Geography> create_linestring(const std::vector<V> &pts) {
+std::unique_ptr<Geography> create_linestring(const std::vector<V>& pts) {
     if (pts.size() == 0) {
         // empty linestring
         std::vector<std::unique_ptr<S2Polyline>> empty;
@@ -182,20 +182,20 @@ std::unique_ptr<Geography> create_linestring(const std::vector<V> &pts) {
         auto s2points = make_s2points(pts);
         auto polyline_ptr = std::make_unique<S2Polyline>(s2points);
         return make_geography<s2geog::PolylineGeography>(std::move(polyline_ptr));
-    } catch (const EmptyGeographyException &error) {
+    } catch (const EmptyGeographyException& error) {
         throw py::value_error("can't create LineString with empty component");
     }
 }
 
 template <class V>
-std::unique_ptr<Geography> create_multilinestring(const std::vector<std::vector<V>> &lines) {
+std::unique_ptr<Geography> create_multilinestring(const std::vector<std::vector<V>>& lines) {
     std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
 
-    auto func = [](const std::vector<V> &pts) {
+    auto func = [](const std::vector<V>& pts) {
         try {
             auto s2points = make_s2points(pts);
             return std::make_unique<S2Polyline>(s2points);
-        } catch (const EmptyGeographyException &error) {
+        } catch (const EmptyGeographyException& error) {
             throw py::value_error("can't create MultiLineString with empty component");
         }
     };
@@ -205,20 +205,20 @@ std::unique_ptr<Geography> create_multilinestring(const std::vector<std::vector<
     return make_geography<s2geog::PolylineGeography>(std::move(polylines));
 }
 
-std::unique_ptr<Geography> create_multilinestring(const std::vector<Geography *> &lines) {
+std::unique_ptr<Geography> create_multilinestring(const std::vector<Geography*>& lines) {
     std::vector<std::unique_ptr<S2Polyline>> polylines(lines.size());
 
-    auto func = [](const Geography *line_ptr) {
+    auto func = [](const Geography* line_ptr) {
         check_geog_type(*line_ptr, GeographyType::LineString);
 
-        auto s2geog_ptr = static_cast<const s2geog::PolylineGeography *>(&line_ptr->geog());
+        auto s2geog_ptr = static_cast<const s2geog::PolylineGeography*>(&line_ptr->geog());
         auto polylines_ptr = &s2geog_ptr->Polylines();
 
         if (polylines_ptr->empty()) {
             throw py::value_error("can't create MultiLineString with empty component");
         }
 
-        S2Polyline *cloned_ptr((*polylines_ptr)[0]->Clone());
+        S2Polyline* cloned_ptr((*polylines_ptr)[0]->Clone());
         return std::make_unique<S2Polyline>(std::move(*cloned_ptr));
     };
 
@@ -228,8 +228,8 @@ std::unique_ptr<Geography> create_multilinestring(const std::vector<Geography *>
 }
 
 template <class V>
-std::unique_ptr<Geography> create_polygon(const std::vector<V> &shell,
-                                          const std::optional<std::vector<std::vector<V>>> &holes,
+std::unique_ptr<Geography> create_polygon(const std::vector<V>& shell,
+                                          const std::optional<std::vector<std::vector<V>>>& holes,
                                           bool oriented = false) {
     // fastpath empty polygon
     if (shell.empty()) {
@@ -243,12 +243,12 @@ std::unique_ptr<Geography> create_polygon(const std::vector<V> &shell,
 
     try {
         loops.push_back(make_s2loop(shell, false, oriented));
-    } catch (const EmptyGeographyException &error) {
+    } catch (const EmptyGeographyException& error) {
         throw py::value_error("can't create Polygon with empty component");
     }
 
     if (holes.has_value()) {
-        for (const auto &ring : holes.value()) {
+        for (const auto& ring : holes.value()) {
             loops.push_back(make_s2loop(ring, false, oriented));
         }
     }
@@ -256,13 +256,13 @@ std::unique_ptr<Geography> create_polygon(const std::vector<V> &shell,
     return make_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops), oriented));
 }
 
-std::unique_ptr<Geography> create_multipolygon(const std::vector<Geography *> &polygons) {
+std::unique_ptr<Geography> create_multipolygon(const std::vector<Geography*>& polygons) {
     std::vector<std::unique_ptr<S2Loop>> loops;
 
-    for (const auto *poly_ptr : polygons) {
+    for (const auto* poly_ptr : polygons) {
         check_geog_type(*poly_ptr, GeographyType::Polygon);
-        auto s2geog_ptr = static_cast<const s2geog::PolygonGeography *>(&poly_ptr->geog());
-        const auto &s2poly_ptr = s2geog_ptr->Polygon();
+        auto s2geog_ptr = static_cast<const s2geog::PolygonGeography*>(&poly_ptr->geog());
+        const auto& s2poly_ptr = s2geog_ptr->Polygon();
 
         for (int i = 0; i < s2poly_ptr->num_loops(); ++i) {
             loops.push_back(std::unique_ptr<S2Loop>(s2poly_ptr->loop(i)->Clone()));
@@ -272,11 +272,11 @@ std::unique_ptr<Geography> create_multipolygon(const std::vector<Geography *> &p
     return make_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops)));
 }
 
-std::unique_ptr<Geography> create_collection(const std::vector<Geography *> &features) {
+std::unique_ptr<Geography> create_collection(const std::vector<Geography*>& features) {
     std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
     features_copy.reserve(features.size());
 
-    for (const auto &feature_ptr : features) {
+    for (const auto& feature_ptr : features) {
         features_copy.push_back(feature_ptr->clone_geog());
     }
 
@@ -287,7 +287,7 @@ std::unique_ptr<Geography> create_collection(const std::vector<Geography *> &fea
 // ---- Geography creation Python bindings
 //
 
-void init_creation(py::module &m) {
+void init_creation(py::module& m) {
     // ----- scalar Geography creation functions
 
     m.def(
@@ -345,7 +345,7 @@ void init_creation(py::module &m) {
             geography object.
 
     )pbdoc")
-        .def("create_multipoint", &create_multipoint<Geography *>, py::arg("points"));
+        .def("create_multipoint", &create_multipoint<Geography*>, py::arg("points"));
 
     m.def(
          "create_linestring",
@@ -369,7 +369,7 @@ void init_creation(py::module &m) {
         )pbdoc")
         .def(
             "create_linestring", &create_linestring<std::pair<double, double>>, py::arg("vertices"))
-        .def("create_linestring", &create_linestring<Geography *>, py::arg("vertices"));
+        .def("create_linestring", &create_linestring<Geography*>, py::arg("vertices"));
 
     m.def("create_multilinestring",
           &create_multilinestring<std::pair<double, double>>,
@@ -392,10 +392,10 @@ void init_creation(py::module &m) {
             geography object.
 
     )pbdoc")
-        .def("create_multilinestring", &create_multilinestring<Geography *>, py::arg("lines"))
+        .def("create_multilinestring", &create_multilinestring<Geography*>, py::arg("lines"))
         .def(
             "create_multilinestring",
-            [](const std::vector<Geography *> lines) { return create_multilinestring(lines); },
+            [](const std::vector<Geography*> lines) { return create_multilinestring(lines); },
             py::arg("lines"));
 
     m.def(
@@ -437,7 +437,7 @@ void init_creation(py::module &m) {
              py::arg("holes") = py::none(),
              py::arg("oriented") = false)
         .def("create_polygon",
-             &create_polygon<Geography *>,
+             &create_polygon<Geography*>,
              py::arg("shell"),
              py::arg("holes") = py::none(),
              py::arg("oriented") = false);
