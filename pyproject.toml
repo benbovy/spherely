@@ -37,7 +37,7 @@ files = ["tests", "src/spherely.pyi"]
 show_error_codes = true
 warn_unused_ignores = true
 
-[tool.pixi.project]
+[tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
