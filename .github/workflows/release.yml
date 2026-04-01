@@ -49,13 +49,13 @@ jobs:
         include:
         - os: ubuntu-latest
           arch: x86_64
-        - os: windows-2019
+        - os: windows-2022
           arch: AMD64
           msvc_arch: x64
         - os: macos-15-intel
           arch: x86_64
           cmake_osx_architectures: x86_64
-          macosx_deployment_target: 13.0
+          macosx_deployment_target: 15.0
         - os: macos-14
           arch: arm64
           cmake_osx_architectures: arm64
@@ -97,18 +97,17 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          vcpkg install s2geometry:x64-windows --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
+          vcpkg install --feature-flags="versions,manifests" --x-manifest-root=./ci --x-install-root=$VCPKG_INSTALLATION_ROOT/installed
           vcpkg list
           ls /c/vcpkg/installed
           ls /c/vcpkg/installed/x64-windows
           ls /c/vcpkg/installed/x64-windows/bin
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
-          CIBW_TEST_SKIP: "cp38-macosx_arm64"
+          CIBW_SKIP: "*musllinux*"
           CIBW_ENVIRONMENT_LINUX:
             DEPENDENCIES_DIR=/host${{ runner.temp }}/3rd-party
             CMAKE_PREFIX_PATH=/host${{ runner.temp }}/3rd-party/dist
