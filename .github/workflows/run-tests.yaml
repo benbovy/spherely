@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get Date
         id: get-date
@@ -45,7 +45,7 @@ jobs:
         run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
 
       - name: Setup micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: ${{ matrix.env }}
           environment-name: spherely-dev
@@ -55,7 +55,7 @@ jobs:
             python=${{ matrix.python-version }}
 
       - name: Fetch s2geography
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: paleolimbot/s2geography
           ref: main
@@ -100,7 +100,7 @@ jobs:
           pytest . -vv
 
       - name: Generate and upload coverage report
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           gcov: true
           gcov_include: src
@@ -113,9 +113,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - uses: prefix-dev/setup-pixi@v0.8.1
+      - uses: prefix-dev/setup-pixi@v0.9.5
         with:
           pixi-version: v0.40.1
           cache: true

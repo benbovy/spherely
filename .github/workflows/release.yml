@@ -18,7 +18,7 @@ jobs:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -26,7 +26,7 @@ jobs:
         run: pipx run build --sdist
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-sdist
           path: ./dist/*.tar.gz
@@ -62,13 +62,13 @@ jobs:
           macosx_deployment_target: 14.0
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Cache 3rd-party install directory
         id: cache-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
@@ -88,7 +88,7 @@ jobs:
 
       - name: Cache vcpkg install directory (Windows)
         if: runner.os == 'Windows'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "c:\\vcpkg\\installed"
           key: vcpkg-${{ runner.os }}
@@ -143,7 +143,7 @@ jobs:
           CIBW_TEST_COMMAND: pytest {project}/tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
@@ -158,7 +158,7 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - name: Get dist files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: release-*
           merge-multiple: true
