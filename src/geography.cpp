@@ -25,29 +25,29 @@ namespace py = pybind11;
 namespace s2geog = s2geography;
 using namespace spherely;
 
-py::detail::type_info *PyObjectGeography::geography_tinfo = nullptr;
+py::detail::type_info* PyObjectGeography::geography_tinfo = nullptr;
 
 /*
 ** Internal helpers
 */
 
 // TODO: May be worth moving this upstream as a `s2geog::Geography::clone()` virtual function
-std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &geog) {
+std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography& geog) {
     std::unique_ptr<s2geog::Geography> new_geog_ptr;
 
     switch (geog.kind()) {
         case s2geog::GeographyKind::CELL_CENTER:
         case s2geog::GeographyKind::POINT: {
-            const auto &points = reinterpret_cast<const s2geog::PointGeography &>(geog).Points();
+            const auto& points = reinterpret_cast<const s2geog::PointGeography&>(geog).Points();
             return std::make_unique<s2geog::PointGeography>(points);
         }
 
         case s2geog::GeographyKind::POLYLINE: {
-            const auto &polylines =
-                reinterpret_cast<const s2geog::PolylineGeography &>(geog).Polylines();
+            const auto& polylines =
+                reinterpret_cast<const s2geog::PolylineGeography&>(geog).Polylines();
             std::vector<std::unique_ptr<S2Polyline>> polylines_copy(polylines.size());
 
-            auto copy_polyline = [](const std::unique_ptr<S2Polyline> &polyline) {
+            auto copy_polyline = [](const std::unique_ptr<S2Polyline>& polyline) {
                 return std::unique_ptr<S2Polyline>(polyline->Clone());
             };
 
@@ -58,18 +58,18 @@ std::unique_ptr<s2geog::Geography> clone_s2geography(const s2geog::Geography &ge
         }
 
         case s2geog::GeographyKind::POLYGON: {
-            const auto &poly = reinterpret_cast<const s2geog::PolygonGeography &>(geog).Polygon();
+            const auto& poly = reinterpret_cast<const s2geog::PolygonGeography&>(geog).Polygon();
             std::unique_ptr<S2Polygon> poly_ptr(poly->Clone());
             return std::make_unique<s2geog::PolygonGeography>(std::move(poly_ptr));
         }
 
         case s2geog::GeographyKind::GEOGRAPHY_COLLECTION: {
-            const auto &features =
-                reinterpret_cast<const s2geog::GeographyCollection &>(geog).Features();
+            const auto& features =
+                reinterpret_cast<const s2geog::GeographyCollection&>(geog).Features();
             std::vector<std::unique_ptr<s2geog::Geography>> features_copy;
             features_copy.reserve(features.size());
 
-            for (const auto &feature_ptr : features) {
+            for (const auto& feature_ptr : features) {
                 features_copy.push_back(clone_s2geography(*feature_ptr));
             }
             return std::make_unique<s2geog::GeographyCollection>(std::move(features_copy));
@@ -133,7 +133,7 @@ void Geography::extract_geog_properties() {
 
         case s2geog::GeographyKind::POLYGON: {
             auto ptr = cast_geog<s2geog::PolygonGeography>();
-            const auto &s2poly_ptr = ptr->Polygon();
+            const auto& s2poly_ptr = ptr->Polygon();
             // count the outer shells (loop depth = 0, 2, 4, etc.)
             int n_outer_shell_loops = 0;
 
@@ -189,7 +189,7 @@ py::tuple Geography::encode() const {
     return py::make_tuple(encoded_geog_type, empty, py::bytes(encoded_geog));
 }
 
-Geography Geography::decode(const py::tuple &encoded) {
+Geography Geography::decode(const py::tuple& encoded) {
     auto decoded = Geography();
 
     // decode geography type
@@ -278,7 +278,7 @@ PyObjectGeography destroy_prepared(PyObjectGeography obj) {
     return obj;
 }
 
-void init_geography(py::module &m) {
+void init_geography(py::module& m) {
     // Geography types
 
     auto pygeography_types = py::enum_<GeographyType>(
@@ -308,12 +308,12 @@ void init_geography(py::module &m) {
 
     )pbdoc");
 
-    pygeography.def("__repr__", [](const Geography &geog) {
+    pygeography.def("__repr__", [](const Geography& geog) {
         s2geog::WKTWriter writer(6);
         return writer.write_feature(geog.geog());
     });
 
-    pygeography.def("__eq__", [](const Geography &geog1, const Geography &geog2) {
+    pygeography.def("__eq__", [](const Geography& geog1, const Geography& geog2) {
         s2geog::ShapeIndexGeography idx1{geog1.geog()};
         s2geog::ShapeIndexGeography idx2{geog2.geog()};
 
@@ -321,8 +321,8 @@ void init_geography(py::module &m) {
         return s2geog::s2_equals(idx1, idx2, options);
     });
 
-    pygeography.def(py::pickle([](Geography &geog) { return geog.encode(); },
-                               [](py::tuple &encoded) { return Geography::decode(encoded); }));
+    pygeography.def(py::pickle([](Geography& geog) { return geog.encode(); },
+                               [](py::tuple& encoded) { return Geography::decode(encoded); }));
 
     // Geography properties
 
