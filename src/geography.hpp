@@ -23,7 +23,7 @@ enum class GeographyType : std::int8_t {
     None = -1,
     Point,
     LineString,
-    Polygon,
+    Polygon = 3,
     MultiPoint,
     MultiLineString,
     MultiPolygon,

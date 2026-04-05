@@ -289,15 +289,15 @@ void init_geography(py::module& m) {
     pygeography_types.value(
         "LINESTRING", GeographyType::LineString, "Single line geography type (1).");
     pygeography_types.value(
-        "POLYGON", GeographyType::Polygon, "Single polygon geography type (2).");
+        "POLYGON", GeographyType::Polygon, "Single polygon geography type (3).");
     pygeography_types.value(
-        "MULTIPOINT", GeographyType::MultiPoint, "Multiple point geography type (3).");
+        "MULTIPOINT", GeographyType::MultiPoint, "Multiple point geography type (4).");
     pygeography_types.value(
-        "MULTILINESTRING", GeographyType::MultiLineString, "Multiple line geography type (4).");
+        "MULTILINESTRING", GeographyType::MultiLineString, "Multiple line geography type (5).");
     pygeography_types.value(
-        "MULTIPOLYGON", GeographyType::MultiPolygon, "Multiple polygon geography type (5).");
+        "MULTIPOLYGON", GeographyType::MultiPolygon, "Multiple polygon geography type (6).");
     pygeography_types.value(
-        "GEOMETRYCOLLECTION", GeographyType::GeometryCollection, "Collection geography type (6).");
+        "GEOMETRYCOLLECTION", GeographyType::GeometryCollection, "Collection geography type (7).");
 
     // Geography classes
 
@@ -337,11 +337,15 @@ void init_geography(py::module& m) {
         - None (missing) is -1
         - POINT is 0
         - LINESTRING is 1
-        - POLYGON is 2
-        - MULTIPOINT is 3
-        - MULTILINESTRING is 4
-        - MULTIPOLYGON is 5
-        - GEOMETRYCOLLECTION is 6
+        - POLYGON is 3
+        - MULTIPOINT is 4
+        - MULTILINESTRING is 5
+        - MULTIPOLYGON is 6
+        - GEOMETRYCOLLECTION is 7
+
+        Those ID numbers are consistent with Shapely geometry types
+        (note that Spherely has no LINEARRING type, hence the jump from
+        1 to 3 between LINESTRING and POLYGON).
 
         Parameters
         ----------
