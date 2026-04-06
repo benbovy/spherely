@@ -4,7 +4,6 @@ from pathlib import Path
 
 from spherely import EARTH_RADIUS_METERS
 
-
 VFUNC_TYPE_SPECS = {
     "_VFunc_Nin1_Nout1": {"n_in": 1},
     "_VFunc_Nin2_Nout1": {"n_in": 2},

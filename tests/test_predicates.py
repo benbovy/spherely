@@ -230,10 +230,8 @@ def geographies_contains_with_labels(
     )
 
 
-@pytest.mark.skip(
-    reason="Testing whether a polygon contains a points on its boundary \
-                currently returns true, although it should be false"
-)
+@pytest.mark.skip(reason="Testing whether a polygon contains a points on its boundary \
+                currently returns true, although it should be false")
 def test_contains_edge_cases(parent_poly, geographies_contains_with_labels) -> None:
     polys_to_check, expected_labels = geographies_contains_with_labels
 
