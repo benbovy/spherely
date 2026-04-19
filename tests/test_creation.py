@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 import spherely
@@ -385,6 +386,129 @@ def test_multipolygon_invalid_geography() -> None:
         match=r"invalid Geography type \(expected POLYGON, found LINESTRING\)",
     ):
         spherely.create_multipolygon([poly, line])
+
+
+def test_polygons_vectorized_basic() -> None:
+    shells = np.array(
+        [
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [(4, 0), (6, 0), (6, 2), (4, 2)],
+        ],
+        dtype=np.float64,
+    )
+    result = spherely.polygons(shells)
+
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (2,)
+    assert result.dtype == object
+    assert repr(result[0]).startswith("POLYGON ((0 0")
+    assert repr(result[1]).startswith("POLYGON ((4 0")
+
+
+def test_polygons_vectorized_matches_create_polygon() -> None:
+    shells = np.array(
+        [
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [(10, -5), (12, -5), (12, -3), (10, -3)],
+            [(-30, 40), (-28, 40), (-28, 42), (-30, 42)],
+        ],
+        dtype=np.float64,
+    )
+    vectorized = spherely.polygons(shells)
+    scalar = [spherely.create_polygon(ring.tolist()) for ring in shells]
+
+    assert [spherely.to_wkt(p) for p in vectorized] == [
+        spherely.to_wkt(p) for p in scalar
+    ]
+
+
+def test_polygons_vectorized_closed_ring() -> None:
+    # open and closed input rings should produce the same polygon
+    open_ring = np.array(
+        [[(0, 0), (2, 0), (2, 2), (0, 2)]],
+        dtype=np.float64,
+    )
+    closed_ring = np.array(
+        [[(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)]],
+        dtype=np.float64,
+    )
+    a = spherely.polygons(open_ring)[0]
+    b = spherely.polygons(closed_ring)[0]
+    assert spherely.to_wkt(a) == spherely.to_wkt(b)
+
+
+def test_polygons_vectorized_oriented() -> None:
+    # same pattern as test_polygon_oriented but using the vectorized path
+    shells = np.array(
+        [[(0, 0), (0, 2), (2, 2), (2, 0)]],
+        dtype=np.float64,
+    )
+    (poly_cw,) = spherely.polygons(shells, oriented=True)
+
+    point = spherely.create_point(1, 1)
+    # CW polygon + oriented=True => point at (1, 1) is NOT in the interior
+    assert not spherely.contains(poly_cw, point)
+    assert repr(poly_cw) == "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"
+
+
+def test_polygons_vectorized_holes() -> None:
+    shells = np.array(
+        [
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [(4, 0), (6, 0), (6, 2), (4, 2)],
+        ],
+        dtype=np.float64,
+    )
+    hole_ring = np.array(
+        [[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]],
+        dtype=np.float64,
+    )
+    holes = [hole_ring, None]  # second polygon has no holes
+    result = spherely.polygons(shells, holes=holes)
+
+    # holed polygon matches the scalar equivalent
+    expected = spherely.create_polygon(
+        shell=shells[0].tolist(),
+        holes=[hole_ring[0].tolist()],
+    )
+    assert spherely.to_wkt(result[0]) == spherely.to_wkt(expected)
+
+    # center of the hole is NOT inside the holed polygon
+    assert not spherely.contains(result[0], spherely.create_point(1, 1))
+    # the second polygon has no hole
+    assert spherely.contains(result[1], spherely.create_point(5, 1))
+
+
+def test_polygons_vectorized_shape_errors() -> None:
+    # wrong trailing dimension
+    with pytest.raises(RuntimeError, match="shape"):
+        spherely.polygons(np.zeros((2, 4, 3), dtype=np.float64))
+
+    # wrong number of dimensions
+    with pytest.raises(RuntimeError, match="3 dimensions"):
+        spherely.polygons(np.zeros((4, 2), dtype=np.float64))
+
+    # holes length mismatch
+    shells = np.array(
+        [[(0, 0), (2, 0), (2, 2), (0, 2)]],
+        dtype=np.float64,
+    )
+    with pytest.raises(RuntimeError, match="length N"):
+        spherely.polygons(shells, holes=[None, None])
+
+
+def test_polygons_vectorized_invalid_ring() -> None:
+    # same validation behavior as scalar create_polygon: bad rings surface as
+    # "polygon is not valid" from the final polygon-level check.
+    shells = np.array(
+        [
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [(0, 0), (0, 2), (0, 2), (2, 0)],  # invalid: duplicate + self-cross
+        ],
+        dtype=np.float64,
+    )
+    with pytest.raises(ValueError, match="polygon is not valid"):
+        spherely.polygons(shells)
 
 
 def test_collection() -> None:

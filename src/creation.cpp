@@ -13,6 +13,7 @@
 #include <s2geography/geography.h>
 
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -157,6 +158,97 @@ py::array_t<PyObjectGeography> points(const py::array_t<double>& coords) {
     }
 
     return points;
+}
+
+// Build a single S2Loop from a (k, 2) ring whose coordinates are produced by
+// the `get_lnglat` callable `(py::ssize_t j) -> std::pair<double, double>`.
+// Matches `make_s2loop(..., check=false, oriented)`: per-ring validity is not
+// checked here — the final polygon validity check in `make_s2polygon` will
+// surface any bad rings.
+template <class Fn>
+std::unique_ptr<S2Loop> make_s2loop_from_ring(py::ssize_t nverts, Fn&& get_lnglat, bool oriented) {
+    std::vector<S2Point> s2points;
+    s2points.reserve(static_cast<size_t>(nverts));
+    for (py::ssize_t j = 0; j < nverts; j++) {
+        auto [lng, lat] = get_lnglat(j);
+        s2points.push_back(make_s2point(lng, lat));
+    }
+
+    // Automated closing (drop the repeated last vertex).
+    if (!s2points.empty() && s2points.front() == s2points.back()) {
+        s2points.pop_back();
+    }
+
+    auto loop_ptr = std::make_unique<S2Loop>();
+    loop_ptr->set_s2debug_override(S2Debug::DISABLE);
+    loop_ptr->Init(s2points);
+    if (!oriented) {
+        loop_ptr->Normalize();
+    }
+    return loop_ptr;
+}
+
+py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
+                                        std::optional<std::vector<py::object>> holes,
+                                        bool oriented) {
+    if (shells.ndim() != 3) {
+        throw std::runtime_error("shells array must have 3 dimensions (N, K, 2)");
+    }
+    auto shells_data = shells.unchecked<3>();
+    if (shells_data.shape(2) != 2) {
+        throw std::runtime_error("shells array must be of shape (N, K, 2)");
+    }
+
+    auto npolys = shells_data.shape(0);
+    auto nverts = shells_data.shape(1);
+
+    if (holes.has_value() && static_cast<py::ssize_t>(holes->size()) != npolys) {
+        throw std::runtime_error("holes must be a sequence of length N (same as number of shells)");
+    }
+
+    auto result = py::array_t<PyObjectGeography>(npolys);
+    py::buffer_info buf = result.request();
+    py::object* data = static_cast<py::object*>(buf.ptr);
+
+    for (py::ssize_t i = 0; i < npolys; i++) {
+        std::vector<std::unique_ptr<S2Loop>> loops;
+        loops.push_back(make_s2loop_from_ring(
+            nverts,
+            [&](py::ssize_t j) {
+                return std::make_pair(shells_data(i, j, 0), shells_data(i, j, 1));
+            },
+            oriented));
+
+        if (holes.has_value()) {
+            const py::object& hole_entry = (*holes)[static_cast<size_t>(i)];
+            if (!hole_entry.is_none()) {
+                auto hole_array = py::cast<py::array_t<double>>(hole_entry);
+                if (hole_array.ndim() != 3 || hole_array.shape(2) != 2) {
+                    throw std::runtime_error(
+                        "each non-None entry of holes must be an array of shape (H, K, 2)");
+                }
+                auto hole_view = hole_array.unchecked<3>();
+                auto n_holes = hole_view.shape(0);
+                auto hk = hole_view.shape(1);
+                for (py::ssize_t h = 0; h < n_holes; h++) {
+                    loops.push_back(make_s2loop_from_ring(
+                        hk,
+                        [&](py::ssize_t j) {
+                            return std::make_pair(hole_view(h, j, 0), hole_view(h, j, 1));
+                        },
+                        oriented));
+                }
+            }
+        }
+
+        // The polygon-level validity check in make_s2polygon catches bad rings
+        // too (it checks every loop), so skipping per-ring validation above is
+        // safe.
+        auto poly = make_s2polygon(std::move(loops), oriented);
+        data[i] = make_py_geography<s2geog::PolygonGeography>(std::move(poly));
+    }
+
+    return result;
 }
 
 template <class V>
@@ -511,6 +603,47 @@ void init_creation(py::module& m) {
         ----------
         coords : array_like
             A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
+
+    )pbdoc");
+
+    m.def("polygons",
+          &polygons,
+          py::arg("shells"),
+          py::arg("holes") = py::none(),
+          py::arg("oriented") = false,
+          R"pbdoc(polygons(shells, holes=None, oriented=False)
+
+        Create an array of polygons from a numpy array of ring coordinates.
+
+        This vectorized constructor is functionally equivalent to calling
+        :py:func:`create_polygon` for each shell but avoids the per-polygon
+        Python parsing overhead, making it much faster when building many
+        polygons of uniform shape (e.g. grid cells).
+
+        Parameters
+        ----------
+        shells : array_like
+            Array of shape ``(N, K, 2)`` giving ``N`` shell rings, each with
+            ``K`` vertices expressed as ``(longitude, latitude)`` in degrees.
+            Rings may be open (first vertex not repeated as last) or closed;
+            in the latter case the duplicate closing vertex is dropped.
+        holes : sequence, optional
+            A sequence of length ``N`` where each entry is either ``None``
+            (no holes for the corresponding polygon) or an array of shape
+            ``(H, K_h, 2)`` giving that polygon's hole rings. If omitted, no
+            polygon has holes.
+        oriented : bool, default False
+            Set to True if polygon ring directions are known to be correct
+            (i.e., shell ring vertices are defined counter clockwise and hole
+            ring vertices are defined clockwise).
+            By default (False), each ring is normalized so that the polygon
+            corresponds to the smaller area on the sphere.
+
+        Returns
+        -------
+        polygons : ndarray
+            A 1-d object array of shape ``(N,)`` containing POLYGON
+            :class:`~spherely.Geography` objects.
 
     )pbdoc");
 }
