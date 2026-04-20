@@ -216,6 +216,7 @@ def polygons(
     shells: npt.NDArray[np.float64],
     holes: Sequence[npt.NDArray[np.float64] | None] | None = None,
     oriented: bool = False,
+    check: bool = True,
 ) -> T_NDArray_Geography: ...
 
 # Geography utils

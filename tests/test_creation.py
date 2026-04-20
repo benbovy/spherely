@@ -511,6 +511,21 @@ def test_polygons_vectorized_invalid_ring() -> None:
         spherely.polygons(shells)
 
 
+def test_polygons_vectorized_check_false_skips_validation() -> None:
+    # same bad shell as above, but check=False must not raise.
+    shells = np.array(
+        [
+            [(0, 0), (2, 0), (2, 2), (0, 2)],
+            [(0, 0), (0, 2), (0, 2), (2, 0)],
+        ],
+        dtype=np.float64,
+    )
+    result = spherely.polygons(shells, check=False)
+    # we still get a Geography back for each input; no guarantee it's valid.
+    assert result.shape == (2,)
+    assert all(isinstance(g, spherely.Geography) for g in result)
+
+
 def test_collection() -> None:
     objs = [
         spherely.create_point(0, 0),
