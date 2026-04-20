@@ -484,8 +484,8 @@ def test_polygons_vectorized_shape_errors() -> None:
     with pytest.raises(RuntimeError, match="shape"):
         spherely.polygons(np.zeros((2, 4, 3), dtype=np.float64))
 
-    # wrong number of dimensions
-    with pytest.raises(RuntimeError, match="3 dimensions"):
+    # wrong number of dimensions (surfaces from pybind11's unchecked view)
+    with pytest.raises(ValueError, match="number of dimensions"):
         spherely.polygons(np.zeros((4, 2), dtype=np.float64))
 
     # holes length mismatch

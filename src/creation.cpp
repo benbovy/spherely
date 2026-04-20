@@ -65,23 +65,19 @@ std::vector<S2Point> make_s2points(const std::vector<V>& points) {
     return std::move(s2points);
 }
 
-// create a S2Loop from coordinates or Point objects.
+// create a S2Loop from a pre-built vector of S2Point.
 //
 // Normalization (to CCW order for identifying the loop interior) and validation
 // are both enabled by default.
 //
-// Additional normalization is made here:
-// - if the input loop is already closed, remove one of the end nodes
+// If the input loop is already closed, the duplicate last vertex is dropped.
 //
 // TODO: add option to skip normalization.
 //
-template <class V>
-std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
-                                    bool check = true,
-                                    bool oriented = false) {
-    auto s2points = make_s2points(vertices);
-
-    if (s2points.front() == s2points.back()) {
+std::unique_ptr<S2Loop> make_s2loop_from_points(std::vector<S2Point> s2points,
+                                                bool check = true,
+                                                bool oriented = false) {
+    if (!s2points.empty() && s2points.front() == s2points.back()) {
         s2points.pop_back();
     }
 
@@ -102,7 +98,14 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
         loop_ptr->Normalize();
     }
 
-    return std::move(loop_ptr);
+    return loop_ptr;
+}
+
+template <class V>
+std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
+                                    bool check = true,
+                                    bool oriented = false) {
+    return make_s2loop_from_points(make_s2points(vertices), check, oriented);
 }
 
 // create a S2Polygon.
@@ -160,40 +163,9 @@ py::array_t<PyObjectGeography> points(const py::array_t<double>& coords) {
     return points;
 }
 
-// Build a single S2Loop from a (k, 2) ring whose coordinates are produced by
-// the `get_lnglat` callable `(py::ssize_t j) -> std::pair<double, double>`.
-// Matches `make_s2loop(..., check=false, oriented)`: per-ring validity is not
-// checked here — the final polygon validity check in `make_s2polygon` will
-// surface any bad rings.
-template <class Fn>
-std::unique_ptr<S2Loop> make_s2loop_from_ring(py::ssize_t nverts, Fn&& get_lnglat, bool oriented) {
-    std::vector<S2Point> s2points;
-    s2points.reserve(static_cast<size_t>(nverts));
-    for (py::ssize_t j = 0; j < nverts; j++) {
-        auto [lng, lat] = get_lnglat(j);
-        s2points.push_back(make_s2point(lng, lat));
-    }
-
-    // Automated closing (drop the repeated last vertex).
-    if (!s2points.empty() && s2points.front() == s2points.back()) {
-        s2points.pop_back();
-    }
-
-    auto loop_ptr = std::make_unique<S2Loop>();
-    loop_ptr->set_s2debug_override(S2Debug::DISABLE);
-    loop_ptr->Init(s2points);
-    if (!oriented) {
-        loop_ptr->Normalize();
-    }
-    return loop_ptr;
-}
-
 py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
                                         std::optional<std::vector<py::object>> holes,
                                         bool oriented) {
-    if (shells.ndim() != 3) {
-        throw std::runtime_error("shells array must have 3 dimensions (N, K, 2)");
-    }
     auto shells_data = shells.unchecked<3>();
     if (shells_data.shape(2) != 2) {
         throw std::runtime_error("shells array must be of shape (N, K, 2)");
@@ -210,14 +182,17 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
     py::buffer_info buf = result.request();
     py::object* data = static_cast<py::object*>(buf.ptr);
 
+    // Per-ring validity is skipped (check=false); make_s2polygon's polygon-
+    // level IsValid() still catches bad rings.
     for (py::ssize_t i = 0; i < npolys; i++) {
+        std::vector<S2Point> pts;
+        pts.reserve(static_cast<size_t>(nverts));
+        for (py::ssize_t j = 0; j < nverts; j++) {
+            pts.push_back(make_s2point(shells_data(i, j, 0), shells_data(i, j, 1)));
+        }
+
         std::vector<std::unique_ptr<S2Loop>> loops;
-        loops.push_back(make_s2loop_from_ring(
-            nverts,
-            [&](py::ssize_t j) {
-                return std::make_pair(shells_data(i, j, 0), shells_data(i, j, 1));
-            },
-            oriented));
+        loops.push_back(make_s2loop_from_points(std::move(pts), /*check=*/false, oriented));
 
         if (holes.has_value()) {
             const py::object& hole_entry = (*holes)[static_cast<size_t>(i)];
@@ -230,22 +205,21 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
                 auto hole_view = hole_array.unchecked<3>();
                 auto n_holes = hole_view.shape(0);
                 auto hk = hole_view.shape(1);
+                loops.reserve(static_cast<size_t>(1 + n_holes));
                 for (py::ssize_t h = 0; h < n_holes; h++) {
-                    loops.push_back(make_s2loop_from_ring(
-                        hk,
-                        [&](py::ssize_t j) {
-                            return std::make_pair(hole_view(h, j, 0), hole_view(h, j, 1));
-                        },
-                        oriented));
+                    std::vector<S2Point> hpts;
+                    hpts.reserve(static_cast<size_t>(hk));
+                    for (py::ssize_t j = 0; j < hk; j++) {
+                        hpts.push_back(make_s2point(hole_view(h, j, 0), hole_view(h, j, 1)));
+                    }
+                    loops.push_back(
+                        make_s2loop_from_points(std::move(hpts), /*check=*/false, oriented));
                 }
             }
         }
 
-        // The polygon-level validity check in make_s2polygon catches bad rings
-        // too (it checks every loop), so skipping per-ring validation above is
-        // safe.
-        auto poly = make_s2polygon(std::move(loops), oriented);
-        data[i] = make_py_geography<s2geog::PolygonGeography>(std::move(poly));
+        data[i] =
+            make_py_geography<s2geog::PolygonGeography>(make_s2polygon(std::move(loops), oriented));
     }
 
     return result;
