@@ -65,6 +65,12 @@ std::vector<S2Point> make_s2points(const std::vector<V>& points) {
     return std::move(s2points);
 }
 
+void drop_closed_ring_duplicate(std::vector<S2Point>& s2points) {
+    if (!s2points.empty() && s2points.front() == s2points.back()) {
+        s2points.pop_back();
+    }
+}
+
 // create a S2Loop from a pre-built vector of S2Point. Callers are responsible
 // for dropping any closed-ring duplicate vertex before calling.
 //
@@ -101,9 +107,7 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
                                     bool check = true,
                                     bool oriented = false) {
     auto s2points = make_s2points(vertices);
-    if (!s2points.empty() && s2points.front() == s2points.back()) {
-        s2points.pop_back();
-    }
+    drop_closed_ring_duplicate(s2points);
     return make_s2loop_from_points(s2points, check, oriented);
 }
 
@@ -190,16 +194,12 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
     pts.reserve(static_cast<size_t>(nverts));
     std::vector<S2Point> hpts;
 
-    auto drop_closed = [](std::vector<S2Point>& p) {
-        if (!p.empty() && p.front() == p.back()) p.pop_back();
-    };
-
     for (py::ssize_t i = 0; i < npolys; i++) {
         pts.clear();
         for (py::ssize_t j = 0; j < nverts; j++) {
             pts.push_back(make_s2point(shells_data(i, j, 0), shells_data(i, j, 1)));
         }
-        drop_closed(pts);
+        drop_closed_ring_duplicate(pts);
 
         std::vector<std::unique_ptr<S2Loop>> loops;
         loops.push_back(make_s2loop_from_points(pts, /*check=*/false, oriented));
@@ -222,7 +222,7 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
                     for (py::ssize_t j = 0; j < hk; j++) {
                         hpts.push_back(make_s2point(hole_view(h, j, 0), hole_view(h, j, 1)));
                     }
-                    drop_closed(hpts);
+                    drop_closed_ring_duplicate(hpts);
                     loops.push_back(make_s2loop_from_points(hpts, /*check=*/false, oriented));
                 }
             }
