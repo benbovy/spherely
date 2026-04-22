@@ -13,6 +13,7 @@
 #include <s2geography/geography.h>
 
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -64,26 +65,23 @@ std::vector<S2Point> make_s2points(const std::vector<V>& points) {
     return std::move(s2points);
 }
 
-// create a S2Loop from coordinates or Point objects.
+void drop_closed_ring_duplicate(std::vector<S2Point>& s2points) {
+    if (!s2points.empty() && s2points.front() == s2points.back()) {
+        s2points.pop_back();
+    }
+}
+
+// create a S2Loop from a pre-built vector of S2Point. Callers are responsible
+// for dropping any closed-ring duplicate vertex before calling.
 //
 // Normalization (to CCW order for identifying the loop interior) and validation
 // are both enabled by default.
 //
-// Additional normalization is made here:
-// - if the input loop is already closed, remove one of the end nodes
-//
 // TODO: add option to skip normalization.
 //
-template <class V>
-std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
-                                    bool check = true,
-                                    bool oriented = false) {
-    auto s2points = make_s2points(vertices);
-
-    if (s2points.front() == s2points.back()) {
-        s2points.pop_back();
-    }
-
+std::unique_ptr<S2Loop> make_s2loop_from_points(const std::vector<S2Point>& s2points,
+                                                bool check = true,
+                                                bool oriented = false) {
     auto loop_ptr = std::make_unique<S2Loop>();
 
     loop_ptr->set_s2debug_override(S2Debug::DISABLE);
@@ -101,13 +99,23 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
         loop_ptr->Normalize();
     }
 
-    return std::move(loop_ptr);
+    return loop_ptr;
+}
+
+template <class V>
+std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
+                                    bool check = true,
+                                    bool oriented = false) {
+    auto s2points = make_s2points(vertices);
+    drop_closed_ring_duplicate(s2points);
+    return make_s2loop_from_points(s2points, check, oriented);
 }
 
 // create a S2Polygon.
 //
 std::unique_ptr<S2Polygon> make_s2polygon(std::vector<std::unique_ptr<S2Loop>> loops,
-                                          bool oriented = false) {
+                                          bool oriented = false,
+                                          bool check = true) {
     auto polygon_ptr = std::make_unique<S2Polygon>();
     polygon_ptr->set_s2debug_override(S2Debug::DISABLE);
 
@@ -118,7 +126,7 @@ std::unique_ptr<S2Polygon> make_s2polygon(std::vector<std::unique_ptr<S2Loop>> l
     }
 
     // Note: this also checks each loop of the polygon
-    if (!polygon_ptr->IsValid()) {
+    if (check && !polygon_ptr->IsValid()) {
         std::stringstream err;
         S2Error s2err;
         err << "polygon is not valid: ";
@@ -157,6 +165,44 @@ py::array_t<PyObjectGeography> points(const py::array_t<double>& coords) {
     }
 
     return points;
+}
+
+py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
+                                        bool oriented,
+                                        bool validate) {
+    auto shells_data = shells.unchecked<3>();
+    if (shells_data.shape(2) != 2) {
+        throw std::runtime_error("shells array must be of shape (N, K, 2)");
+    }
+
+    auto npolys = shells_data.shape(0);
+    auto nverts = shells_data.shape(1);
+
+    auto result = py::array_t<PyObjectGeography>(npolys);
+    py::buffer_info buf = result.request();
+    py::object* data = static_cast<py::object*>(buf.ptr);
+
+    // Scratch buffer reused across polygons. Per-ring validity is always
+    // skipped; bad rings still surface via the polygon-level IsValid() in
+    // make_s2polygon when validate=true.
+    std::vector<S2Point> pts;
+    pts.reserve(static_cast<size_t>(nverts));
+
+    for (py::ssize_t i = 0; i < npolys; i++) {
+        pts.clear();
+        for (py::ssize_t j = 0; j < nverts; j++) {
+            pts.push_back(make_s2point(shells_data(i, j, 0), shells_data(i, j, 1)));
+        }
+        drop_closed_ring_duplicate(pts);
+
+        std::vector<std::unique_ptr<S2Loop>> loops;
+        loops.push_back(make_s2loop_from_points(pts, /*check=*/false, oriented));
+
+        data[i] = make_py_geography<s2geog::PolygonGeography>(
+            make_s2polygon(std::move(loops), oriented, validate));
+    }
+
+    return result;
 }
 
 template <class V>
@@ -511,6 +557,53 @@ void init_creation(py::module& m) {
         ----------
         coords : array_like
             A array of longitude, latitude coordinate tuples (i.e., with shape (N, 2)).
+
+    )pbdoc");
+
+    m.def("polygons",
+          &polygons,
+          py::arg("shells"),
+          py::arg("oriented") = false,
+          py::arg("validate") = true,
+          R"pbdoc(polygons(shells, oriented=False, validate=True)
+
+        Create an array of polygons from a numpy array of ring coordinates.
+
+        This vectorized constructor is functionally equivalent to calling
+        :py:func:`create_polygon` for each shell but avoids the per-polygon
+        Python parsing overhead, making it much faster when building many
+        polygons of uniform shape (e.g. grid cells).
+
+        Limitations compared to :py:func:`create_polygon`: all polygons
+        must have the same number of shell vertices (the numpy ndarray
+        input enforces this uniformity), and holes are not supported —
+        use :py:func:`create_polygon` in a Python loop if either varies
+        across the batch.
+
+        Parameters
+        ----------
+        shells : array_like
+            Array of shape ``(N, K, 2)`` giving ``N`` shell rings, each with
+            ``K`` vertices expressed as ``(longitude, latitude)`` in degrees.
+            Rings may be open (first vertex not repeated as last) or closed;
+            in the latter case the duplicate closing vertex is dropped.
+        oriented : bool, default False
+            Set to True if polygon ring directions are known to be correct
+            (i.e., shell ring vertices are defined counter clockwise).
+            By default (False), each ring is normalized so that the polygon
+            corresponds to the smaller area on the sphere.
+        validate : bool, default True
+            Validate each resulting polygon via ``S2Polygon::IsValid``. Set
+            to False only if the input polygons are known to be valid (e.g.
+            rectilinear grid cells); skipping the check is a meaningful
+            speedup on large batches but an invalid polygon will then be
+            constructed silently.
+
+        Returns
+        -------
+        polygons : ndarray
+            A 1-d object array of shape ``(N,)`` containing POLYGON
+            :class:`~spherely.Geography` objects.
 
     )pbdoc");
 }
