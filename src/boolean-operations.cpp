@@ -19,6 +19,8 @@ public:
     }
 
     PyObjectGeography operator()(PyObjectGeography a, PyObjectGeography b) const {
+        // Extract both index references under the GIL: geog_index() is
+        // non-const and lazily initializes its backing unique_ptr.
         const auto& a_index = a.as_geog_ptr()->geog_index();
         const auto& b_index = b.as_geog_ptr()->geog_index();
         // Release the GIL during the s2geometry C++ work so callers can
