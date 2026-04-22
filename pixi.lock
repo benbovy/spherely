@@ -10120,7 +10120,7 @@ packages:
 - pypi: ./
   name: spherely
   version: 0.1.1
-  sha256: 979ba59f2b027127d227366248ca7f628e1eccdad0351af7edb0f1f4f9fee071
+  sha256: 096d26795d648aedb30e938e497388ddb364ad928d3105baa574c329a8091598
   requires_dist:
   - numpy
   - pytest>=6.0 ; extra == 'test'
