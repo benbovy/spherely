@@ -19,10 +19,20 @@ public:
     }
 
     PyObjectGeography operator()(PyObjectGeography a, PyObjectGeography b) const {
+        // Extract both index references under the GIL: geog_index() is
+        // non-const and lazily initializes its backing unique_ptr.
         const auto& a_index = a.as_geog_ptr()->geog_index();
         const auto& b_index = b.as_geog_ptr()->geog_index();
-        std::unique_ptr<s2geog::Geography> geog_out =
-            s2geog::s2_boolean_operation(a_index, b_index, m_op_type, m_options);
+        // Release the GIL during the s2geometry C++ work so callers can
+        // parallelize across Python threads (one ThreadPoolExecutor shard
+        // per CPU core). The fetched index references are owned by the
+        // input Geographies (kept alive for the duration of the vectorize
+        // call) and do not touch the Python heap during the operation.
+        std::unique_ptr<s2geog::Geography> geog_out;
+        {
+            py::gil_scoped_release release;
+            geog_out = s2geog::s2_boolean_operation(a_index, b_index, m_op_type, m_options);
+        }
 
         return make_py_geography(std::move(geog_out));
     }
