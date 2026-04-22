@@ -168,9 +168,8 @@ py::array_t<PyObjectGeography> points(const py::array_t<double>& coords) {
 }
 
 py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
-                                        std::optional<std::vector<py::object>> holes,
                                         bool oriented,
-                                        bool check) {
+                                        bool validate) {
     auto shells_data = shells.unchecked<3>();
     if (shells_data.shape(2) != 2) {
         throw std::runtime_error("shells array must be of shape (N, K, 2)");
@@ -179,20 +178,15 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
     auto npolys = shells_data.shape(0);
     auto nverts = shells_data.shape(1);
 
-    if (holes.has_value() && static_cast<py::ssize_t>(holes->size()) != npolys) {
-        throw std::runtime_error("holes must be a sequence of length N (same as number of shells)");
-    }
-
     auto result = py::array_t<PyObjectGeography>(npolys);
     py::buffer_info buf = result.request();
     py::object* data = static_cast<py::object*>(buf.ptr);
 
-    // Scratch buffers reused across polygons and (for holes) across rings.
-    // Per-ring validity is always skipped; bad rings still surface via the
-    // polygon-level IsValid() in make_s2polygon when check=true.
+    // Scratch buffer reused across polygons. Per-ring validity is always
+    // skipped; bad rings still surface via the polygon-level IsValid() in
+    // make_s2polygon when validate=true.
     std::vector<S2Point> pts;
     pts.reserve(static_cast<size_t>(nverts));
-    std::vector<S2Point> hpts;
 
     for (py::ssize_t i = 0; i < npolys; i++) {
         pts.clear();
@@ -204,32 +198,8 @@ py::array_t<PyObjectGeography> polygons(const py::array_t<double>& shells,
         std::vector<std::unique_ptr<S2Loop>> loops;
         loops.push_back(make_s2loop_from_points(pts, /*check=*/false, oriented));
 
-        if (holes.has_value()) {
-            const py::object& hole_entry = (*holes)[static_cast<size_t>(i)];
-            if (!hole_entry.is_none()) {
-                auto hole_array = py::cast<py::array_t<double>>(hole_entry);
-                if (hole_array.ndim() != 3 || hole_array.shape(2) != 2) {
-                    throw std::runtime_error(
-                        "each non-None entry of holes must be an array of shape (H, K, 2)");
-                }
-                auto hole_view = hole_array.unchecked<3>();
-                auto n_holes = hole_view.shape(0);
-                auto hk = hole_view.shape(1);
-                loops.reserve(static_cast<size_t>(1 + n_holes));
-                for (py::ssize_t h = 0; h < n_holes; h++) {
-                    hpts.clear();
-                    hpts.reserve(static_cast<size_t>(hk));
-                    for (py::ssize_t j = 0; j < hk; j++) {
-                        hpts.push_back(make_s2point(hole_view(h, j, 0), hole_view(h, j, 1)));
-                    }
-                    drop_closed_ring_duplicate(hpts);
-                    loops.push_back(make_s2loop_from_points(hpts, /*check=*/false, oriented));
-                }
-            }
-        }
-
         data[i] = make_py_geography<s2geog::PolygonGeography>(
-            make_s2polygon(std::move(loops), oriented, check));
+            make_s2polygon(std::move(loops), oriented, validate));
     }
 
     return result;
@@ -593,10 +563,9 @@ void init_creation(py::module& m) {
     m.def("polygons",
           &polygons,
           py::arg("shells"),
-          py::arg("holes") = py::none(),
           py::arg("oriented") = false,
-          py::arg("check") = true,
-          R"pbdoc(polygons(shells, holes=None, oriented=False, check=True)
+          py::arg("validate") = true,
+          R"pbdoc(polygons(shells, oriented=False, validate=True)
 
         Create an array of polygons from a numpy array of ring coordinates.
 
@@ -605,6 +574,12 @@ void init_creation(py::module& m) {
         Python parsing overhead, making it much faster when building many
         polygons of uniform shape (e.g. grid cells).
 
+        Limitations compared to :py:func:`create_polygon`: all polygons
+        must have the same number of shell vertices (the numpy ndarray
+        input enforces this uniformity), and holes are not supported —
+        use :py:func:`create_polygon` in a Python loop if either varies
+        across the batch.
+
         Parameters
         ----------
         shells : array_like
@@ -612,23 +587,17 @@ void init_creation(py::module& m) {
             ``K`` vertices expressed as ``(longitude, latitude)`` in degrees.
             Rings may be open (first vertex not repeated as last) or closed;
             in the latter case the duplicate closing vertex is dropped.
-        holes : sequence, optional
-            A sequence of length ``N`` where each entry is either ``None``
-            (no holes for the corresponding polygon) or an array of shape
-            ``(H, K_h, 2)`` giving that polygon's hole rings. If omitted, no
-            polygon has holes.
         oriented : bool, default False
             Set to True if polygon ring directions are known to be correct
-            (i.e., shell ring vertices are defined counter clockwise and hole
-            ring vertices are defined clockwise).
+            (i.e., shell ring vertices are defined counter clockwise).
             By default (False), each ring is normalized so that the polygon
             corresponds to the smaller area on the sphere.
-        check : bool, default True
-            Validate each resulting polygon via ``S2Polygon::IsValid``. Set to
-            False only if the input polygons are known to be valid (e.g.
-            rectilinear grid cells); skipping the check is a meaningful speedup
-            on large batches but an invalid polygon will then be constructed
-            silently.
+        validate : bool, default True
+            Validate each resulting polygon via ``S2Polygon::IsValid``. Set
+            to False only if the input polygons are known to be valid (e.g.
+            rectilinear grid cells); skipping the check is a meaningful
+            speedup on large batches but an invalid polygon will then be
+            constructed silently.
 
         Returns
         -------

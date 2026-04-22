@@ -393,33 +393,22 @@ def test_polygons_vectorized_basic() -> None:
         [
             [(0, 0), (2, 0), (2, 2), (0, 2)],
             [(4, 0), (6, 0), (6, 2), (4, 2)],
+            [(10, -5), (12, -5), (12, -3), (10, -3)],
+            [(-30, 40), (-28, 40), (-28, 42), (-30, 42)],
         ],
         dtype=np.float64,
     )
     result = spherely.polygons(shells)
 
     assert isinstance(result, np.ndarray)
-    assert result.shape == (2,)
+    assert result.shape == (4,)
     assert result.dtype == object
     assert repr(result[0]).startswith("POLYGON ((0 0")
     assert repr(result[1]).startswith("POLYGON ((4 0")
 
-
-def test_polygons_vectorized_matches_create_polygon() -> None:
-    shells = np.array(
-        [
-            [(0, 0), (2, 0), (2, 2), (0, 2)],
-            [(10, -5), (12, -5), (12, -3), (10, -3)],
-            [(-30, 40), (-28, 40), (-28, 42), (-30, 42)],
-        ],
-        dtype=np.float64,
-    )
-    vectorized = spherely.polygons(shells)
+    # each vectorized polygon matches its scalar create_polygon equivalent
     scalar = [spherely.create_polygon(ring.tolist()) for ring in shells]
-
-    assert [spherely.to_wkt(p) for p in vectorized] == [
-        spherely.to_wkt(p) for p in scalar
-    ]
+    assert [spherely.to_wkt(p) for p in result] == [spherely.to_wkt(p) for p in scalar]
 
 
 def test_polygons_vectorized_closed_ring() -> None:
@@ -451,34 +440,6 @@ def test_polygons_vectorized_oriented() -> None:
     assert repr(poly_cw) == "POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"
 
 
-def test_polygons_vectorized_holes() -> None:
-    shells = np.array(
-        [
-            [(0, 0), (2, 0), (2, 2), (0, 2)],
-            [(4, 0), (6, 0), (6, 2), (4, 2)],
-        ],
-        dtype=np.float64,
-    )
-    hole_ring = np.array(
-        [[(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5)]],
-        dtype=np.float64,
-    )
-    holes = [hole_ring, None]  # second polygon has no holes
-    result = spherely.polygons(shells, holes=holes)
-
-    # holed polygon matches the scalar equivalent
-    expected = spherely.create_polygon(
-        shell=shells[0].tolist(),
-        holes=[hole_ring[0].tolist()],
-    )
-    assert spherely.to_wkt(result[0]) == spherely.to_wkt(expected)
-
-    # center of the hole is NOT inside the holed polygon
-    assert not spherely.contains(result[0], spherely.create_point(1, 1))
-    # the second polygon has no hole
-    assert spherely.contains(result[1], spherely.create_point(5, 1))
-
-
 def test_polygons_vectorized_shape_errors() -> None:
     # wrong trailing dimension
     with pytest.raises(RuntimeError, match="shape"):
@@ -487,14 +448,6 @@ def test_polygons_vectorized_shape_errors() -> None:
     # wrong number of dimensions (surfaces from pybind11's unchecked view)
     with pytest.raises(ValueError, match="number of dimensions"):
         spherely.polygons(np.zeros((4, 2), dtype=np.float64))
-
-    # holes length mismatch
-    shells = np.array(
-        [[(0, 0), (2, 0), (2, 2), (0, 2)]],
-        dtype=np.float64,
-    )
-    with pytest.raises(RuntimeError, match="length N"):
-        spherely.polygons(shells, holes=[None, None])
 
 
 def test_polygons_vectorized_invalid_ring() -> None:
@@ -511,8 +464,8 @@ def test_polygons_vectorized_invalid_ring() -> None:
         spherely.polygons(shells)
 
 
-def test_polygons_vectorized_check_false_skips_validation() -> None:
-    # same bad shell as above, but check=False must not raise.
+def test_polygons_vectorized_validate_false_skips_validation() -> None:
+    # same bad shell as above, but validate=False must not raise.
     shells = np.array(
         [
             [(0, 0), (2, 0), (2, 2), (0, 2)],
@@ -520,7 +473,7 @@ def test_polygons_vectorized_check_false_skips_validation() -> None:
         ],
         dtype=np.float64,
     )
-    result = spherely.polygons(shells, check=False)
+    result = spherely.polygons(shells, validate=False)
     # we still get a Geography back for each input; no guarantee it's valid.
     assert result.shape == (2,)
     assert all(isinstance(g, spherely.Geography) for g in result)
