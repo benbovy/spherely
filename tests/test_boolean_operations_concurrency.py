@@ -78,7 +78,9 @@ def _pair_arrays():
     """
     src = _cell_polygons(N_SRC_LAT, N_SRC_LON)
     tgt = _cell_polygons(N_TGT_LAT, N_TGT_LON, lat_span=(-80.0, 80.0))
-    dst_idx, src_idx = np.meshgrid(np.arange(len(tgt)), np.arange(len(src)), indexing="ij")
+    dst_idx, src_idx = np.meshgrid(
+        np.arange(len(tgt)), np.arange(len(src)), indexing="ij"
+    )
     return tgt[dst_idx.ravel()], src[src_idx.ravel()]
 
 
@@ -113,7 +115,12 @@ def _fan_out(op, dst, src, n_threads=N_THREADS, iters_per_thread=1):
 
 @pytest.mark.parametrize(
     "op",
-    [spherely.intersection, spherely.union, spherely.difference, spherely.symmetric_difference],
+    [
+        spherely.intersection,
+        spherely.union,
+        spherely.difference,
+        spherely.symmetric_difference,
+    ],
 )
 def test_concurrent_shared_inputs_match_serial(op, shared_pairs):
     """N threads calling the same op on the same input arrays should return
@@ -242,6 +249,7 @@ def test_refcounts_stable_after_concurrent_runs():
     a = spherely.from_wkt("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
     b = spherely.from_wkt("POLYGON ((5 5, 15 5, 15 15, 5 15, 5 5))")
     import sys
+
     dst = np.array([a] * 50, dtype=object)
     src = np.array([b] * 50, dtype=object)
     rc_a_before = sys.getrefcount(a)
@@ -273,12 +281,8 @@ def test_gil_release_actually_enables_parallelism():
     # A pair of large partially-overlapping polygons, repeated. Each
     # intersection exercises the full s2 boolean-op path (not a bbox
     # rejection), so per-call time is in the 100µs-1ms range.
-    big1 = spherely.from_wkt(
-        "POLYGON ((-80 -40, 80 -40, 80 40, -80 40, -80 -40))"
-    )
-    big2 = spherely.from_wkt(
-        "POLYGON ((-40 -80, 40 -80, 40 80, -40 80, -40 -80))"
-    )
+    big1 = spherely.from_wkt("POLYGON ((-80 -40, 80 -40, 80 40, -80 40, -80 -40))")
+    big2 = spherely.from_wkt("POLYGON ((-40 -80, 40 -80, 40 80, -40 80, -40 -80))")
     n = 4000
     dst = np.array([big1] * n, dtype=object)
     src = np.array([big2] * n, dtype=object)

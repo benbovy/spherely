@@ -29,8 +29,7 @@ public:
         std::unique_ptr<s2geog::Geography> geog_out;
         {
             py::gil_scoped_release release;
-            geog_out =
-                s2geog::s2_boolean_operation(a_index, b_index, m_op_type, m_options);
+            geog_out = s2geog::s2_boolean_operation(a_index, b_index, m_op_type, m_options);
         }
 
         return make_py_geography(std::move(geog_out));
