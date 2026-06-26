@@ -4,7 +4,6 @@ import pytest
 
 import spherely
 
-
 pa = pytest.importorskip("pyarrow")
 ga = pytest.importorskip("geoarrow.pyarrow")
 
