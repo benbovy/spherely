@@ -77,6 +77,8 @@ set(CPP_SOURCES
   src/geography.cpp
   src/io.cpp
   src/predicates.cpp
+  src/predicates_common.cpp
+  src/spatial_index.cpp
   src/spherely.cpp)
 
 if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")

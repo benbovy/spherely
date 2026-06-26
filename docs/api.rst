@@ -99,6 +99,18 @@ between two geographies.
    covers
    covered_by
 
+.. _api_spatial_index:
+
+Spatial indexing
+----------------
+
+Index a collection of geographies for fast spatial queries.
+
+.. autosummary::
+   :toctree: _api_generated/
+
+   SpatialIndex
+
 .. _api_overlays:
 
 Overlays (boolean operations)

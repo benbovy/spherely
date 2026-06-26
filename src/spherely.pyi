@@ -232,6 +232,22 @@ touches: _VFunc_Nin2_Nout1[Literal["touches"], bool, bool]
 covers: _VFunc_Nin2_Nout1[Literal["covers"], bool, bool]
 covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
+# spatial index
+
+class SpatialIndex:
+    def __init__(self, geographies: Iterable[Geography]) -> None: ...
+    def __len__(self) -> int: ...
+    @property
+    def geometries(self) -> T_NDArray_Geography: ...
+    @overload
+    def query(
+        self, geography: Geography, predicate: str | None = None
+    ) -> npt.NDArray[np.intp]: ...
+    @overload
+    def query(
+        self, geography: Iterable[Geography], predicate: str | None = None
+    ) -> npt.NDArray[np.intp]: ...
+
 # boolean operations
 
 union: _VFunc_Nin2_Nout1[Literal["union"], Geography, Geography]
