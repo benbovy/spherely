@@ -18,7 +18,7 @@ jobs:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -62,13 +62,13 @@ jobs:
           macosx_deployment_target: 14.0
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Cache 3rd-party install directory
         id: cache-build
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
@@ -88,7 +88,7 @@ jobs:
 
       - name: Cache vcpkg install directory (Windows)
         if: runner.os == 'Windows'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: "c:\\vcpkg\\installed"
           key: vcpkg-${{ runner.os }}
@@ -104,7 +104,7 @@ jobs:
           ls /c/vcpkg/installed/x64-windows/bin
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.4.0
+        uses: pypa/cibuildwheel@v4.1.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: "*musllinux*"
