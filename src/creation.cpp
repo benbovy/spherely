@@ -93,7 +93,7 @@ std::unique_ptr<S2Loop> make_s2loop(const std::vector<V>& vertices,
         S2Error s2err;
         err << "ring is not valid: ";
         loop_ptr->FindValidationError(&s2err);
-        err << s2err.text();
+        err << s2err;
         throw py::value_error(err.str());
     }
 
@@ -123,7 +123,7 @@ std::unique_ptr<S2Polygon> make_s2polygon(std::vector<std::unique_ptr<S2Loop>> l
         S2Error s2err;
         err << "polygon is not valid: ";
         polygon_ptr->FindValidationError(&s2err);
-        err << s2err.text();
+        err << s2err;
         throw py::value_error(err.str());
     }
 
