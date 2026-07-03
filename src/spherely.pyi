@@ -212,6 +212,11 @@ def create_collection(geographies: Iterable[Geography]) -> GeometryCollection: .
 def points(
     longitude: npt.ArrayLike, latitude: npt.ArrayLike
 ) -> PointGeography | T_NDArray_Geography: ...
+def polygons(
+    shells: npt.NDArray[np.float64],
+    oriented: bool = False,
+    validate: bool = True,
+) -> T_NDArray_Geography: ...
 
 # Geography utils
 
