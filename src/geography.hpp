@@ -79,7 +79,7 @@ public:
         return reinterpret_cast<const T*>(&geog());
     }
 
-    inline const s2geog::ShapeIndexGeography& geog_index() {
+    inline const s2geog::ShapeIndexGeography& geog_index() const {
         if (!m_s2geog_index_ptr) {
             m_s2geog_index_ptr = std::make_unique<s2geog::ShapeIndexGeography>(geog());
         }
@@ -111,7 +111,9 @@ public:
 
 private:
     S2GeographyPtr m_s2geog_ptr;
-    S2GeographyIndexPtr m_s2geog_index_ptr;
+    // lazily built by geog_index() (mutable: caching only, doesn't affect
+    // the observable state of the Geography)
+    mutable S2GeographyIndexPtr m_s2geog_index_ptr;
     bool m_is_empty = false;
     GeographyType m_geog_type;
 

@@ -232,6 +232,106 @@ touches: _VFunc_Nin2_Nout1[Literal["touches"], bool, bool]
 covers: _VFunc_Nin2_Nout1[Literal["covers"], bool, bool]
 covered_by: _VFunc_Nin2_Nout1[Literal["covered_by"], bool, bool]
 
+# spatial index
+
+_IndexPredicate = Literal[
+    "intersects", "within", "contains", "covers", "covered_by", "touches", "equals"
+]
+
+class SpatialIndex:
+    def __init__(self, geographies: Iterable[Geography]) -> None: ...
+    def build(self, tmp_memory_budget: int | None = None) -> None: ...
+    def __len__(self) -> int: ...
+    @property
+    def is_built(self) -> bool: ...
+    @property
+    def geometries(self) -> T_NDArray_Geography: ...
+    # testing / introspection only: pins the laziness contract of an index
+    # loaded from encoded bytes, not part of the public API
+    @property
+    def _decoded_count(self) -> int: ...
+    def encode(self, include_geographies: bool = True) -> bytes: ...
+    @staticmethod
+    def from_encoded(encoded: bytes | bytearray | memoryview) -> SpatialIndex: ...
+    @overload
+    def query(
+        self, geography: Geography, predicate: _IndexPredicate | None = None
+    ) -> npt.NDArray[np.intp]: ...
+    @overload
+    def query(
+        self, geography: Iterable[Geography], predicate: _IndexPredicate | None = None
+    ) -> npt.NDArray[np.intp]: ...
+    # every argument may also be passed positionally (as in shapely); the
+    # trailing overloads cover a ``return_distance`` value only known at
+    # runtime
+    @overload
+    def query_nearest(
+        self,
+        geography: Geography,
+        max_distance: float | None = None,
+        return_distance: Literal[False] = False,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> npt.NDArray[np.intp]: ...
+    @overload
+    def query_nearest(
+        self,
+        geography: Iterable[Geography],
+        max_distance: float | None = None,
+        return_distance: Literal[False] = False,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> npt.NDArray[np.intp]: ...
+    @overload
+    def query_nearest(
+        self,
+        geography: Geography,
+        max_distance: float | None = None,
+        return_distance: Literal[True] = ...,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]: ...
+    @overload
+    def query_nearest(
+        self,
+        geography: Iterable[Geography],
+        max_distance: float | None = None,
+        return_distance: Literal[True] = ...,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]: ...
+    @overload
+    def query_nearest(
+        self,
+        geography: Geography,
+        max_distance: float | None = None,
+        return_distance: bool = False,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> (
+        npt.NDArray[np.intp] | tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]
+    ): ...
+    @overload
+    def query_nearest(
+        self,
+        geography: Iterable[Geography],
+        max_distance: float | None = None,
+        return_distance: bool = False,
+        exclusive: bool = False,
+        all_matches: bool = True,
+        radius: float = 6371010.0,
+    ) -> (
+        npt.NDArray[np.intp] | tuple[npt.NDArray[np.intp], npt.NDArray[np.float64]]
+    ): ...
+
+def _s2_tmp_memory_budget() -> int: ...
+def _set_s2_tmp_memory_budget(bytes: int) -> None: ...
+
 # boolean operations
 
 union: _VFunc_Nin2_Nout1[Literal["union"], Geography, Geography]
