@@ -47,6 +47,31 @@ endif()
 
 # Compile definitions and flags
 
+# How src/s2_tmp_memory_budget.cpp declares
+# FLAGS_s2shape_index_tmp_memory_budget. A shared s2 exports it as *data*, and
+# an import library defines only __imp_<symbol> for data, so the reference has
+# to be routed through that entry with __declspec(dllimport); a static s2
+# defines the bare symbol and wants the plain extern that s2's own header
+# already provides. Both are in use -- conda-forge ships a DLL, vcpkg builds
+# s2geometry static on Windows -- so take the answer from the imported target.
+#
+# The fallback is the dllimport form because the two mistakes are not
+# symmetric: a plain extern against a DLL cannot link at all (LNK2001), while
+# dllimport against a static s2 links as long as the object defining the flag
+# is in the image -- which it is here, since it also defines
+# MutableS2ShapeIndex -- at the cost of warning LNK4217.
+if(WIN32)
+  get_target_property(_s2_type s2::s2 TYPE)
+  if(_s2_type STREQUAL "STATIC_LIBRARY")
+    set(SPHERELY_S2_DLLIMPORT 0)
+  else()
+    set(SPHERELY_S2_DLLIMPORT 1)
+  endif()
+  message(STATUS "s2::s2 is ${_s2_type}: SPHERELY_S2_DLLIMPORT=${SPHERELY_S2_DLLIMPORT}")
+else()
+  set(SPHERELY_S2_DLLIMPORT 0)
+endif()
+
 if (MSVC)
   # used in s2geometry's CMakeLists.txt but not defined in target
   # TODO: move this in FindS2.cmake?
@@ -80,7 +105,12 @@ set(CPP_SOURCES
   src/spherely.cpp)
 
 if(${s2geography_VERSION} VERSION_GREATER_EQUAL "0.2.0")
-    set(CPP_SOURCES ${CPP_SOURCES} src/geoarrow.cpp src/projections.cpp)
+    set(CPP_SOURCES ${CPP_SOURCES}
+      src/geoarrow.cpp
+      src/predicates_common.cpp
+      src/projections.cpp
+      src/s2_tmp_memory_budget.cpp
+      src/spatial_index.cpp)
 endif()
 
 add_library(spherely MODULE ${CPP_SOURCES})
@@ -91,7 +121,8 @@ target_compile_definitions(
   VERSION_INFO=${PROJECT_VERSION}
   S2GEOGRAPHY_VERSION=${s2geography_VERSION}
   S2GEOGRAPHY_VERSION_MAJOR=${s2geography_VERSION_MAJOR}
-  S2GEOGRAPHY_VERSION_MINOR=${s2geography_VERSION_MINOR})
+  S2GEOGRAPHY_VERSION_MINOR=${s2geography_VERSION_MINOR}
+  SPHERELY_S2_DLLIMPORT=${SPHERELY_S2_DLLIMPORT})
 
 target_link_libraries(spherely
   PRIVATE pybind11::module pybind11::lto pybind11::windows_extras
