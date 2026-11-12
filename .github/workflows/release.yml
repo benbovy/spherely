@@ -18,7 +18,7 @@ jobs:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -26,7 +26,7 @@ jobs:
         run: pipx run build --sdist
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-sdist
           path: ./dist/*.tar.gz
@@ -62,13 +62,13 @@ jobs:
           macosx_deployment_target: 14.0
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Cache 3rd-party install directory
         id: cache-build
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/3rd-party/dist
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.ABSL_VERSION }}-${{ env.S2GEOMETRY_VERSION }}-${{ env.S2GEOGRAPHY_VERSION }}-${{ hashFiles('ci/*') }}
@@ -82,13 +82,13 @@ jobs:
       # for some reason mingw is selected by cmake within cibuildwheel before_all
       - name: Prepare compiler environment for Windows
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: x64
 
       - name: Cache vcpkg install directory (Windows)
         if: runner.os == 'Windows'
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: "c:\\vcpkg\\installed"
           key: vcpkg-${{ runner.os }}
@@ -143,7 +143,7 @@ jobs:
           CIBW_TEST_COMMAND: pytest {project}/tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
@@ -158,7 +158,7 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - name: Get dist files
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: release-*
           merge-multiple: true
