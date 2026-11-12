@@ -5,8 +5,8 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/ci-additional.yml':
         - 'actions/checkout@v7.0.1'
-        - 'gaurav-nelson/github-action-markdown-link-check@v1'
         - 'mamba-org/setup-micromamba@v3.2.1'
+        - 'umbrelladocs/action-linkspector@v1.5.5'
     '.github/workflows/release.yml':
         - 'actions/cache@v6.1.0'
         - 'actions/checkout@v7.0.1'
@@ -21,6 +21,11 @@ workflows:
         - 'mamba-org/setup-micromamba@v3.2.1'
         - 'prefix-dev/setup-pixi@v0.10.0'
 dependencies:
+    'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae':
+        ref: 'v5.0.5'
+        commit: 'sha1-27d5ce7f107fe9357f9df03efb73ab90386fccae'
+        owner_id: 44036562
+        repo_id: 215566462
     'actions/cache@v6.1.0':
         ref: 'v6.1.0'
         commit: 'sha1-55cc8345863c7cc4c66a329aec7e433d2d1c52a9'
@@ -41,6 +46,11 @@ dependencies:
         commit: 'sha1-ed597411d8f924073f98dfc5c65a23a2325f34cd'
         owner_id: 44036562
         repo_id: 205262760
+    'actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444':
+        ref: 'v5.0.0'
+        commit: 'sha1-a0853c24544627f65ddf259abe73b1d18a591444'
+        owner_id: 44036562
+        repo_id: 189476904
     'actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405':
         ref: 'v6.2.0'
         commit: 'sha1-a309ff8b426b58ec0e2a45f0f869d46889d02405'
@@ -58,11 +68,6 @@ dependencies:
         repo_id: 200299178
         uses:
             - 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd'
-    'gaurav-nelson/github-action-markdown-link-check@v1':
-        ref: 'v1'
-        commit: 'sha1-5c5dfc0ac2e225883c0e5f03a85311ec2830d368'
-        owner_id: 23069445
-        repo_id: 178552370
     'ilammy/msvc-dev-cmd@v1.13.0':
         ref: 'v1.13.0'
         commit: 'sha1-0b201ec74fa43914dc39ae48a89fd1d8cb592756'
@@ -92,3 +97,17 @@ dependencies:
         repo_id: 178055147
         uses:
             - 'actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405'
+    'reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f':
+        ref: 'v1.5.0'
+        commit: 'sha1-d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f'
+        owner_id: 48765237
+        repo_id: 286005511
+    'umbrelladocs/action-linkspector@v1.5.5':
+        ref: 'v1.5.5'
+        commit: 'sha1-568ec8d29fa92b31fd9ea5381e155c51e922af83'
+        owner_id: 102124447
+        repo_id: 799802002
+        uses:
+            - 'actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae'
+            - 'actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444'
+            - 'reviewdog/action-setup@d8a7baabd7f3e8544ee4dbde3ee41d0011c3a93f'

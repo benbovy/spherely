@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v7.0.1
 
     - name: Markdown link check
-      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      uses: umbrelladocs/action-linkspector@v1.5.5
 
   mypy:
     name: Mypy
