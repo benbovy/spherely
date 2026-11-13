@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v7
+      uses: actions/checkout@v7.0.1
 
     - name: Markdown link check
-      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      uses: umbrelladocs/action-linkspector@v1.5.5
 
   mypy:
     name: Mypy
@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Setup micromamba
-        uses: mamba-org/setup-micromamba@v3
+        uses: mamba-org/setup-micromamba@v3.2.1
         with:
           environment-file: ci/environment.yml
           environment-name: spherely-dev
@@ -47,3 +47,17 @@ jobs:
       - name: Run mypy
         run: |
           python -m mypy --install-types --non-interactive
+
+  # Fails when .github/workflows/actions.lock is out of sync with the
+  # workflows or a locked pin no longer verifies upstream.
+  lockfile:
+    runs-on: ubuntu-slim
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: gh actions-lock --verify
