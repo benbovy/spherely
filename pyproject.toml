@@ -26,7 +26,7 @@ Home = "https://spherely.readthedocs.io"
 Repository = "https://github.com/benbovy/spherely"
 
 [project.optional-dependencies]
-test = ["pytest>=6.0"]
+test = ["pytest"]
 
 [tool.scikit-build]
 sdist.exclude = [".github"]
@@ -50,16 +50,16 @@ lint = {features = ["lint", "dev"], solve-group = "default"}
 all = {features = ["lint", "doc", "test", "dev"], solve-group = "default"}
 
 [tool.pixi.dependencies]
-numpy = "*"
+numpy = ">=2.5.4,<3"
 
 [tool.pixi.feature.dev.dependencies]
-cxx-compiler = ">=1.9.0,<2"
-cmake = ">=3.31.5,<4"
-ninja = ">=1.12.1,<2"
-pybind11 = ">=2.13.6,<3"
-scikit-build-core = ">=0.10.7,<0.11"
-s2geometry = ">=0.11.1,<0.12"
-s2geography = ">=0.2.0,<0.3"
+cxx-compiler = ">=2.0.0,<3"
+cmake = ">=4.4.5,<5"
+ninja = ">=1.13.2,<2"
+pybind11 = ">=3.1.0,<4"
+scikit-build-core = ">=1.1.2,<2"
+s2geometry = ">=0.14.0,<0.15"
+s2geography = ">=0.4.0,<0.5"
 
 [tool.pixi.feature.dev.pypi-dependencies]
 spherely = { path = ".", editable = true }
@@ -68,18 +68,18 @@ spherely = { path = ".", editable = true }
 no-build-isolation = ["spherely"]
 
 [tool.pixi.feature.test.dependencies]
-pytest = ">=8.3.4,<9"
-geoarrow-pyarrow = ">=0.1.2,<0.2"
+pytest = ">=9.2.0,<10"
+geoarrow-pyarrow = ">=0.3.0,<0.4"
 
 [tool.pixi.feature.doc.dependencies]
-sphinx = ">=8.1.3,<9"
-pydata-sphinx-theme = ">=0.16.1,<0.17"
+sphinx = ">=9.2.0,<10"
+pydata-sphinx-theme = ">=0.24.0,<0.25"
 sphinx-book-theme = ">=1.1.3,<2"
-myst-nb = ">=1.1.2,<2"
+myst-nb = ">=1.4.0,<2"
 
 [tool.pixi.feature.lint.dependencies]
-pre-commit = ">=4.1.0,<5"
-mypy = ">=1.14.1,<2"
+pre-commit = ">=4.7.0,<5"
+mypy = ">=2.4.1,<3"
 
 [tool.pixi.feature.test.tasks]
 tests = "pytest tests --color=yes"
